@@ -1,0 +1,9 @@
+version: "3.7"
+
+services:
+  
+  hs-ontology-api: 
+    # Use the published image and tag from DockerHub
+    image: hs-ontology-api:${HS_ONTOLOGY_API_VERSION:?err}
+
+
