@@ -5,4 +5,4 @@
 nginx -g 'daemon off;' &
 
 # Start uwsgi and keep it running in foreground
-uwsgi --ini /usr/src/app/src/ubkg_api/uwsgi.ini
+uwsgi --ini /usr/src/app/src/uwsgi.ini
