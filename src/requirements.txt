@@ -1,0 +1,1 @@
+git+https://github.com/x-atlas-consortia/ubkg-api@sedivy/7-modularize-ubkg-api#egg=ubkg-api
