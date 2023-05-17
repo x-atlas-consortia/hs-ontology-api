@@ -1,11 +1,6 @@
-from ubkg_api.app import UbkgAPI
+from ubkg_api.app import app
 
 
-run_with_config_file = True
-
-if __name__ == "__main__":
-    if run_with_config_file:
-        UbkgAPI(None).app.run(host='0.0.0.0', debug=True, port=8080)
-    else:
-        UbkgAPI({'SERVER': '', 'USERNAME': '', 'PASSWORD': ''}).app.run(host='0.0.0.0', debug=True, port=8080)
-
+# For local standalone (non-docker) development/testing
+if __name__ == '__main__':
+    app.run(debug=True, port=8080, host='0.0.0.0')
