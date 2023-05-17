@@ -28,7 +28,6 @@ RUN yum install -y yum-utils && \
     rm -rf nginx && \
     pip install --upgrade pip -r src/requirements.txt && \
     chmod +x start.sh && \
-    dnf install langpacks-en glibc-all-langpacks -y && \
     yum clean all
 
 # The EXPOSE instruction informs Docker that the container listens on the specified network ports at runtime.
