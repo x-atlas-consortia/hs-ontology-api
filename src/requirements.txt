@@ -1,1 +1,1 @@
-ubkg-api==1.3.0
+ubkg-api==1.3.1
