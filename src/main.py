@@ -1,7 +1,7 @@
 import os
 from flask import Flask, jsonify
 from pathlib import Path
-from ubkg_api.app import UbkgAPI
+from ubkg_api.app import UbkgAPI, logger
 
 flask_app = Flask(__name__, instance_path=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance'), instance_relative_config=True)
 flask_app.config.from_pyfile('app.cfg')
