@@ -3,10 +3,13 @@ from flask import Flask, jsonify
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
+from src.routes.valueset_controller import valueset_blueprint
+
 flask_app = Flask(__name__, instance_path=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance'), instance_relative_config=True)
 flask_app.config.from_pyfile('app.cfg')
 
 app = UbkgAPI(flask_app.config).app
+app.register_blueprint(valueset_blueprint)
 
 # Define the /status endpoint in the ubkg_api package will causes 500 error
 # Because the VERSION and BUILD files are not built into the package
