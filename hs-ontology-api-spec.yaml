@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info:
+  title: UBKG API
+  description: This document describes the UBKG API
+  version: 1.3.1
+servers:
+  - url: https://ontology.api.hubmapconsortium.org/
+    description: Production server
+  - url: https://ontology-api.dev.hubmapconsortium.org/
+    description: Development server
+paths:
+  /relationships/gene/{target_symbol}:
+    get:
+      operationId: relationships_for_gene_target_symbol_get
+      summary: Returns relationships associated with the gene
+      parameters:
+        - name: target-symbol
+          in: path
+          required: true
+          description: one of gene name, symbol, alias, or prior symbol
+          schema:
+            type: string
+            example: MMRN1
+      responses:
+        '200':
+          description: A JSON array of the HGNCIdRelationships
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HGNCIdRelationships'
+              example:
+                symbol-approved: ["MMRN1"]
+                symbol-previous: ["MMRN"]
+                symbol-alias: ["EMILIN4", "GPIa*", "ECM"]
+components:
+  schemas:
+    HGNCIdRelationships:
+      type: object
+      description: Response Body for relationships/hgnc-id/{id} GET request
+      properties:
+        symbol-approved:
+          description: HGNC data Approved Symbols, but should only be one
+          type: array
+          items:
+            type: string
+            example: ["MMRN1"]
+        symbol-previous:
+          description: HGNC data Previous Symbols
+          type: array
+          items:
+            type: string
+            example: ["MMRN"]
+        symbol-alias:
+          description: HGNC data Alias Symbols
+          type: array
+          items:
+            type: string
+            example: ["EMILIN4", "GPIa*", "ECM"]
