@@ -1,12 +1,12 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, current_app
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
-from src.routes.datasets.datasets_controller import datasets_blueprint
-from src.routes.organs.organs_controller import organs_blueprint
-from src.routes.valueset.valueset_controller import valueset_blueprint
-from src.routes.relationships.relationships_controller import relationships_blueprint
+from routes_local.datasets.datasets_controller import datasets_blueprint
+from routes_local.organs.organs_controller import organs_blueprint
+from routes_local.valueset.valueset_controller import valueset_blueprint
+from routes_local.relationships.relationships_controller import relationships_blueprint
 
 flask_app = Flask(__name__, instance_path=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance'), instance_relative_config=True)
 flask_app.config.from_pyfile('app.cfg')
@@ -28,7 +28,7 @@ def api_status():
         'build': (Path(__file__).absolute().parent.parent / 'BUILD').read_text().strip(),
         'neo4j_connection': False
     }
-    is_connected = app.neo4jManager.check_connection()
+    is_connected = current_app.neo4jManager.check_connection()
     if is_connected:
         status_data['neo4j_connection'] = True
 
