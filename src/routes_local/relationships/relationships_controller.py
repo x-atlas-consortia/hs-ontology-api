@@ -18,5 +18,7 @@ def relationships_for_gene_target_symbol_get(target_symbol):
     neo4j_instance = current_app.neo4jManager.instance()
     result = relationships_for_gene_target_symbol_get_logic(target_symbol, neo4j_instance)
     if result is None:
-        return make_response(f"Nothing found for gene target symbol: {target_symbol}", 404)
+        resp = make_response(jsonify({"message": f"Nothing found for gene target symbol: {target_symbol}"}), 404)
+        resp.headers['Content-Type'] = 'application/json'
+        return resp
     return jsonify(result)
