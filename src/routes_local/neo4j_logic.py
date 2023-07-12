@@ -7,7 +7,7 @@ logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d
 logger = logging.getLogger(__name__)
 
 
-def valueset_get(neo4jInstance, parent_sab: str, parent_code: str, child_sabs: List[str]) -> List[SabCodeTerm]:
+def valueset_get(neo4jInstance, parent_sab: str, parent_code: str, child_sabs):
     # JAS 29 NOV 2022
     # Returns a valueset of concepts that are children (have as isa relationship) of another concept.
 
