@@ -228,7 +228,7 @@ def dataset_get(neo4jInstance, application_context: str, data_type: str = '', de
     return datasets
 
 
-def __query_cypher_dataset_info(self, sab: str) -> str:
+def __query_cypher_dataset_info(sab: str) -> str:
     # JAS FEB 2023
     # Returns a Cypher query string that will return property information on the datasets in an application
     # context (SAB in the KG), keyed by the data_type.
@@ -267,41 +267,41 @@ def __query_cypher_dataset_info(self, sab: str) -> str:
     # The subquery will return:
     # data_typeCUI - used in the WITH clause of downstream subqueries for properties that link to the data_type.
     # data_type - used in the return
-    qry = qry + self.__subquery_data_type_info(sab=sab)
+    qry = qry + __subquery_data_type_info(sab=sab)
 
     # Identify CUIs for dataset types that associate with the data_type.
     # The subquery will return DatasetCUI, used in the WITH clause of downstream subqueries that link to the
     # Dataset.
-    qry = qry + ' ' + self.__subquery_dataset_cuis(sab=sab, cuialias='data_typeCUI', returnalias='DatasetCUI')
+    qry = qry + ' ' + __subquery_dataset_cuis(sab=sab, cuialias='data_typeCUI', returnalias='DatasetCUI')
 
     # PROPERTY VALUE SUBQUERIES
 
     # Dataset display name: relationship property of the Dataset.
-    qry = qry + ' ' + self.__subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
                                                                     rel_string='has_display_name',
                                                                     returnalias='description')
 
     # alt_names: Synonym property, linked to the data_type.
     # Because a data_type can have multiple alt-names, collect values.
-    qry = qry + ' ' + self.__subquery_dataset_synonym_property(sab=sab, cuialias='data_typeCUI',
+    qry = qry + ' ' + __subquery_dataset_synonym_property(sab=sab, cuialias='data_typeCUI',
                                                                returnalias='alt_names',
                                                                collectvalues=True)
 
     # dataset_order: relationship property, linked to Dataset.
     # C004003=Primary Dataset, C004004=Derived Dataset in both HuBMAP and SenNet.
-    qry = qry + ' ' + self.__subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
                                                                     rel_string='isa',
                                                                     returnalias='primary',
                                                                     codelist=['C004003', 'C004004'])
 
     # dataset_provider: relationship property of the Dataset.
-    qry = qry + ' ' + self.__subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
                                                                     rel_string='provided_by',
                                                                     returnalias='dataset_provider')
 
     # vis-only: "boolean" relationship property of the Dataset.
     # True = the Dataset isa <SAB> C004008 (vis-only).
-    qry = qry + ' ' + self.__subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
                                                                     rel_string='isa',
                                                                     returnalias='vis_only',
                                                                     isboolean=True,
@@ -309,14 +309,14 @@ def __query_cypher_dataset_info(self, sab: str) -> str:
 
     # contains_pii: "boolean" relationship property of the Dataset.
     # True = the Dataset has a path to code <SAB> C004009 (pii).
-    qry = qry + ' ' + self.__subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
                                                                     returnalias='contains_pii',
                                                                     rel_string='contains',
                                                                     isboolean=True,
                                                                     codelist=['C004009'])
 
     # vitessce_hints: list relationship property of the data_type.
-    qry = qry + ' ' + self.__subquery_dataset_relationship_property(sab=sab, cuialias='data_typeCUI',
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='data_typeCUI',
                                                                     rel_string='has_vitessce_hint',
                                                                     returnalias='vitessce_hints',
                                                                     collectvalues=True)
