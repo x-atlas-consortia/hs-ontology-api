@@ -1,5 +1,8 @@
 from flask import Blueprint, jsonify, current_app, request
 
+from ..neo4j_logic import valueset_get as valueset_get_query
+
+
 valueset_blueprint = Blueprint('valueset_hs', __name__, url_prefix='/valueset')
 
 
@@ -17,6 +20,8 @@ def valueset_get():
 
     :rtype: Union[List[SabCodeTerm], Tuple[List[SabCodeTerm], int], Tuple[List[SabCodeTerm], int, Dict[str, str]]
     """
+    neo4j_instance = current_app.neo4jManager.instance()
+
     child_sabs = request.args.getlist('child_sabs')
     if child_sabs == []:
         return jsonify("Invalid child_sabs (empty list) specified"), 400
@@ -26,6 +31,4 @@ def valueset_get():
     parent_code = request.args.get('parent_code')
     if parent_code is None:
         return jsonify(f"Invalid parent_code ({parent_code}) specified"), 400
-    return jsonify(
-        current_app.neo4jManager.valueset_get(parent_sab, parent_code,
-                                              child_sabs))
+    return jsonify(valueset_get_query(neo4j_instance, parent_sab, parent_code, child_sabs))
