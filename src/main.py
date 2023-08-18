@@ -1,21 +1,17 @@
-import os
-from flask import Flask, jsonify, current_app
+from flask import jsonify, current_app
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
-from routes_local.datasets.datasets_controller import datasets_blueprint
-from routes_local.organs.organs_controller import organs_blueprint
-from routes_local.valueset.valueset_controller import valueset_blueprint
-from routes_local.relationships.relationships_controller import relationships_blueprint
+from hs_ontology_api.routes.datasets.datasets_controller import datasets_blueprint
+from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
+from hs_ontology_api.routes.relationships.relationships_controller import relationships_blueprint
+from hs_ontology_api.routes.valueset.valueset_controller import valueset_blueprint
 
-flask_app = Flask(__name__, instance_path=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance'), instance_relative_config=True)
-flask_app.config.from_pyfile('app.cfg')
-
-app = UbkgAPI(flask_app.config).app
-app.register_blueprint(valueset_blueprint)
-app.register_blueprint(organs_blueprint)
+app = UbkgAPI('/Users/cpk36/Documents/Git/hs-ontology-api/src/hs_ontology_api/instance/app.cfg').app
 app.register_blueprint(datasets_blueprint)
+app.register_blueprint(organs_blueprint)
 app.register_blueprint(relationships_blueprint)
+app.register_blueprint(valueset_blueprint)
 
 
 # Define the /status endpoint in the ubkg_api package will causes 500 error

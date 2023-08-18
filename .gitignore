@@ -19,7 +19,7 @@ scripts/.openapi-generator
 api/.openapi-generator/*
 
 # config file
-src/instance/app.cfg
+src/hs_ontology_api/instance/app.cfg
 
 # log files in any path
 **/*.log

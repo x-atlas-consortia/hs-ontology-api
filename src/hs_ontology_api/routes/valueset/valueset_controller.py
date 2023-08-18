@@ -1,5 +1,7 @@
 from flask import Blueprint, jsonify, current_app, request
 
+from ..neo4j_logic import valueset_get_logic
+
 valueset_blueprint = Blueprint('valueset_hs', __name__, url_prefix='/valueset')
 
 
@@ -26,6 +28,5 @@ def valueset_get():
     parent_code = request.args.get('parent_code')
     if parent_code is None:
         return jsonify(f"Invalid parent_code ({parent_code}) specified"), 400
-    return jsonify(
-        current_app.neo4jManager.valueset_get(parent_sab, parent_code,
-                                              child_sabs))
+    neo4j_instance = current_app.neo4jConnectionHelper.instance()
+    return jsonify(valueset_get_logic(neo4j_instance, parent_sab, parent_code, child_sabs))
