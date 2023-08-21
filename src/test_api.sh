@@ -60,9 +60,7 @@ echo
 
 echo "valueset GET..."
 curl --request GET \
- --url "${UBKG_URL}/valueset" \
+ --url "${UBKG_URL}/valueset?child_sabs=HGNC&child_sabs=SNOMEDCT_US&parent_sab=HUBMAP&parent_code=C000530" \
  --header "Content-Type: application/json" \
- --header "Accept: application/json" \
- --header "Authorization: Bearer ${TOKEN}" \
- --data '{"child_sabs": ["SNOMEDCT_US", "HGNC"], "parent_sab": "HUBMAP", "parent_code": "C000530"}'
+ --header "Authorization: Bearer ${TOKEN}"
 echo

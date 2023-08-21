@@ -9,7 +9,6 @@ valueset_blueprint = Blueprint('valueset_hs', __name__, url_prefix='/valueset')
 def valueset_get():
     """Returns a valueset of concepts that are children (have as isa relationship) of another concept.
 
-
     :param parent_sab: the SAB of the parent concept
     :type parent_sab: str
     :param parent_code: the code of the parent concept in the SAB (local ontology)
