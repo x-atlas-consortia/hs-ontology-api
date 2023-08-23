@@ -34,7 +34,7 @@ def api_status():
         'build': (Path(__file__).absolute().parent.parent / 'BUILD').read_text().strip(),
         'neo4j_connection': False
     }
-    is_connected = current_app.neo4jManager.check_connection()
+    is_connected = current_app.neo4jConnectionHelper.check_connection()
     if is_connected:
         status_data['neo4j_connection'] = True
 
