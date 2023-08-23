@@ -64,3 +64,18 @@ curl --request GET \
  --header "Content-Type: application/json" \
  --header "Authorization: Bearer ${TOKEN}"
 echo
+
+# Two calls used by the HuBMAP ingest-ui
+echo "Used by ingest-ui: assaytype?application_context=HUBMAP GET..."
+curl --request GET \
+ --url "${UBKG_URL}/assaytype?application_context=HUBMAP&primary=true" \
+ --header "Content-Type: application/json" \
+ --header "Authorization: Bearer ${TOKEN}"
+echo
+
+echo "Used by ingest-ui: organs/by-code?application_context=HUBMAP GET..."
+curl --request GET \
+ --url "${UBKG_URL}/organs/by-code?application_context=HUBMAP" \
+ --header "Content-Type: application/json" \
+ --header "Authorization: Bearer ${TOKEN}"
+echo
