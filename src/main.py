@@ -1,4 +1,5 @@
-from flask import jsonify, current_app
+from os import path
+from flask import Flask, jsonify, current_app
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
@@ -7,7 +8,16 @@ from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
 from hs_ontology_api.routes.relationships.relationships_controller import relationships_blueprint
 from hs_ontology_api.routes.valueset.valueset_controller import valueset_blueprint
 
-app = UbkgAPI('/Users/cpk36/Documents/Git/hs-ontology-api/src/hs_ontology_api/instance/app.cfg').app
+
+def make_flask_config():
+    temp_flask_app = Flask(__name__,
+                      instance_path=path.join(path.abspath(path.dirname(__file__)), 'hs_ontology_api/instance'),
+                      instance_relative_config=True)
+    temp_flask_app.config.from_pyfile('app.cfg')
+    return temp_flask_app.config
+
+
+app = UbkgAPI(make_flask_config()).app
 app.register_blueprint(datasets_blueprint)
 app.register_blueprint(organs_blueprint)
 app.register_blueprint(relationships_blueprint)
