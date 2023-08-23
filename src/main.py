@@ -1,21 +1,27 @@
-import os
+from os import path
 from flask import Flask, jsonify, current_app
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
-from routes_local.datasets.datasets_controller import datasets_blueprint
-from routes_local.organs.organs_controller import organs_blueprint
-from routes_local.valueset.valueset_controller import valueset_blueprint
-from routes_local.relationships.relationships_controller import relationships_blueprint
+from hs_ontology_api.routes.datasets.datasets_controller import datasets_blueprint
+from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
+from hs_ontology_api.routes.relationships.relationships_controller import relationships_blueprint
+from hs_ontology_api.routes.valueset.valueset_controller import valueset_blueprint
 
-flask_app = Flask(__name__, instance_path=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance'), instance_relative_config=True)
-flask_app.config.from_pyfile('app.cfg')
 
-app = UbkgAPI(flask_app.config).app
-app.register_blueprint(valueset_blueprint)
-app.register_blueprint(organs_blueprint)
+def make_flask_config():
+    temp_flask_app = Flask(__name__,
+                      instance_path=path.join(path.abspath(path.dirname(__file__)), 'hs_ontology_api/instance'),
+                      instance_relative_config=True)
+    temp_flask_app.config.from_pyfile('app.cfg')
+    return temp_flask_app.config
+
+
+app = UbkgAPI(make_flask_config()).app
 app.register_blueprint(datasets_blueprint)
+app.register_blueprint(organs_blueprint)
 app.register_blueprint(relationships_blueprint)
+app.register_blueprint(valueset_blueprint)
 
 
 # Define the /status endpoint in the ubkg_api package will causes 500 error
@@ -28,7 +34,7 @@ def api_status():
         'build': (Path(__file__).absolute().parent.parent / 'BUILD').read_text().strip(),
         'neo4j_connection': False
     }
-    is_connected = current_app.neo4jManager.check_connection()
+    is_connected = current_app.neo4jConnectionHelper.check_connection()
     if is_connected:
         status_data['neo4j_connection'] = True
 
