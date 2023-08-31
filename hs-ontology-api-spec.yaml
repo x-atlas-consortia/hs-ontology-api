@@ -9,6 +9,113 @@ servers:
   - url: https://ontology-api.dev.hubmapconsortium.org/
     description: Development server
 paths:
+  /assayname: # CPK MAR 2023 - replacement for search-api endpoint of the same name
+    post:
+      operationId: assayname_post
+      summary: Replacement for the same endpoint in search-api
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssayNameRequest"
+            example:
+              name: [ PAS, Image Pyramid ]
+              application_context: HUBMAP
+      responses:
+        '200':
+          description: A JSON array of the assay type name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssayTypePropertyInfo'
+              example:
+                name: bulk-RNA
+                primary: true
+                description: Bulk RNA-seq
+                vitessce-hints: ["pyramid","anndata"]
+                contains-pii: true
+                vis-only: true
+  /assaytype:
+    get:
+      operationId: assaytype_get
+      summary: Get all of the assaytypes without query parameter. Otherwise the record['primary'] according to query parameter
+      parameters:
+        - name: primary
+          in: query
+          required: false
+          description: Determines if records are all, primary, or not primary.
+          schema:
+            type: string
+            example: true
+        - name: application_context
+          in: query
+          required: false
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: A JSON array of the assay type name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssayTypePropertyInfo'
+              example:
+                name: bulk-RNA
+                primary: true
+                description: Bulk RNA-seq
+                vitessce-hints: ["pyramid","anndata"]
+                contains-pii: true
+                vis-only: true
+  /assaytype/{name}: # CPK MAR 2023 - replacement for search-src endpoint of the same name
+    get:
+      operationId: assaytype_name_get
+      summary: Replacement for the same endpoint in search-api with the addition of application_context
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: AssayType name
+          schema:
+            type: string
+            example: bulk-RNA
+        - name: application_context
+          in: query
+          required: false
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: A JSON array of the assay type name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssayTypePropertyInfo'
+              example:
+                name: bulk-RNA
+                primary: true
+                description: Bulk RNA-seq
+                vitessce-hints: ["pyramid","anndata"]
+                contains-pii: true
+                vis-only: true
   /datasets: # JAS FEB 2023 - note that parameters use underscores, even when the corresponding key in the response uses dashes--e.g., alt_names, alt-names
     get:
       operationId: dataset_get
@@ -234,6 +341,38 @@ paths:
                   $ref: '#/components/schemas/SabCodeTerm'
 components:
   schemas:
+    AssayTypePropertyInfo:
+      type: object
+      description: Properties of a HuBMAP/SenNet AssayType.
+      properties:
+        name:
+          type: string
+          description: AssayType name; used to characterize dataset entities in provenance hierarchy
+          example: bulk-RNA
+        primary:
+          type: boolean
+          description: Indicates whether the assay is primary (true) or derived (false)
+          example: true
+        description:
+          type: string
+          description: How datasets of the data type are named in the Data Portal.
+          example: Bulk RNA-seq
+        vitessce-hints:
+          type: array
+          description: Flags for Vitessce visualization
+          items:
+            type: string
+            example: ["pyramid","anndata","is_image","is_tiled","is_sc","rna","atac","sprm","codex","maldi"]
+        contains-pii:
+          type: boolean
+          description: Whether the dataset contains Patient Identifying Information (PII) (true or false)
+          example: true
+        vis-only:
+          type: boolean
+          description: Indicates whether for visualization only (true or false)
+          items:
+            type: boolean
+            example: true
     DatasetPropertyInfo: # Schema name JAS FEB 2023. Note that GET parameters use underscores, even when the corresponding key in the response uses dashes--e.g., alt_names, alt-names.
       type: object
       description: Properties of a HuBMAP/SenNet Dataset. Where applicable, key names match those found in the original assay_types.yaml.
