@@ -3,6 +3,8 @@ from flask import Flask, jsonify, current_app
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
+from hs_ontology_api.routes.assaytype.assaytype_controller import assaytype_blueprint
+from hs_ontology_api.routes.assayname.assayname_controller import assayname_blueprint
 from hs_ontology_api.routes.datasets.datasets_controller import datasets_blueprint
 from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
 from hs_ontology_api.routes.relationships.relationships_controller import relationships_blueprint
@@ -18,6 +20,8 @@ def make_flask_config():
 
 
 app = UbkgAPI(make_flask_config()).app
+app.register_blueprint(assaytype_blueprint)
+app.register_blueprint(assayname_blueprint)
 app.register_blueprint(datasets_blueprint)
 app.register_blueprint(organs_blueprint)
 app.register_blueprint(relationships_blueprint)

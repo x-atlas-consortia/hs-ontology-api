@@ -2,6 +2,7 @@ import logging
 import neo4j
 from typing import List
 
+from hs_ontology_api.models.assay_type_property_info import AssayTypePropertyInfo
 from hs_ontology_api.models.dataset_property_info import DatasetPropertyInfo
 from hs_ontology_api.models.sab_code_term_rui_code import SabCodeTermRuiCode
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
@@ -13,6 +14,57 @@ logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def make_assaytype_property_info(record):
+    return AssayTypePropertyInfo(
+        record['data_type'],
+        record['primary'],
+        record['description'],
+        record['vitessce_hints'],
+        record['contains_pii'],
+        record['vis_only'])
+
+
+def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str = 'HUBMAP')\
+        -> AssayTypePropertyInfo:
+    # Build the Cypher query that will return the table of data.
+    query = query_cypher_dataset_info(application_context)
+
+    assaytypes: List[dict] = []
+    # Execute Cypher query and return result.
+    with neo4j_instance.driver.session() as session:
+        recds: neo4j.Result = session.run(query)
+        for record in recds:
+            if primary is None:
+                assaytypes.append(make_assaytype_property_info(record).serialize())
+            elif primary is True and record['primary'] is True:
+                assaytypes.append(make_assaytype_property_info(record).serialize())
+            elif primary is False and record['primary'] is False:
+                assaytypes.append(make_assaytype_property_info(record).serialize())
+    result: dict = {"result": assaytypes}
+    return result
+
+
+def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, application_context: str = 'HUBMAP')\
+        -> AssayTypePropertyInfo:
+    """
+    This is intended to be a drop in replacement for the same endpoint in search-src.
+
+    The only difference is the optional application_contect to make it consistent with a HUBMAP or SENNET
+    environment.
+    """
+    # Build the Cypher query that will return the table of data.
+    query = query_cypher_dataset_info(application_context)
+
+    # Execute Cypher query and return result.
+    with neo4j_instance.driver.session() as session:
+        recds: neo4j.Result = session.run(query)
+        for record in recds:
+            if record.get('data_type') == name and (alt_names is None or record.get('alt_names') == alt_names):
+                # Accessing the record by .get('str') does not appear to work?! :-(
+                return make_assaytype_property_info(record).serialize()
+    return None
 
 
 def dataset_get_logic(neo4j_instance, data_type: str = '', description: str = '',

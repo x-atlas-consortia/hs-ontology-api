@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 from ubkg_api.models.base_model_ import Model
 
 
