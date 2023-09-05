@@ -7,8 +7,6 @@ from hs_ontology_api.models.dataset_property_info import DatasetPropertyInfo
 from hs_ontology_api.models.sab_code_term_rui_code import SabCodeTermRuiCode
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
-from ubkg_api.common_routes.common_neo4j_logic import query_cypher_dataset_info
-
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
@@ -351,3 +349,239 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
                 pass
 
     return sabcodeterms
+
+
+def __subquery_dataset_synonym_property(sab: str, cuialias: str, returnalias: str, collectvalues: bool) -> str:
+    # JAS FEB 2023
+    # Returns a subquery to obtain a "synonym" relationship property. See __query_dataset_info for an explanation.
+
+    # arguments:
+    # sab: SAB for the application
+    # cuialias = Alias for the CUI passed to the WITH statement
+    # returnalias = Alias for the return of the query
+    # collectvalues: whether to use COLLECT
+
+    qry = ''
+    qry = qry + 'CALL '
+    qry = qry + '{'
+    qry = qry + 'WITH ' + cuialias + ' '
+    qry = qry + 'OPTIONAL MATCH (pDatasetThing:Concept)-[:CODE]->(cDatasetThing:Code)-[rCodeTerm:SY]->(tSyn:Term)  '
+    qry = qry + 'WHERE cDatasetThing.SAB = \'' + sab + '\''
+    # In a (Concept)->(Code)->(Term) path in the KG, the relationship between the Code and Term
+    # shares the CUI with the Concept.
+    qry = qry + 'AND rCodeTerm.CUI = pDatasetThing.CUI '
+    qry = qry + 'AND pDatasetThing.CUI = ' + cuialias + ' '
+    qry = qry + 'RETURN '
+    if collectvalues:
+        retval = 'COLLECT(tSyn.name) '
+    else:
+        retval = 'tSyn.name'
+    qry = qry + retval + ' AS ' + returnalias
+    qry = qry + '}'
+
+    return qry
+
+
+def __subquery_dataset_relationship_property(sab: str, cuialias: str, rel_string: str, returnalias: str,
+                                             isboolean: bool = False, collectvalues: bool = False,
+                                             codelist: List[str] = []) -> str:
+    # JAS FEB 2023
+    # Returns a subquery to obtain a "relationship property". See __query_dataset_info for an explanation.
+
+    # There are two types of relationship properties:
+    # 1. The entity that associates with cuialias corresponds to the term of a related entity.
+    # 2. In a "boolean" relationship, the property is true if the entity that associates with cuialias has a
+    #    link of type rel_string to another code (via concepts).
+
+    # arguments:
+    # sab: SAB for the application
+    # cuialias: Alias for the CUI passed to the WITH statement
+    # rel_string: label for the relationship
+    # returnalias:  Alias for the return of the query
+    # isboolean: check for the existence of link instead of a term
+    # collectvalues: whether to use COLLECT
+    # codelist: list of specific codes that are objects of relationships
+
+    qry = ''
+    qry = qry + 'CALL '
+    qry = qry + '{'
+    qry = qry + 'WITH ' + cuialias + ' '
+    qry = qry + 'OPTIONAL MATCH (pDatasetThing:Concept)-[rProperty:' + rel_string + ']->(pProperty:Concept)'
+
+    if len(codelist) > 0:
+        # Link against specific codes
+        qry = qry + '-[:CODE]->(cProperty:Code)-[rCodeTerm:PT]->(tProperty:Term) '
+    else:
+        # Link against concepts
+        qry = qry + '-[rConceptTerm:PREF_TERM]->(tProperty:Term) '
+
+    qry = qry + 'WHERE pDatasetThing.CUI = ' + cuialias + ' '
+    qry = qry + 'AND rProperty.SAB =\'' + sab + '\' '
+
+    if len(codelist) > 0:
+        # Link against specific codes.
+        qry = qry + 'AND cProperty.SAB = \'' + sab + '\' '
+        # In a (Concept)->(Code)->(Term) path in the KG, the relationship between the Code and Term
+        # shares the CUI with the Concept.
+        qry = qry + 'AND rCodeTerm.CUI = pProperty.CUI '
+        qry = qry + 'AND cProperty.CODE IN [' + ','.join("'{0}'".format(x) for x in codelist) + '] '
+
+    qry = qry + 'RETURN '
+    if collectvalues:
+        if rel_string == 'has_vitessce_hint':
+            # Special case: some vitessce hint nodes have terms with the substring '_vitessce_hint' added.
+            # This is an artifact of a requirement of the SimpleKnowledge Editor that should not be in the
+            # returned result. Strip the substring.
+            retval = 'COLLECT(REPLACE(tProperty.name,\'_vitessce_hint\',\'\'))'
+        else:
+            retval = 'COLLECT(tProperty.name) '
+    elif isboolean:
+        retval = 'cProperty.CodeID IS NOT NULL '
+    elif 'C004003' in codelist:
+        # Special case: map dataset orders to true or false
+        retval = 'CASE cProperty.CODE WHEN \'C004003\' THEN true WHEN \'C004004\' THEN false ELSE \'\' END '
+    else:
+        # Force a blank in case of null value for a consistent return to the GET.
+        retval = 'CASE tProperty.name WHEN NULL THEN \'\' ELSE tProperty.name END '
+
+    qry = qry + retval + ' AS ' + returnalias
+    qry = qry + '}'
+    return qry
+
+
+def __subquery_data_type_info(sab: str) -> str:
+    # JAS FEB 2023
+    # Returns a Cypher subquery that obtains concept CUI and preferred term strings for the Dataset Data Type
+    # codes in an application context. Dataset Data Type codes are in a hierarchy with a root entity with code
+    # C004001 in the application context.
+
+    # See __build_cypher_dataset_info for an explanation.
+
+    # Arguments:
+    # sab: the SAB for the application ontology context--i.e., either HUBMAP or SENNET filter: filter for data_type
+
+    qry = ''
+    qry = qry + 'CALL '
+    qry = qry + '{'
+    qry = qry + 'MATCH (cParent:Code)<-[:CODE]-(pParent:Concept)<-[:isa]-(pChild:Concept)'
+    qry = qry + '-[rConceptTerm:PREF_TERM]->(tChild:Term) '
+    qry = qry + 'WHERE cParent.CodeID=\'' + sab + ' C004001\' '
+    qry = qry + 'RETURN pChild.CUI AS data_typeCUI, tChild.name AS data_type'
+    qry = qry + '} '
+    return qry
+
+
+def __subquery_dataset_cuis(sab: str, cuialias: str, returnalias: str) -> str:
+    # JAS FEB 2023
+    # Returns a Cypher subquery that obtains concept CUIs for Dataset concepts in the application context.
+    # The use case is that the concepts are related to the data_set CUIs passed in the cuialias parameter.
+
+    # arguments:
+    # sab: SAB for the application
+    # cuialias: CUI to pass to the WITH statement
+    # returnalias: alias for return
+
+    qry = ''
+    qry = qry + 'CALL '
+    qry = qry + '{'
+    qry = qry + 'WITH ' + cuialias + ' '
+    qry = qry + 'OPTIONAL MATCH (pDataType:Concept)<-[r:has_data_type]-(pDataset:Concept)  '
+    qry = qry + 'WHERE r.SAB =\'' + sab + '\' '
+    qry = qry + 'AND pDataType.CUI = ' + cuialias + ' '
+    qry = qry + 'RETURN pDataset.CUI AS ' + returnalias
+    qry = qry + '}'
+
+    return qry
+
+
+def query_cypher_dataset_info(sab: str) -> str:
+    # JAS FEB 2023
+    # Returns a Cypher query string that will return property information on the datasets in an application
+    # context (SAB in the KG), keyed by the data_type.
+
+    # Arguments:
+    # sab: the SAB for the application ontology context--i.e., either HUBMAP or SENNET
+
+    # There are three types of "properties" for an entity in an ontology (i.e., those specified by assertion
+    # in the SAB, and not lower-level infrastructural properties such as SAB or CUI):
+    # 1. A "relationship property" corresponds to the name property of the Term node in a path that corresponds
+    #    to an asserted relationship other than isa--i.e.,
+    #    (Term)<-[:PT]-(Code)<-[:CODE]-(Concept)-[property relationship]-(Concept)-[:CODE]-(Code for Entity)
+    # 2. A "hierarchy property" corresponds to a "relationship property" of a node to which the entity relates
+    #    by means of an isa relationship.
+    #    For example, the Dataset Order property (Primary Dataset, Derived Dataset) is actually a property of a
+    #    subclass of Dataset Order to which Dataset relates via an isa relationship. If a Dataset isa
+    #    Primary Dataset, then it has a "Dataset order" property of "Primary Dataset".
+    # 3. A "synonym property", in which the property value corresponds to the name of a Term node that has a
+    #    SY relationship with the Code node for the entity.
+
+    # In an application ontology, dataset properties can associate with the dataset or the data_type.
+
+    # The data_type is actually a property of a Dataset type  (relationship = has_data_type).
+    # Instead of navigating from the Dataset types down to properties, the query will navigate from
+    # the data_types up to the Dataset types and then down to the other dataset properties.
+
+    # The original assay_types.yaml file has keys that use dashes instead of underscores--e.g., alt-names.
+    # neo4j cannot interpret return variables that contain dashes, so the query string uses underscores--
+    # e.g., alt_names. The ubkg-src-spec.yaml file uses dashes for key names for the return to the GET.
+
+    sab = sab.upper()
+
+    qry = ''
+
+    # First, identify the CUIs and terms for data_type in the specified application.
+    # The subquery will return:
+    # data_typeCUI - used in the WITH clause of downstream subqueries for properties that link to the data_type.
+    # data_type - used in the return
+    qry = qry + __subquery_data_type_info(sab=sab)
+
+    # Identify CUIs for dataset types that associate with the data_type.
+    # The subquery will return DatasetCUI, used in the WITH clause of downstream subqueries that link to the
+    # Dataset.
+    qry = qry + ' ' + __subquery_dataset_cuis(sab=sab, cuialias='data_typeCUI', returnalias='DatasetCUI')
+
+    # PROPERTY VALUE SUBQUERIES
+
+    # Dataset display name: relationship property of the Dataset.
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
+                                                               rel_string='has_display_name',
+                                                               returnalias='description')
+
+    # alt_names: Synonym property, linked to the data_type.
+    # Because a data_type can have multiple alt-names, collect values.
+    qry = qry + ' ' + __subquery_dataset_synonym_property(sab=sab, cuialias='data_typeCUI', returnalias='alt_names',
+                                                          collectvalues=True)
+
+    # dataset_order: relationship property, linked to Dataset.
+    # C004003=Primary Dataset, C004004=Derived Dataset in both HuBMAP and SenNet.
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI', rel_string='isa',
+                                                               returnalias='primary', codelist=['C004003', 'C004004'])
+
+    # dataset_provider: relationship property of the Dataset.
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
+                                                               rel_string='provided_by',
+                                                               returnalias='dataset_provider')
+
+    # vis-only: "boolean" relationship property of the Dataset.
+    # True = the Dataset isa <SAB> C004008 (vis-only).
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI', rel_string='isa',
+                                                               returnalias='vis_only', isboolean=True,
+                                                               codelist=['C004008'])
+
+    # contains_pii: "boolean" relationship property of the Dataset.
+    # True = the Dataset has a path to code <SAB> C004009 (pii).
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='DatasetCUI',
+                                                               returnalias='contains_pii', rel_string='contains',
+                                                               isboolean=True, codelist=['C004009'])
+
+    # vitessce_hints: list relationship property of the data_type.
+    qry = qry + ' ' + __subquery_dataset_relationship_property(sab=sab, cuialias='data_typeCUI',
+                                                               rel_string='has_vitessce_hint',
+                                                               returnalias='vitessce_hints', collectvalues=True)
+
+    # Order and sort output
+    qry = qry + ' '
+    qry = qry + 'WITH data_type, description, alt_names, primary, dataset_provider, vis_only, contains_pii, vitessce_hints '
+    qry = qry + 'RETURN data_type, description, alt_names, primary, dataset_provider, vis_only, contains_pii, vitessce_hints '
+    qry = qry + 'ORDER BY tolower(data_type)'
+    return qry
