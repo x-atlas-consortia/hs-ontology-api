@@ -25,7 +25,7 @@ services:
     restart: always
     volumes:
       # Mount the app config to container in order to keep it outside of the image
-      - "../src/instance:/usr/src/app/src/instance"
+      - "../src/hs_ontology_api/instance:/usr/src/app/src/hs_ontology_api/instance"
       # Mount the logging to container
       - "../log:/usr/src/app/log"
       # Mount conf.d on host machine to the nginx conf.d on container

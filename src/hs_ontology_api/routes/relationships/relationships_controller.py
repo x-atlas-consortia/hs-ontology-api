@@ -15,8 +15,8 @@ def relationships_for_gene_target_symbol_get(target_symbol):
     :param target_symbol: one of gene name, symbol, alias, or prior symbol
     :type target_symbol: str
     """
-    neo4j_instance = current_app.neo4jManager.instance()
-    result = relationships_for_gene_target_symbol_get_logic(target_symbol, neo4j_instance)
+    neo4j_instance = current_app.neo4jConnectionHelper.instance()
+    result = relationships_for_gene_target_symbol_get_logic(neo4j_instance, target_symbol)
     if result is None:
         resp = make_response(jsonify({"message": f"Nothing found for gene target symbol: {target_symbol}"}), 404)
         resp.headers['Content-Type'] = 'application/json'

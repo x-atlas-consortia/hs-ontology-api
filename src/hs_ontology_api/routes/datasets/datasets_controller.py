@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, current_app, request
 
-from ubkg_api.routes.validate import validate_application_context
+from ubkg_api.common_routes.validate import validate_application_context
+
+from ..neo4j_logic import dataset_get_logic
 
 datasets_blueprint = Blueprint('datasets_hs', __name__, url_prefix='/datasets')
 
@@ -32,10 +34,11 @@ def dataset_get():
     :rtype: Union[List[DatasetPropertyInfo], Tuple[List[DatasetPropertyInfo], int], Tuple[List[DatasetPropertyInfo], int, Dict[str, str]]
     """
     application_context = validate_application_context()
+    neo4j_instance = current_app.neo4jConnectionHelper.instance()
     return jsonify(
-        current_app.neo4jManager.dataset_get(
-            application_context, request.args.get('data_type'),
-            request.args.get('description'), request.args.get('alt_name'), request.args.get('primary'),
-            request.args.get('contains_pii'), request.args.get('vis_only'),
-            request.args.get('vitessce_hint'), request.args.get('dataset_provider'))
+        dataset_get_logic(
+            neo4j_instance, request.args.get('data_type'), request.args.get('description'),
+            request.args.get('alt_name'), request.args.get('primary'), request.args.get('contains_pii'),
+            request.args.get('vis_only'), request.args.get('vitessce_hint'), request.args.get('dataset_provider'),
+            application_context)
     )
