@@ -168,11 +168,12 @@ def get_organ_types_logic(neo4j_instance, sab):
     :return:
     """
     result = []
+    # https://github.com/x-atlas-consortia/hs-ontology-api/issues/21#issuecomment-1707149316
     query = \
         "CALL " \
         "{ " \
         "MATCH (cParent:Code)<-[r1]-(pParent:Concept)<-[r2:isa]-(pOrgan:Concept)-[r3:CODE]->(cOrgan:Code)-[r4:PT]->(tOrgan:Term) " \
-        "WHERE cParent.CodeID='SENNET C000008' " \
+        "WHERE cParent.CodeID IN ['SAB C000008','SAB:C000008'] " \
         f"AND r2.SAB='{sab}' " \
         f"AND cOrgan.SAB='{sab}'" \
         "AND r4.CUI=pOrgan.CUI " \
@@ -184,7 +185,7 @@ def get_organ_types_logic(neo4j_instance, sab):
         "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code) " \
         "WHERE pOrgan.CUI=OrganCUI " \
         "AND cOrgan.SAB='UBERON' " \
-        "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' ELSE cOrgan.CodeID END AS OrganUBERON " \
+        "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON:0002097' ELSE cOrgan.CodeID END AS OrganUBERON " \
         "} " \
         "CALL " \
         "{ " \
@@ -465,7 +466,10 @@ def __subquery_data_type_info(sab: str) -> str:
     qry = qry + '{'
     qry = qry + 'MATCH (cParent:Code)<-[:CODE]-(pParent:Concept)<-[:isa]-(pChild:Concept)'
     qry = qry + '-[rConceptTerm:PREF_TERM]->(tChild:Term) '
-    qry = qry + 'WHERE cParent.CodeID=\'' + sab + ' C004001\' '
+    # NOTE: Apparently the function parameter 'sab' is no longer used?!
+    # https://github.com/x-atlas-consortia/hs-ontology-api/issues/21#issuecomment-1707149316
+    # qry = qry + 'WHERE cParent.CodeID=\'' + sab + ' C004001\' '
+    qry = qry + "WHERE cParent.CodeID IN ['SAB C004001','SAB:C004001'] "
     qry = qry + 'RETURN pChild.CUI AS data_typeCUI, tChild.name AS data_type'
     qry = qry + '} '
     return qry
