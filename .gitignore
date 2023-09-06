@@ -24,6 +24,9 @@ src/hs_ontology_api/instance/app.cfg
 # log files in any path
 **/*.log
 
+# log rotation generated files
+log/*.gz
+
 # Ignore docker copied stuff
 docker/ubkg-api/src
 docker/ubkg-api/VERSION
