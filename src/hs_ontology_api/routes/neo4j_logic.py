@@ -169,11 +169,17 @@ def get_organ_types_logic(neo4j_instance, sab):
     """
     result = []
     # https://github.com/x-atlas-consortia/hs-ontology-api/issues/21#issuecomment-1707149316
+    # first change
+    #  "WHERE cParent.CodeID='SENNET C000008' " \
+    # Change so that it looks like WHERE c.Parent.CodeID IN ['SAB C000008','SAB:C000008']
+    # second change
+    #  "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' ELSE cOrgan.CodeID END AS OrganUBERON " \
+    # Change so that the return is 'UBERON:0002097'. This will cause inconsistent results when the neo4j is in the old format, but it will not crash the return.
     query = \
         "CALL " \
         "{ " \
         "MATCH (cParent:Code)<-[r1]-(pParent:Concept)<-[r2:isa]-(pOrgan:Concept)-[r3:CODE]->(cOrgan:Code)-[r4:PT]->(tOrgan:Term) " \
-        "WHERE cParent.CodeID IN ['SAB C000008','SAB:C000008'] " \
+        f"WHERE cParent.CodeID IN ['{sab} C000008','{sab}:C000008'] " \
         f"AND r2.SAB='{sab}' " \
         f"AND cOrgan.SAB='{sab}'" \
         "AND r4.CUI=pOrgan.CUI " \
@@ -466,10 +472,10 @@ def __subquery_data_type_info(sab: str) -> str:
     qry = qry + '{'
     qry = qry + 'MATCH (cParent:Code)<-[:CODE]-(pParent:Concept)<-[:isa]-(pChild:Concept)'
     qry = qry + '-[rConceptTerm:PREF_TERM]->(tChild:Term) '
-    # NOTE: Apparently the function parameter 'sab' is no longer used?!
     # https://github.com/x-atlas-consortia/hs-ontology-api/issues/21#issuecomment-1707149316
     # qry = qry + 'WHERE cParent.CodeID=\'' + sab + ' C004001\' '
-    qry = qry + "WHERE cParent.CodeID IN ['SAB C004001','SAB:C004001'] "
+    # Change so that it looks like WHERE c.Parent.CodeID IN ['SAB C004001','SAB:C004001']
+    qry = qry + f"WHERE cParent.CodeID IN ['{sab} C004001','{sab}:C004001'] "
     qry = qry + 'RETURN pChild.CUI AS data_typeCUI, tChild.name AS data_type'
     qry = qry + '} '
     return qry
