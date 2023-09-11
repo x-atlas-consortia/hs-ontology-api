@@ -448,6 +448,12 @@ components:
           type: string
           description: Two letter organ code
           example: "UT"
+        organ_uberon:
+          type: string
+          description: UBERON code
+        organ_cui:
+          type: string
+          description: The organ CUI
     HGNCIdRelationships:
       type: object
       description: Response Body for relationships/hgnc-id/{id} GET request
