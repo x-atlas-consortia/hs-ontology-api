@@ -175,6 +175,14 @@ def get_organ_types_logic(neo4j_instance, sab):
     # second change
     #  "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' ELSE cOrgan.CodeID END AS OrganUBERON " \
     # Change so that the return is 'UBERON:0002097'. This will cause inconsistent results when the neo4j is in the old format, but it will not crash the return.
+    #
+    # https://github.com/x-atlas-consortia/ubkg-api/issues/3#issuecomment-1507273473
+    # From included file 'organ_endpoint_13Apr2023.txt'...
+    # //2. Find UBERON codes for organs. Special cases for duplicate cross-references:
+    # //   a. The code for Skin maps to UBERON 0002097 and UBERON 002097 cross-references
+    # //      UMLS with CUI C1123023; however, the UMLS CUI also maps to UBERON 0000014.
+    # //   b. The code for Muscle maps to UBERON 0005090, which cross-references to UMLS C4083049, along with 2 other UBERON codes.
+    # //   For these cases, it is necessary to specify the UBERON code explicitly.
     query = \
         "CALL " \
         "{ " \
@@ -191,7 +199,7 @@ def get_organ_types_logic(neo4j_instance, sab):
         "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code) " \
         "WHERE pOrgan.CUI=OrganCUI " \
         "AND cOrgan.SAB='UBERON' " \
-        "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON:0002097' ELSE cOrgan.CodeID END AS OrganUBERON " \
+        "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' WHEN 'C4083049' THEN 'UBERON 0005090'ELSE cOrgan.CodeID END AS OrganUBERON " \
         "} " \
         "CALL " \
         "{ " \
@@ -201,16 +209,16 @@ def get_organ_types_logic(neo4j_instance, sab):
         f"AND r1.SAB='{sab}' " \
         "RETURN t2CC.name as OrganTwoCharacterCode " \
         "} " \
-        "WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON " \
-        "RETURN OrganCode,OrganSAB,OrganName,OrganUBERON,OrganTwoCharacterCode ORDER BY OrganName"
+        "WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganCUI " \
+        "RETURN OrganCode,OrganSAB,OrganName,OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName "
 
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
         for record in recds:
             item = SabCodeTermRuiCode(sab=record.get('OrganSAB'), code=record.get('OrganCode'),
-                                      term=record.get('OrganName'),
-                                      rui_code=record.get('OrganTwoCharacterCode'),
-                                      organ_uberon=record.get('OrganUBERON')).serialize()
+                                      term=record.get('OrganName'), rui_code=record.get('OrganTwoCharacterCode'),
+                                      organ_uberon=record.get('OrganUBERON'), organ_cui=record.get('OrganCUI')
+                                      ).serialize()
             result.append(item)
     return result
 
