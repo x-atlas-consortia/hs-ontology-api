@@ -73,3 +73,24 @@ curl --request GET \
  --url "${UBKG_URL}/organs/by-code?application_context=HUBMAP" \
  --header "Content-Type: application/json"
 echo
+
+# https://github.com/x-atlas-consortia/hs-ontology-api/pull/26#pullrequestreview-1620865736
+# Expected results:
+# - One instance of Skin, mapped to UBERON 0002097. (This is the current case in production;
+#   however, as the new code modifies the original case statement that de-duplicated skin,
+#   this should be tested, too.)
+# - One instance of Muscle, mapped to UBERON 0005090.
+echo "organs hs-ontology-api pull-26 test"
+curl --request GET \
+ --url "${UBKG_URL}/organs?application_context=SENNET" \
+ --header "Accept: application/json"
+echo
+
+# This endpoint should also be tested against the HUBMAP application context. HuBMAP's organ list
+# does not include muscle, but does include skin, so testing should confirm that the call to the
+# HuBMAP context returns only one entry for skin.
+echo "organs hs-ontology-api pull-26 test"
+curl --request GET \
+ --url "${UBKG_URL}/organs?application_context=HUBMAP" \
+ --header "Accept: application/json"
+echo
