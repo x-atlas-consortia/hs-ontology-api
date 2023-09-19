@@ -30,7 +30,7 @@ This includes:
 To connect your branch of hs-ontology-api to a neo4j instance:
 1. Copy the file file named **app.cfg.example** in the src/hs-ontology-api/instance folder to a file named **app.cfg**. 
 2. Add to app.cfg the connection information for the neo4j instance.
-The .gitignore file at the root of this repo excludes the app.cfg file from commits.
+The .gitignore file at the root of this repo will force git to exclude the app.cfg file from commits.
 
 ### Example neo4j connect string values for app.cfg
 1. If you are working with a local Docker distribution installed via the **run.sh** script from [ubkg-neo4j](https://github.com/x-atlas-consortia/ubkg-neo4j), then
@@ -40,6 +40,9 @@ The .gitignore file at the root of this repo excludes the app.cfg file from comm
 2. The HuBMAP/SenNet cloud instances have the following values for SERVER:
    - Dev: https://ontology-api.dev.hubmapconsortium.org
    - Prod: https://ontology.api.hubmapconsortium.org
+
+### Starting your neo4j instance
+If you are using a local instance of the UBKG, the instance should be running. In particular, if you installed a local Docker instance of UBKG, be sure that Docker Desktop is running. If the neo4j instance is not available, calls to API endpoints will result in a 500 error.
 
 ## Connecting to a ubkg-api instance
 If you are modifying code only in hs-ontology-api, you will only need
@@ -54,7 +57,7 @@ need to work with a local instance of the ubkg-api. This is possible by doing th
 
 ``pip install -e path/to/local/ubkg/repo``
 
-## Local URL for endpoint
+## Connecting to the local instance of hs-ontology-api
 For URLs that execute endpoints in your local instance, use the values indicated in the **main.py** script, in the section prefaced with the comment `For local development/testing`:
 
 For example, if main.py indicates
@@ -69,12 +72,12 @@ To test changes to hs-ontology-api, you will need to start a local instance of y
 
 The following assumes that you have created a local branch of hs-ontology-api.
 
-### Outside of an IDE
+### From the command line
 1. Move to the root of your local branch.
 2. Create a Python virtual environment. The following command creates a virtual environment named _venv_.
 
    ``python -m venv venv``
-3. Activate the virtual environment:
+3. Activate the virtual environment.
    
    ``source venv/bin/activate``
 4. Move to the /src folder and install dependencies, inclduing the ubkg-api package.
@@ -89,10 +92,18 @@ The following assumes that you have created a local branch of hs-ontology-api.
 ### In PyCharm
 1. Create a new project based on a local clone of hs-ontology-api. PyCharm should establish a virtual environment.
 2. Use the Python Packages tab to install the packages listed in **requirements.txt**.
-3. In Terminal, run main.py.
+3. In the Terminal window, run main.py.
+4. Note that you may need to enable execute permissions on the main.py script before you can run it locally--e.g., with a command like ``chmod 777 main.py``
 
 ### URL testing
+
+Once you have connected your instance of hs-ontology-api to instances of both neo4j and ubkg-api, run the following tests:
+1. Paste the root endpoint URL into a browser window--e.g.,``http://127.0.0.1:5002/``. You should see a window with the status message `Hello! This is UBKG-API service :)`. The status message verifies that your local instance of hs-ontology-api is connected to an instance of ubkg-api.
+2. Add to the root endpoint URL to execute a known endpoint--e.g., ``http://127.0.0.1:5002/datasets?application_context=HUBMAP``. You should see a response from either the hs-ontology-api or the ubkg-api, depending on the endpoint and your development configuration.
+3. If you are only testing hs-ontology-api endpoints and using the PyPi install of ubkg-api, calls to endpoints managed by the ubkg-api will fail with a 500 error. To test endpoints from both hs-ontology-api and ubkg-api, you will need a local instance of ubkg-api that connects to the same instance of neo4j that the instance of hs-ontology-api connects to.
+
 Various methods of testing endpoint URLs are possible, including:
 1. **curl**, from either the command line or a shell script
 2. Requests in Postman
 3. A Python script using **Requests** or **pytest**
+4. Executing directly in the browser. This method is suitable for GET endpoints.
