@@ -15,24 +15,26 @@ as a PyPi package.
 
 # Development/testing environment for hs-ontology-api
 
-To enhance or fix an endpoint in the hs-ontology-api, you will need to
-establish an application environment on the development machine. 
-This includes:
+To enhance or fix the hs-ontology-api, you will need to
+establish an application development environment on the development machine. 
+Components of the application development environment include:
 1. An instance of a HuBMAP/SenNet UBKG context--i.e., an instance of neo4j populated with HubMAP/SenNet UBKG content. Options include:
    - a local bare-metal instance of neo4j
    - a local Docker install of a UBKG distribution built from [ubkg-neo4j](https://github.com/x-atlas-consortia/ubkg-neo4j) 
    - a cloud-based instance (development or production)
-2. An instance of ubkg-api
+2. An instance of ubkg-api--i.e., either 
+   - an installed PyPi package
+   - a local instance
 3. An instance of hs-ontology-api
 4. URLs that execute endpoints against the local instance of hs-ontology-api
 
-## Connecting to a neo4j instance
-To connect your branch of hs-ontology-api to a neo4j instance:
+## Connecting to a HuBMAP/SenNet UBKG instance
+To connect your branch of hs-ontology-api to a neo4j instance that hosts a HuBMAP/SenNet UBKG context:
 1. Copy the file file named **app.cfg.example** in the src/hs-ontology-api/instance folder to a file named **app.cfg**. 
 2. Add to app.cfg the connection information for the neo4j instance.
 The .gitignore file at the root of this repo will force git to exclude the app.cfg file from commits.
 
-### Example neo4j connect string values for app.cfg
+### Example UBKG neo4j connect string values for app.cfg
 1. If you are working with a local Docker distribution installed via the **run.sh** script from [ubkg-neo4j](https://github.com/x-atlas-consortia/ubkg-neo4j), then
    - SERVER = 'bolt://localhost:b', where b is the port that you provided to run.sh with the **-b** flag
    - USERNAME = the value that you provided to run.sh with the **-u** flag
@@ -40,6 +42,7 @@ The .gitignore file at the root of this repo will force git to exclude the app.c
 2. The HuBMAP/SenNet cloud instances have the following values for SERVER:
    - Dev: https://ontology-api.dev.hubmapconsortium.org
    - Prod: https://ontology.api.hubmapconsortium.org
+   Obtain values of USERNAME and PASSWORD for the target instance from server admins (Zhou Yuan and Chris Burke).
 
 ### Starting your neo4j instance
 If you are using a local instance of the UBKG, the instance should be running. In particular, if you installed a local Docker instance of UBKG, be sure that Docker Desktop is running. If the neo4j instance is not available, calls to API endpoints will result in a 500 error.
@@ -107,3 +110,14 @@ Various methods of testing endpoint URLs are possible, including:
 2. Requests in Postman
 3. A Python script using **Requests** or **pytest**
 4. Executing directly in the browser. This method is suitable for GET endpoints.
+
+# Adding new endpoints
+Each endpoint in hs-ontology-api involves:
+- One or more functions in the **_functional script_** (**neo4j_logic.py**). The usual use case is a parameterized function that prepares a Cypher query against the target neo4j instance.
+- a **_controller_** script in the __routes__ path that registers a BluePrint route in Flask and links a route to a function in the functional script.
+- a **model** script in the __models__ path that describes the class that corresponds to the response of the endpoint.
+
+# Updating SmartAPI documentation
+To add the specification for a new endpoint to the SmartAPI documentation for hs-ontology-api, update the file **hs-ontology-api-spec.yaml**.
+
+hs-ontology-api-spec.yaml conforms to [Swagger OpenAPI](https://swagger.io/specification/) format.
