@@ -200,7 +200,7 @@ def get_organ_types_logic(neo4j_instance, sab):
         "MATCH (cParent:Code)<-[r1]-(pParent:Concept)<-[r2:isa]-(pOrgan:Concept)-[r3:CODE]->(cOrgan:Code)-[r4:PT]->(tOrgan:Term) " \
         f"WHERE cParent.CodeID IN ['{sab} C000008','{sab}:C000008'] " \
         f"AND r2.SAB='{sab}' " \
-        f"AND cOrgan.SAB='{sab}'" \
+        f"AND cOrgan.SAB='{sab}' " \
         "AND r4.CUI=pOrgan.CUI " \
         "RETURN cOrgan.CODE as OrganCode,cOrgan.SAB as OrganSAB,tOrgan.name as OrganName, pOrgan.CUI as OrganCUI " \
         "} " \
