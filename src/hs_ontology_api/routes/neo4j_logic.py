@@ -183,23 +183,35 @@ def get_organ_types_logic(neo4j_instance, sab):
     # //      UMLS with CUI C1123023; however, the UMLS CUI also maps to UBERON 0000014.
     # //   b. The code for Muscle maps to UBERON 0005090, which cross-references to UMLS C4083049, along with 2 other UBERON codes.
     # //   For these cases, it is necessary to specify the UBERON code explicitly.
+
+    # JAS SEPT 2023
+    # Deprecating the CASE statement (formerly in the second CALL block) that does manual assignments to address duplicate UBERON organ assignments.
+    # "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' WHEN 'C4083049' THEN 'UBERON 0005090'ELSE cOrgan.CodeID END AS OrganUBERON "
+
+    # The reason for the deprecation is that the CASE statement did not truly work.
+    # A UBKG ingestion can set multiple cross-references between UBERON codes and UMLS CUIs; however, the script also designates a "preferred"
+    # CUI cross-reference for a code.
+    # The way to pick the preferred UBERON code is to check the CUI property of the relationship
+    # between the code and the preferred term (PT).
+
     query = \
         "CALL " \
         "{ " \
         "MATCH (cParent:Code)<-[r1]-(pParent:Concept)<-[r2:isa]-(pOrgan:Concept)-[r3:CODE]->(cOrgan:Code)-[r4:PT]->(tOrgan:Term) " \
         f"WHERE cParent.CodeID IN ['{sab} C000008','{sab}:C000008'] " \
         f"AND r2.SAB='{sab}' " \
-        f"AND cOrgan.SAB='{sab}'" \
+        f"AND cOrgan.SAB='{sab}' " \
         "AND r4.CUI=pOrgan.CUI " \
         "RETURN cOrgan.CODE as OrganCode,cOrgan.SAB as OrganSAB,tOrgan.name as OrganName, pOrgan.CUI as OrganCUI " \
         "} " \
         "CALL " \
         "{ " \
         "WITH OrganCUI " \
-        "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code) " \
+        "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term) "\
         "WHERE pOrgan.CUI=OrganCUI " \
         "AND cOrgan.SAB='UBERON' " \
-        "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' WHEN 'C4083049' THEN 'UBERON 0005090'ELSE cOrgan.CodeID END AS OrganUBERON " \
+        "AND r2.CUI=pOrgan.CUI " \
+        "RETURN cOrgan.CodeID AS OrganUBERON" \
         "} " \
         "CALL " \
         "{ " \

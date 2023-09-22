@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: HS ONGOLOGY API
-  description: This document describes the HS ONGOLOGY API
+  title: HubMAP/SenNet Ontology API (hs-ontology-api)
+  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a UBKG(https://ubkg.docs.xconsortia.org/) instance with content from the HuBMAP/SenNet context (https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context)
   version: 1.3.1
 servers:
   - url: https://ontology.api.hubmapconsortium.org/
@@ -39,7 +39,7 @@ paths:
   /assaytype:
     get:
       operationId: assaytype_get
-      summary: Get all of the assaytypes without query parameter. Otherwise the record['primary'] according to query parameter
+      summary: Replacement for endpoint in search-api. The primary parameter filters by assay type (primary, not primary); if no value provided, all assay types are returned.
       parameters:
         - name: primary
           in: query
