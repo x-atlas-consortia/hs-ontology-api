@@ -7,7 +7,9 @@ from hs_ontology_api.models.dataset_property_info import DatasetPropertyInfo
 from hs_ontology_api.models.sab_code_term_rui_code import SabCodeTermRuiCode
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 # JAS Sept 2023
-from hs_ontology_api.models.gene_detail import GeneDetail
+from hs_ontology_api.models.genedetail import GeneDetail
+# Query utilities
+from hs_ontology_api.cypher.util_query import loadquerystring
 
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
@@ -620,60 +622,17 @@ def query_cypher_dataset_info(sab: str) -> str:
 
 def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
 
-    #  Return detailed information on a gene, based on an input list of HGNC identifiers.
+    # Return detailed information on a gene, based on an input list of HGNC identifiers.
+
+    # Annotated Cypher query in genedetail.cypher in cypher directory.
     logger.info(f'concepts_expand_post; Request Body: {gene_ids}')
 
     # response list
     genedetails: [GeneDetail] = []
 
-    # Build query.
-    """
-        Get CUIs of concepts for genes that match the criteria.
-        The following types of identifiers can be used in the list:
-        1. HGNC numeric IDs (e.g., 7178)
-        2. HGNC approved symbols (e.g., MMRN1)
-        3. HGNC previous symbols (e.g., MMRN)
-        4. HGNC aliases (e.g., ECM)
-        5. names (approved name, previous name, alias name). 
-           Because exact matches would be required, it is unlikely that names would be useful criteria.
-
-        If no criteria are specified, return information on all HGNC genes.
-    """
-
-    query: str = \
-    "CALL {" \
-    " WITH [$ids] AS ids " \
-    " OPTIONAL MATCH (pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term) " \
-    "WHERE r.CUI=pGene.CUI AND type(r) IN ['PT','ACR','NS','NP','SYN','NA_UBKG'] " \
-    "AND cGene.SAB='HGNC' AND " \
-    "CASE WHEN ids[0]<>'' THEN (ANY(id IN ids WHERE cGene.CODE=id) or ANY(id in ids WHERE tGene.name=id)) ELSE 1=1 END " \
-    "RETURN DISTINCT pGene.CUI AS GeneCUI " \
-    "} " \
-    "CALL {" \
-    "WITH GeneCUI " \
-    "OPTIONAL MATCH (pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term) " \
-    "WHERE pGene.CUI=GeneCUI " \
-    "AND r.CUI=pGene.CUI " \
-    "AND type(r) IN ['PT','ACR','NS','NP','SYN','NA_UBKG'] " \
-    "AND cGene.SAB='HGNC' " \
-    "RETURN toInteger(cGene.CODE) AS hgnc_id, " \
-    "CASE type(r) " \
-    "   WHEN 'PT' THEN 'approved_name' " \
-    "   WHEN 'ACR' THEN 'approved_symbol' " \
-    "   WHEN 'NS' THEN 'previous_symbols' " \
-    "   WHEN 'NP' THEN 'previous_names' " \
-    "   WHEN 'SYN' THEN 'alias_symbols' " \
-    "   WHEN 'NA_UBKG' THEN 'alias_names' " \
-    "   ELSE type(r) END AS ret_key, " \
-    "tGene.name AS ret_value "\
-    "ORDER BY hgnc_id, ret_key "\
-    "} "\
-    "WITH hgnc_id, ret_key, COLLECT(ret_value) AS values "\
-    "WITH hgnc_id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map "\
-    "WHERE hgnc_id IS NOT NULL "\
-    "RETURN hgnc_id, "\
-    "map['approved_symbol'] AS approved_symbol " \
-    "ORDER BY hgnc_id "
+    # Load query string.
+    queryfile = 'genedetail.cypher'
+    query = loadquerystring(queryfile)
 
     # Incorporate ids from request body into query.
     ids: str = ', '.join("'{0}'".format(i) for i in gene_ids['ids'])
@@ -686,7 +645,10 @@ def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
         for record in recds:
             try:
                 genedetail: GeneDetail = \
-                    GeneDetail(record.get('approved_symbol')).serialize()
+                    GeneDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'),
+                               record.get('previous_symbols'), record.get('previous_names'), record.get('alias_symbols'),
+                               record.get('alias_names'), record.get('references'), record.get('summaries'),
+                               record.get('cell_types_code'), record.get('cell_types_code_name')).serialize()
                 genedetails.append(genedetail)
             except KeyError:
                 pass

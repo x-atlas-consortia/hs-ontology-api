@@ -30,7 +30,7 @@ Components of the application development environment include:
 
 ## Connecting to a HuBMAP/SenNet UBKG instance
 To connect your branch of hs-ontology-api to a neo4j instance that hosts a HuBMAP/SenNet UBKG context:
-1. Copy the file file named **app.cfg.example** in the src/hs-ontology-api/instance folder to a file named **app.cfg**. 
+1. Copy the file file named **app.cfg.example** in the src/hs-ontology-api/instance directory to a file named **app.cfg**. 
 2. Add to app.cfg the connection information for the neo4j instance.
 The .gitignore file at the root of this repo will force git to exclude the app.cfg file from commits.
 
@@ -83,7 +83,7 @@ The following assumes that you have created a local branch of hs-ontology-api.
 3. Activate the virtual environment.
    
    ``source venv/bin/activate``
-4. Move to the /src folder and install dependencies, inclduing the ubkg-api package.
+4. Move to the /src directory and install dependencies, inclduing the ubkg-api package.
    
    ``pip install -r requirements.txt``
 
@@ -140,7 +140,9 @@ For example, for a string value with key _approved_symbol_,
         self._approved_symbol = approved_symbol
 ```
 
-2. Add `serialize` and `from_dict` methods that refer to the returned key/value pairs. Override the return type of the `from_dict` to point to the class.
+2. Add `serialize` and `from_dict` methods that refer to the returned key/value pairs. Override the return type of the `from_dict` to point to the model class.
+
+The following code is from the **GeneDetail** model class in __genedetail__.
 ```
     def serialize(self):
         return {
@@ -158,14 +160,44 @@ For example, for a string value with key _approved_symbol_,
         """
         return util.deserialize_model(dikt, cls)
 ```
+
+3. For each key in the response, define getter and setter functions.
+```
+   @property
+   def approved_symbol(self):
+        return self.approved_symbol
+
+    @approved_symbol.setter
+    def approved_symbol(self, approved_symbol):
+        self._approved_symbol = approved_symbol
+
+```
+
 ### Add functional script code to neo4j_logic.py
 The _neo4j_logic.py_ script contains endpoint-related functions. The usual use case is a parameterized Cypher query.
 
-##### Naming convention:
+#### Naming convention
 1. For functions called directly from controllers, name the function with format *model*_*method*_logic. For example, the function that satisfies the POST method for the *genedetail* controller would be called **genedetail_post_logic**.
 2. Subfunctions called by main functions should be prefixed with an underscore.
 
+#### Loading large Cypher queries
+If the Cypher query used by an endpoint function is complex, store an annotated copy of the query in the _cypher_ directory.
+
+#### Examples
 The methods for returning to GET requests and POST requests are slightly different. You should be able to find examples of either type of function.
+
+#### Loading Cypher query strings
+
+Large or complex Cypher query strings can be stored in files in the _cypher_ directory and loaded using the **loadquerystring** function in the **util_query.py** script.
+
+Following is the excerpt from **neo4j_logic.py** that loads the large Cypher query string used for the _genes_ endpoint.
+```
+   from hs_ontology_api.cypher.util_query import loadquerystring
+
+   # Load query string.
+   queryfile = 'genedetail.cypher'
+   query = loadquerystring(queryfile)
+```
 
 ### Build a controller script
 #### File path
@@ -178,6 +210,13 @@ Define a Blueprint object and route for your endpoint. Follow examples in the ex
 In *main.py*, 
 1. Import your Blueprint.
 2. Register your Blueprint with Flask.
+
+The following snippet registers 
+
+```
+from hs_ontology_api.routes.genedetail.genedetail_controller import genedetail_blueprint
+app.register_blueprint(genedetail_blueprint)
+```
 
 # Updating SmartAPI documentation
 To add the specification for a new endpoint to the SmartAPI documentation for hs-ontology-api, update the file **hs-ontology-api-spec.yaml**.
