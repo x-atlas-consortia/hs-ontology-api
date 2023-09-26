@@ -117,7 +117,73 @@ Each endpoint in hs-ontology-api involves:
 - a **_controller_** script in the __routes__ path that registers a BluePrint route in Flask and links a route to a function in the functional script.
 - a **model** script in the __models__ path that describes the class that corresponds to the response of the endpoint.
 
+## Tasks:
+### Create a model script
+The model script is a class that defines the response for the endpoint.
+#### File path
+Create the script in the __models__ path.
+#### Class method
+1. `__init__`: For every key that is returned,
+   1. List as a parameter.
+   2. Declare the type in the `self.openapi_types` dictionary.
+   3. Declare the mapping in the `self.attribute_map` dictionary.
+   4. Declare an internal property of the class to match the key.
+
+For example, for a string value with key _approved_symbol_,
+```
+       self.openapi_types = {
+            'approved_symbol': str
+        }
+        self.attribute_map = {
+            'approved_symbol': 'approved_symbol',
+        }
+        self._approved_symbol = approved_symbol
+```
+
+2. Add `serialize` and `from_dict` methods that refer to the returned key/value pairs. Override the return type of the `from_dict` to point to the class.
+```
+    def serialize(self):
+        return {
+            "approved_symbol": self._approved_symbol
+        }
+
+    @classmethod
+    def from_dict(cls, dikt) -> 'GeneDetail':
+        """Returns the dict as a model
+
+        :param dikt: A dict.
+        :type: dict
+        :return: The GeneDetail of this GeneDetail
+        :rtype: GeneDetail
+        """
+        return util.deserialize_model(dikt, cls)
+```
+### Add functional script code to neo4j_logic.py
+The _neo4j_logic.py_ script contains endpoint-related functions. The usual use case is a parameterized Cypher query.
+
+##### Naming convention:
+1. For functions called directly from controllers, name the function with format *model*_*method*_logic. For example, the function that satisfies the POST method for the *genedetail* controller would be called **genedetail_post_logic**.
+2. Subfunctions called by main functions should be prefixed with an underscore.
+
+The methods for returning to GET requests and POST requests are slightly different. You should be able to find examples of either type of function.
+
+### Build a controller script
+#### File path
+Create a Python package in the __routes__ path.
+
+#### Define Blueprint
+Define a Blueprint object and route for your endpoint. Follow examples in the existing controllers.
+
+### Register your Blueprint
+In *main.py*, 
+1. Import your Blueprint.
+2. Register your Blueprint with Flask.
+
 # Updating SmartAPI documentation
 To add the specification for a new endpoint to the SmartAPI documentation for hs-ontology-api, update the file **hs-ontology-api-spec.yaml**.
 
 hs-ontology-api-spec.yaml conforms to [Swagger OpenAPI](https://swagger.io/specification/) format.
+
+You will need to specify:
+1. Paths that correspond to your endpoint routes.
+2. Schemas that correspond to the responses from endpoints.
