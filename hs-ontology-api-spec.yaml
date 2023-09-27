@@ -280,7 +280,7 @@ paths:
       operationId: relationships_for_gene_target_symbol_get
       summary: Returns relationships associated with the gene
       parameters:
-        - name: target-symbol
+        - name: target_symbol
           in: path
           required: true
           description: one of gene name, symbol, alias, or prior symbol
@@ -337,6 +337,27 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTerm'
+  /genes:
+    post:
+      operationId: genes_post
+      summary: Return detailed information on genes specified by HGNC identifiers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GeneDetailRequest"
+            example:
+              ids: [60,MMRN1,FANCS]
+      responses:
+        '200':
+          description: detailed information on genes specified by HGNC identifiers.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneDetailResponse'
 components:
   schemas:
     AssayTypePropertyInfo:
@@ -486,3 +507,134 @@ components:
         term:
           type: string
           example: Microscopy
+    AssayNameRequest: # Schema name CPK MR 2023.
+      type: object
+      description: Request body for assaytype POST request
+      properties:
+        name:
+          anyOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: AssayType name which can be a string or an array of strings
+          example: [ PAS, Image Pyramid ]
+        application_context:
+          type: string
+          default: HUBMAP
+          enum:
+            - HUBMAP
+            - SENNET
+            - hubmap
+            - sennet
+            - HuBMAP
+            - SenNet
+    GeneDetailRequest: # JAS Sept 2023
+      type: object
+      description: Request body for genes POST request
+      properties:
+        ids:
+          type: array
+          description: HGNC identifiers for genes. Types of HGNC identifiers include HGNC numeric id; HGNC approved symbol; HGNC alias; HGNC previous symbol; HGNC approved name; HGNC alias name; and HGNC previous name
+          items:
+            type: string
+          example: [60,MMRN1,FANCS]
+    GeneDetailResponse: # JAS Sept 2023
+      type: object
+      description: Detailed information on a gene.
+      properties:
+        alias_names:
+          type: array
+          description: HGNC alias names
+          items:
+            type: string
+          example: [glycoprotein Ia*]
+        alias_symbols:
+          type: array
+          description: HGNC alias symbols
+          items:
+            type: string
+          example: [GPIa*,EMILIN4,ECM]
+        approved_name:
+          type: string
+          description: HGNC approved name
+          example: multimerin 1
+        approved_symbol:
+          type: string
+          description: HGNC approved symbol
+          example: MMRN1
+        cell_types:
+          type: array
+          description: Cell Ontology cell types associated with a HGNC gene in the Human Referene Atlas (HRA)
+          items:
+            type: object
+            properties:
+              definition:
+                type: string
+                description: Definition of the cell type from Cell Ontology
+                example: A endothelial cell of a lymphatic ....
+              id:
+                type: string
+                description: Identifier for the cell type, in format CL<colon>code
+                example: CL:0002138
+              name:
+                type: string
+                description: Name (preferred term) for the cell type from Cell Ontology
+                example: endothelial cell of lymphatic vessel
+              organs:
+                type: array
+                description: Array of organs associated with the cell type, based on relationships in the Human Resource Atlas and Azimuth
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: Identifier (code) for the organ in source
+                      example: 0000948
+                    source:
+                      type: string
+                      description: Source vocabulary for id for organ
+                      example: UBERON
+                    name:
+                      type: string
+                      description: Name (preferred term) for organ in source
+                      example: heart
+        hgnc_id:
+          type: numeric
+          description: numeric HGNC ID for the gene
+          example: 60
+        previous_names:
+          type: array
+          description: previous names for the gene in HGNC
+          items:
+            type: string
+          example: [multimerin]
+        previous_symbols:
+          type: array
+          description: previous symbols for the gene in HGNC
+          items:
+            type: string
+            example: [MMRN]
+        references:
+          type: array
+          description: Reference for the gene between HGNC and other vocabularies. References can be either a cross-reference (e.g., between HGNC ID and NCBI Entrez ID) or from a known relationship (e.g., gene-protein relationships between a gene in HGNC and a protein in UniProtKB).
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID (code) for the reference in the source
+                example: 22915
+              source:
+                type: string
+                description: source vocabulary for the reference
+                example: entrez
+              url:
+                type: string
+                description: URL to reference site
+                example: https://www.ncbi.nlm.nih.gov/gene/22915
+        summary:
+          type: string
+          description: RefSeq summary of the gene
+          example: Multimerin is a massive, soluble protein found in....
+

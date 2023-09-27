@@ -118,10 +118,10 @@ UNION
 //
 // To get organ information, map gene to cell type to organ location.
 WITH GeneCUI
-//First, get Azimuth Codes that are cross-referenced to CL codes. For the case of a CL code being cross-referenced to multiple AZ codes, only one AZ code gets the "preferred" cross-reference to the CL code; however, all AZ codes have a cross-reference to the CL code.
+//First, get Azimuth Codes that are cross-referenced to CL codes. For the case of a CL code being cross-referenced to multiple AZ codes, only one AZ code gets the "preferred" cross-reference to the CL code; however, all AZ codes have a cross-reference to the CL code, so do not check on rAZ.CUI=pCL.CUI.
 CALL
 {WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term), (pCL:Concept)-[:CODE]->(cAZ:Code)-[rAZ]->(tAZ:Term) WHERE rCL.CUI=pCL.CUI AND rAZ.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND cAZ.SAB='AZ' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,cCL.CodeID as CLID,cAZ.CodeID AS AZID}
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term), (pCL:Concept)-[:CODE]->(cAZ:Code)-[rAZ]->(tAZ:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND cAZ.SAB='AZ' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,cCL.CodeID as CLID,cAZ.CodeID AS AZID}
 //Use the AZ codes to map to concepts that have located_in relationships with AZ organ codes. The AZ organ codes are cross-referenced to UBERON codes. Limit the located_in relationships to those from AZ.
 CALL
 {WITH AZID
