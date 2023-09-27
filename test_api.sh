@@ -76,3 +76,21 @@ curl --request POST \
  --header "Content-Type: application/json" \
  --data '{"ids": ["60","MMRN1","FANCS"]}'
 echo
+
+echo "SENNET source types"
+curl --request GET \
+ --url "${UBKG_URL}/valueset?parent_sab=SENNET&parent_code=C020076&child_sabs=SENNET" \
+ --header "Content-Type: application/json"
+echo
+
+echo "SENNET sample categories"
+curl --request GET \
+ --url "${UBKG_URL}/valueset?parent_sab=SENNET&parent_code=C050020&child_sabs=SENNET" \
+ --header "Content-Type: application/json"
+echo
+
+echo "SENNET entities"
+curl --request GET \
+ --url "${UBKG_URL}/valueset?parent_sab=SENNET&parent_code=C000012&child_sabs=SENNET" \
+ --header "Content-Type: application/json"
+echo
