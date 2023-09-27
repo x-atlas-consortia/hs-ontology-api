@@ -198,6 +198,13 @@ Following is the excerpt from **neo4j_logic.py** that loads the large Cypher que
    queryfile = 'genedetail.cypher'
    query = loadquerystring(queryfile)
 ```
+#### Nested objects
+
+If your response body is to contain nested objects, you will need to create models for each type of sub-object. 
+The containing model script will need to import the sub-object models. 
+
+For an example, review **genedetail.py**.
+
 
 ### Build a controller script
 #### File path

@@ -10,11 +10,11 @@ from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
 class GeneDetailReference(Model):
-    def __init__(self, code=None, type=None, url=None):
+    def __init__(self, code=None, source=None, url=None):
         """GeneDetailReference - a model defined in OpenAPI
-                :param code: a reference code for a gene
+                :param code: a reference code for a gene, in format SAB:CODE
                 :type code: str
-                :param type: the type of reference for a gene
+                :param source: the vocabulary (SAB) for the reference for a gene
                 :type type: str
                 :param url: the url for the reference in the reference vocabulary
                 :type url: str
@@ -24,37 +24,33 @@ class GeneDetailReference(Model):
         # (e.g., gene-protein mappings from UniProtKB).
 
         self.openapi_types = {
-            'code': str,
-            'type': str,
+            'id': str,
+            'source': str,
             'url': str
         }
         self.attribute_map = {
-            'code': 'code',
-            'type': 'type',
+            'id': 'id',
+            'source': 'source',
             'url': 'url'
         }
-        self._code = code
+        self._id = code.split(':')[1]
 
-        sab = code.split(':')[0].lower()
-        if sab == 'hgnc':
-            sab = 'hugo'
-        id = code.split(':')[1]
-
-        # Expand reference.
-        self._type = sab
+        self._source = code.split(':')[0].lower()
+        if self._source == 'hgnc':
+            self._source = 'hugo'
 
         # Map to vocabulary-specific references
 
-        match sab:
+        match self._source:
             case 'entrez':
-                url = f'https://www.ncbi.nlm.nih.gov/gene/{id}'
+                url = f'https://www.ncbi.nlm.nih.gov/gene/{self._id}'
             case 'uniprotkb':
-                url = f'https://www.uniprot.org/uniprotkb/{id}/entry'
+                url = f'https://www.uniprot.org/uniprotkb/{self._id}/entry'
             case 'ensembl':
-                url = f'http://useast.ensembl.org/Homo_sapiens/Gene/Summary?g={id}'
+                url = f'http://useast.ensembl.org/Homo_sapiens/Gene/Summary?g={self._id}'
             case 'omim':
-                url = f'https://www.omim.org/entry/601456?search={id}'
-            case 'hugo':
+                url = f'https://www.omim.org/entry/601456?search={self._id}'
+            case 'hugo' | 'hgnc':
                 url =f'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/{code}'
             case _:
                 url = ''
@@ -63,8 +59,8 @@ class GeneDetailReference(Model):
     def serialize(self):
         # Key/value formatting for response.
         return {
-            "code": self._code,
-            "type": self._type,
+            "id": self._id,
+            "source": self._source,
             "url": self._url
 
         }
@@ -81,48 +77,48 @@ class GeneDetailReference(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def code(self):
-        """Gets the code of this GeneDetailReference.
+    def id(self):
+        """Gets the id of this GeneDetailReference.
 
-        Code for the reference
-        :return: code for the reference
+        ID for the reference
+        :return: id for the reference
         :rtype: str
         """
-        return self._code
+        return self._id
 
-    @code.setter
-    def reference_code(self, code):
+    @id.setter
+    def id(self, id):
         """Sets the code of this GeneDetailReference.
 
         Code for the reference
 
-        :param code: The reference code
-        :type code: str
+        :param id: The reference code
+        :type id: str
         """
 
-        self._code = code
+        self._id = id
 
     @property
-    def type(self):
-        """Gets the type for this GeneDetailReference.
+    def source(self):
+        """Gets the source for this GeneDetailReference.
 
-        Type of reference.
-        :return: The type of this GeneDetailReference.
+        Source of reference.
+        :return: The source of this GeneDetailReference.
         :rtype: str
         """
-        return self._type
+        return self._source
 
-    @type.setter
-    def type(self, type):
-        """Sets the type of this GeneDetailReference.
+    @source.setter
+    def source(self, source):
+        """Sets the source of this GeneDetailReference.
 
-        reference type
+        reference source
 
-        :param type: The reference_type of this GeneDetailReference
-        :type type: str
+        :param source: The source of this GeneDetailReference
+        :type source: str
         """
 
-        self._type = type
+        self._source = source
 
     @property
     def url(self):

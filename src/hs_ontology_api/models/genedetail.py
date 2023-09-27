@@ -1,21 +1,26 @@
 # coding: utf-8
 
 # JAS September 2023
-# GeneDetail model
-# Information on a gene identified in HGNC.
+# GeneDetail model class
+# Used by the genes endpoint.
+# Contains information on a gene identified in HGNC.
 
 from __future__ import absolute_import
 from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
+# Sub-object models
+# Array of gene reference objects
 from hs_ontology_api.models.genedetail_reference import GeneDetailReference
+# Array of cell type objects
 from hs_ontology_api.models.genedetail_celltype import GeneDetailCellType
 
 class GeneDetail(Model):
     def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, previous_symbols=None,
                  previous_names=None, alias_symbols=None, alias_names=None, references=None,
-                 summaries=None, cell_types_code=None, cell_types_code_name=None):
+                 summaries=None, cell_types_code=None, cell_types_code_name=None, cell_types_code_definition=None,
+                 cell_types_codes_organ=None):
         """GeneDetail - a model defined in OpenAPI
 
                 :param hgnc_id: HGNC id approved id for the gene
@@ -42,7 +47,11 @@ class GeneDetail(Model):
                 :type cell_types_code_name: List[str]
 
         """
-        # cell_types_code_name is used to build nested objects in cell_types.
+        #
+        # cell_types_code, cell_types_code_name, cell_types_code_definition, and cell_types_codes_organ are used
+        # to build a nested objects named cell_types.
+        # Cell type information except for CL code is optional. The cell_types_code parameter lists all cell types
+        # associated with a gene; the cell_types_code_* parameters contain optional information.
 
         # Types for JSON objects
         self.openapi_types = {
@@ -54,10 +63,10 @@ class GeneDetail(Model):
             'alias_symbols': List[str],
             'alias_names': List[str],
             'references': List[GeneDetailReference],
-            'summaries': List[str],
-            'cell_types_code': List[GeneDetailCellType]
+            'summary': List[str],
+            'cell_types': List[GeneDetailCellType]
         }
-
+        # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
             'hgnc_id': 'hgnc_id',
             'approved_symbol': 'approved_symbol',
@@ -67,62 +76,117 @@ class GeneDetail(Model):
             'alias_symbols': 'alias_symbols',
             'alias_names': 'alias_names',
             'references': 'references',
-            'summaries': 'summaries',
-            'cell_types_code': 'cell_types_code'
+            'summary': 'summary',
+            'cell_types': 'cell_types'
         }
+        # Property assignments
         self._hgnc_id = hgnc_id
-        self._approved_symbol = approved_symbol
-        self._approved_name = approved_name
-        self._previous_symbols = previous_symbols
-        self._previous_names = previous_names
-        self._alias_symbols = alias_symbols
-        self._alias_names = alias_names
-        self._references = self.makereferencedict(references)
-        self._summaries = summaries
-        self._cell_types_code = self.makecelltypedict(cell_types_code,cell_types_code_name)
+        self._approved_symbol = approved_symbol[0]
+        self._approved_name = approved_name[0]
+        if previous_symbols is None:
+            self._previous_symbols = []
+        else:
+            self._previous_symbols = previous_symbols
+        if previous_names is None:
+            self._previous_names = []
+        else:
+            self._previous_names = previous_names
+        if alias_symbols is None:
+            self._alias_symbols = []
+        else:
+            self._alias_symbols = alias_symbols
+        if alias_names is None:
+            self._alias_names = []
+        else:
+            self._alias_names = alias_names
+        if references is None:
+            self._references = []
+        else:
+            self._references = self._makereferencedict(references)
+        if summaries is None:
+            self._summary = ''
+        else:
+            self._summary = summaries[0]
+        if cell_types_code is None:
+            self._cell_types = []
+        else:
+            self._cell_types = self._makecelltypedict(cell_types_code, cell_types_code_name,
+                                                      cell_types_code_definition, cell_types_codes_organ)
 
-    def makereferencedict(self, references=None) ->List[dict]:
+    def _makereferencedict(self, references=None) ->List[dict]:
 
-        # Expands a list of reference codes into dictionaries with additional properties.
+        # Builds a list of dictionaries of references for a gene.
+        # The references parameter is an optional list of delimited reference codes--e.g., [ENTREZ:X, ENSEMBLE:Y].
 
-        # Each reference code will be expanded to a JSON object with additional key/value pairs, including for
-        # a URL.
+        # Each reference code will be expanded to a "reference" JSON object with additional key/value pairs.
         listret=[]
         if references is None:
             return None
 
         for ref in references:
+            # Instantiate and populate a "reference" object.
             genedetailref = GeneDetailReference(ref)
-            # Use the to_dict method of the Model base class to obtain a dict of genedetailref.
+            # Use the to_dict method of the Model base class to obtain a dictionary of the reference object..
             dictref = genedetailref.to_dict()
             listret.append(dictref)
 
         return listret
 
-    def makecelltypedict(self, cell_types_code=None, cell_types_code_name=None) ->List[dict]:
+    def _makecelltypedict(self, cell_types_code=None, cell_types_code_name=None,
+                         cell_types_code_definition=None, cell_types_code_organ=None) ->List[dict]:
 
-        # Expands a list of cell_type codes into dictionaries with additional properties.
+        # Builds a list of dictionaries of cell types associated with a gene.
+        # The cell_types_code parameter is an optional list of optional codes from Cell Ontology--e.g., [CL:X, CL:Y].
 
-        # Each reference code will be expanded to a JSON object with additional key/value pairs, including for
-        # a URL.
+        # Each cell type code will be expanded to a "cell types" JSON object.
+        # For a cell type, all information other than the code (i.e., name, defintion, organ association) is optional.
+        # This optional information is stored in the cell_types_code_* parameters and passed to an object of type
+        # GeneDetailCellType, which will build nested objects.
+
         listret=[]
         if cell_types_code is None:
             return None
 
         for cell in cell_types_code:
 
-            # Look for matching name for the cell type in cell_types_code_name.
-            # The elements in cell_types_code_name are in format CL:CODE|name
+            # Look for matching optional information for the cell type.
+            # The elements in the optional parameters lists are formatted as follows:
+            # cell_types_code_name, cell_types_code_definition: CL:CODE|thing
+            # cell_types_code_organ: CL:CODE|UBERON:CODE*organ name
+            # A cell type will have at most one name or definition, but can be associated with multiple organs--i.e.,
+            # the cell_types_code_organ list generally has more than one element.
+
+            name = ''
+            definition = ''
+            organ_list = []
+            # name
             if cell_types_code_name is not None:
-                name = ''
                 for nam in cell_types_code_name:
                     cl_code = nam.split('|')[0]
                     if cl_code == cell:
                         name = nam.split('|')[1]
                         break
 
-            genedetailcelltype = GeneDetailCellType(cell,name)
-            # Use the to_dict method of the Model base class to obtain a dict of genedetailref.
+            # definition
+            if cell_types_code_definition is not None:
+                for defn in cell_types_code_definition:
+                    cl_code = defn.split('|')[0]
+                    if cl_code == cell:
+                        definition = defn.split('|')[1]
+                        break
+
+            # organs
+            if cell_types_code_organ is not None:
+                for org in cell_types_code_organ:
+                    cl_code = org.split('|')[0]
+                    if cl_code == cell:
+                        # The list of organs is a string delimited as SAB1:CODE1*name1,SAB2:CODE2*name2.
+                        # Convert to a list.
+                        organ_list = org.split('|')[1].split(',')
+
+            # Instantiate a cell type object.
+            genedetailcelltype = GeneDetailCellType(cell, name, definition, organ_list)
+            # Use the to_dict method of the Model base class to obtain a dict for the list.
             dictcell = genedetailcelltype.to_dict()
             listret.append(dictcell)
 
@@ -139,8 +203,8 @@ class GeneDetail(Model):
             "alias_symbols": self._alias_symbols,
             "alias_names": self._alias_names,
             "references": self._references,
-            "summary": self._summaries,
-            "cell_types": self._cell_types_code
+            "summary": self._summary,
+            "cell_types": self._cell_types
         }
 
     @classmethod
@@ -200,7 +264,7 @@ class GeneDetail(Model):
 
     @property
     def previous_symbols(self):
-        """Gets the previous_names of this GeneDetail.
+        """Gets the previous_symbols of this GeneDetail.
 
         Current HGNC previous symbols for the gene.
         :return: The previous_symbols of this GeneDetail.
@@ -258,7 +322,7 @@ class GeneDetail(Model):
 
         Current HGNC alias_symbols for the gene.
 
-        :param alias_symbols: The previous_names of this GeneInfo
+        :param alias_symbols: The alias_symbols of this GeneInfo
         :type alias_symbols: str
         """
 
@@ -280,7 +344,7 @@ class GeneDetail(Model):
 
         Current HGNC alias_names for the gene.
 
-        :param alias_names: The previous_names of this GeneInfo
+        :param alias_names: The alias_names of this GeneInfo
         :type alias_names: str
         """
 
@@ -309,45 +373,45 @@ class GeneDetail(Model):
         self._references = references
 
     @property
-    def summaries(self):
-        """Gets the summaries of this GeneDetail.
+    def summary(self):
+        """Gets the summary of this GeneDetail.
 
         RefSeq summary for the gene.
-        :return: The summaries of this GeneDetail.
+        :return: The summary of this GeneDetail.
         :rtype: str
         """
-        return self._summaries
+        return self._summary
 
-    @summaries.setter
-    def summaries(self, summaries):
-        """Sets the summaries of this GeneDetail.
+    @summary.setter
+    def summary(self, summary):
+        """Sets the summary of this GeneDetail.
 
-        Current HGNC approved symbol for the gene.
+        RefSeq summary for the gene.
 
-        :param summaries: The approved_symbol of this GeneInfo
-        :type summaries: str
+        :param summary: The summary of this GeneInfo
+        :type summary: str
         """
 
-        self._summaries = summaries
+        self._summary = summary
 
     @property
-    def cell_types_code(self):
-        """Gets the cell_types_code of this GeneDetail.
+    def cell_types(self):
+        """Gets the cell_types of this GeneDetail.
 
         cell types for the gene.
-        :return: The summaries of this GeneDetail.
+        :return: The cell_types of this GeneDetail.
         :rtype: str
         """
-        return self._summaries
+        return self._cell_types
 
-    @summaries.setter
-    def cell_types_code(self, cell_types_code):
-        """Sets the summaries of this GeneDetail.
+    @cell_types.setter
+    def cell_types(self, cell_types):
+        """Sets the cell_types of this GeneDetail.
 
         Cell types for the gene.
 
-        :param cell_types_code: The approved_symbol of this GeneInfo
-        :type cell_types_code: str
+        :param cell_types: The cell_types of this GeneInfo
+        :type cell_types: str
         """
 
-        self._cell_types_code = cell_types_code
+        self._cell_types = cell_types

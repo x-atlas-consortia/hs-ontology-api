@@ -2,12 +2,15 @@ import logging
 import neo4j
 from typing import List
 
+
+# Classes for JSON objects in response body
 from hs_ontology_api.models.assay_type_property_info import AssayTypePropertyInfo
 from hs_ontology_api.models.dataset_property_info import DatasetPropertyInfo
 from hs_ontology_api.models.sab_code_term_rui_code import SabCodeTermRuiCode
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 # JAS Sept 2023
 from hs_ontology_api.models.genedetail import GeneDetail
+
 # Query utilities
 from hs_ontology_api.cypher.util_query import loadquerystring
 
@@ -622,34 +625,50 @@ def query_cypher_dataset_info(sab: str) -> str:
 
 def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
 
-    # Return detailed information on a gene, based on an input list of HGNC identifiers.
+    """
+    Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
 
-    # Annotated Cypher query in genedetail.cypher in cypher directory.
+     Example request body:
+    {
+        "ids": [
+            "60",
+            "MMRN1",
+            "FANCS"
+        ]
+    }
+    """
+
     logger.info(f'concepts_expand_post; Request Body: {gene_ids}')
 
     # response list
     genedetails: [GeneDetail] = []
 
-    # Load query string.
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
     queryfile = 'genedetail.cypher'
     query = loadquerystring(queryfile)
 
-    # Incorporate ids from request body into query.
+    # Incorporate ids from request body into parameterized Cypher query string.
     ids: str = ', '.join("'{0}'".format(i) for i in gene_ids['ids'])
     query = query.replace('$ids', ids)
 
     logger.info(f'query: "{query}"')
 
     with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
+
+        # Build response object.
         for record in recds:
             try:
                 genedetail: GeneDetail = \
                     GeneDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'),
                                record.get('previous_symbols'), record.get('previous_names'), record.get('alias_symbols'),
                                record.get('alias_names'), record.get('references'), record.get('summaries'),
-                               record.get('cell_types_code'), record.get('cell_types_code_name')).serialize()
+                               record.get('cell_types_code'), record.get('cell_types_code_name'),
+                               record.get('cell_types_code_definition'),record.get('cell_types_codes_organ')).serialize()
                 genedetails.append(genedetail)
             except KeyError:
                 pass
+
     return genedetails
