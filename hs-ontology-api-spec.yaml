@@ -600,7 +600,7 @@ components:
                       description: Name (preferred term) for organ in source
                       example: heart
         hgnc_id:
-          type: numeric
+          type: number
           description: numeric HGNC ID for the gene
           example: 60
         previous_names:
@@ -637,4 +637,3 @@ components:
           type: string
           description: RefSeq summary of the gene
           example: Multimerin is a massive, soluble protein found in....
-
