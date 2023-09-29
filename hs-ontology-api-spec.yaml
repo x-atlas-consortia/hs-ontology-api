@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: HubMAP/SenNet Ontology API (hs-ontology-api)
-  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a UBKG(https://ubkg.docs.xconsortia.org/) instance with content from the HuBMAP/SenNet context (https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api is a superclass of the ubkg-api. This specification describes endpoints of both hs-ontology-api and ubkg-api.
+  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a UBKG(https://ubkg.docs.xconsortia.org/) instance with content from the HuBMAP/SenNet context (https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://github.com/x-atlas-consortia/ubkg-api), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code. This specification describes endpoints of both hs-ontology-api and ubkg-api.
   version: 1.3.1
   contact:
     name: GitHub repository

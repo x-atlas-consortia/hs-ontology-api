@@ -8,7 +8,7 @@ of UBKG: it manages endpoints that assume that the UBKG instance includes conten
 from SABs related to HuBMAP and SenNet. The UBKG-api contains code that is 
 common to all UBKG contexts.
 
-By default, hs-ontology-api imports ubkg-api that has been compiled 
+By default, hs-ontology-api imports the ubkg-api that has been compiled 
 as a PyPi package. 
 
 ![img.png](img.png)
