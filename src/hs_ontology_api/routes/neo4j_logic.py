@@ -2,7 +2,6 @@ import logging
 import neo4j
 from typing import List
 
-
 # Classes for JSON objects in response body
 from hs_ontology_api.models.assay_type_property_info import AssayTypePropertyInfo
 from hs_ontology_api.models.dataset_property_info import DatasetPropertyInfo
@@ -13,7 +12,6 @@ from hs_ontology_api.models.genedetail import GeneDetail
 
 # Query utilities
 from hs_ontology_api.cypher.util_query import loadquerystring
-
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
@@ -31,7 +29,7 @@ def make_assaytype_property_info(record):
         record['vis_only'])
 
 
-def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str = 'HUBMAP')\
+def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str = 'HUBMAP') \
         -> AssayTypePropertyInfo:
     # Build the Cypher query that will return the table of data.
     query = query_cypher_dataset_info(application_context)
@@ -51,7 +49,7 @@ def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str 
     return result
 
 
-def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, application_context: str = 'HUBMAP')\
+def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, application_context: str = 'HUBMAP') \
         -> AssayTypePropertyInfo:
     """
     This is intended to be a drop in replacement for the same endpoint in search-src.
@@ -74,9 +72,8 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
 
 def dataset_get_logic(neo4j_instance, data_type: str = '', description: str = '',
                       alt_name: str = '', primary: str = '', contains_pii: str = '', vis_only: str = '',
-                      vitessce_hint: str = '', dataset_provider: str = '', application_context: str = 'HUBMAP')\
+                      vitessce_hint: str = '', dataset_provider: str = '', application_context: str = 'HUBMAP') \
         -> List[DatasetPropertyInfo]:
-
     # JAS FEB 2023
     # Returns an array of objects corresponding to Dataset (type) nodes in the HubMAP
     # or SenNet application ontology.
@@ -214,7 +211,7 @@ def get_organ_types_logic(neo4j_instance, sab):
         "CALL " \
         "{ " \
         "WITH OrganCUI " \
-        "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term) "\
+        "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term) " \
         "WHERE pOrgan.CUI=OrganCUI " \
         "AND cOrgan.SAB='UBERON' " \
         "AND r2.CUI=pOrgan.CUI " \
@@ -623,8 +620,8 @@ def query_cypher_dataset_info(sab: str) -> str:
     qry = qry + 'ORDER BY tolower(data_type)'
     return qry
 
-def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
 
+def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
     """
     Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
 
@@ -663,10 +660,12 @@ def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
             try:
                 genedetail: GeneDetail = \
                     GeneDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'),
-                               record.get('previous_symbols'), record.get('previous_names'), record.get('alias_symbols'),
+                               record.get('previous_symbols'), record.get('previous_names'),
+                               record.get('alias_symbols'),
                                record.get('alias_names'), record.get('references'), record.get('summaries'),
                                record.get('cell_types_code'), record.get('cell_types_code_name'),
-                               record.get('cell_types_code_definition'),record.get('cell_types_codes_organ')).serialize()
+                               record.get('cell_types_code_definition'),
+                               record.get('cell_types_codes_organ')).serialize()
                 genedetails.append(genedetail)
             except KeyError:
                 pass

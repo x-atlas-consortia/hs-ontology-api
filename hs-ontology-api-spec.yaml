@@ -538,7 +538,7 @@ components:
       properties:
         ids:
           type: array
-          description: HGNC identifiers for genes. Types of HGNC identifiers include HGNC numeric id; HGNC approved symbol; HGNC alias; HGNC previous symbol; HGNC approved name; HGNC alias name; and HGNC previous name
+          description: HGNC identifiers for genes. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
           items:
             type: string
           example: [60,MMRN1,FANCS]
