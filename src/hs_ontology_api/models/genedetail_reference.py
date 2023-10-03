@@ -41,19 +41,18 @@ class GeneDetailReference(Model):
 
         # Map to vocabulary-specific references
 
-        match self._source:
-            case 'entrez':
-                url = f'https://www.ncbi.nlm.nih.gov/gene/{self._id}'
-            case 'uniprotkb':
-                url = f'https://www.uniprot.org/uniprotkb/{self._id}/entry'
-            case 'ensembl':
-                url = f'http://useast.ensembl.org/Homo_sapiens/Gene/Summary?g={self._id}'
-            case 'omim':
-                url = f'https://www.omim.org/entry/601456?search={self._id}'
-            case 'hugo' | 'hgnc':
-                url =f'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/{code}'
-            case _:
-                url = ''
+        if self._source == 'entrez':
+            url = f'https://www.ncbi.nlm.nih.gov/gene/{self._id}'
+        elif self._source == 'uniprotkb':
+            url = f'https://www.uniprot.org/uniprotkb/{self._id}/entry'
+        elif self._source == 'ensembl':
+            url = f'http://useast.ensembl.org/Homo_sapiens/Gene/Summary?g={self._id}'
+        elif self._source == 'omim':
+            url = f'https://www.omim.org/entry/601456?search={self._id}'
+        elif self._source in ['hugo','hgnc']:
+            url =f'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/{code}'
+        else:
+            url = ''
         self._url = url
 
     def serialize(self):
