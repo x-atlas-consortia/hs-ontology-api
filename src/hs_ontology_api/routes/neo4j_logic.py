@@ -9,6 +9,8 @@ from hs_ontology_api.models.sab_code_term_rui_code import SabCodeTermRuiCode
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 # JAS Sept 2023
 from hs_ontology_api.models.genedetail import GeneDetail
+# JAS October 2023
+from hs_ontology_api.models.genesfromcells import GenesFromCells
 
 # Query utilities
 from hs_ontology_api.cypher.util_query import loadquerystring
@@ -17,7 +19,6 @@ logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 def make_assaytype_property_info(record):
     return AssayTypePropertyInfo(
@@ -671,3 +672,16 @@ def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
                 pass
 
     return genedetails
+
+def genesfromcells_get_logic(neo4j_instance) -> List[GenesFromCells]:
+    """
+    Returns information on genes identified with a specified threshold of significance by the Cells API.
+    """
+
+    logger.info(f'genesfromcells')
+
+    # response list
+    #genesfromcells: [GenesFromCells] = []
+    hgnc_ids = ["test"]
+
+    return hgnc_ids

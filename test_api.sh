@@ -5,7 +5,7 @@ set -u
 UBKG_URL_PROD=https://ontology.api.hubmapconsortium.org
 UBKG_URL_DEV=https://ontology-api.dev.hubmapconsortium.org
 UBKG_URL_LOCAL=http://127.0.0.1:5002
-UBKG_URL="${UBKG_URL:-$UBKG_URL_LOCAL}"
+UBKG_URL="${UBKG_URL:-$UBKG_URL_DEV}"
 echo "Using UBKG at: ${UBKG_URL}"
 # $ ./test_api.sh
 # Using UBKG at: https://ontology-api.dev.hubmapconsortium.org

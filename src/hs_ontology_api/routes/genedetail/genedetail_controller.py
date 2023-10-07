@@ -1,7 +1,10 @@
 # coding: utf-8
 # JAS September 2023
 from flask import Blueprint, jsonify, current_app, request
-from ..neo4j_logic import genedetail_post_logic
+from ..neo4j_logic import genesfromcells_get_logic
+
+# Cells API
+from hubmap_api_py_client import Client
 
 genedetail_blueprint = Blueprint('genes', __name__, url_prefix='/genes')
 
