@@ -24,8 +24,9 @@ class OntologyCellsClient():
         print(f'{len(self.datasets)} datasets')
 
         # All cells in datasets.
-        dataset_uuids = self.datasets.get_list().keys
-        for d in self.datasets.get_list():
+        dataset_uuids = []
+        datasets = self.datasets.get_list()
+        for d in datasets:
             dataset_uuids.append(d['uuid'])
 
         self.cells_in_datasets = self.client.select_cells(where='dataset', has=dataset_uuids)

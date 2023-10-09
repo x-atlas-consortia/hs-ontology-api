@@ -10,9 +10,9 @@ from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
-class GenesFromCells(Model):
+class GenesList(Model):
     def __init__(self, hgnc_ids=None):
-        """GenesFromCells - a model defined in OpenAPI
+        """GenesList - a model defined in OpenAPI
 
             :param hgnc_ids: list of HGNC IDs for genes identified by Cells
             :type hgnc_ids: List[str]
@@ -38,7 +38,7 @@ class GenesFromCells(Model):
         }
 
     @classmethod
-    def from_dict(cls, dikt) -> 'GenesFromCells':
+    def from_dict(cls, dikt) -> 'GenesList':
         """Returns the dict as a model
 
         :param dikt: A dict.

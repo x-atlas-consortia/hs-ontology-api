@@ -10,7 +10,7 @@ from hs_ontology_api.models.sab_code_term import SabCodeTerm
 # JAS Sept 2023
 from hs_ontology_api.models.genedetail import GeneDetail
 # JAS October 2023
-from hs_ontology_api.models.genesfromcells import GenesFromCells
+from hs_ontology_api.models.geneslist import GenesList
 
 # Query utilities
 from hs_ontology_api.cypher.util_query import loadquerystring
@@ -673,7 +673,8 @@ def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
 
     return genedetails
 
-def genesfromcells_get_logic(neo4j_instance) -> List[GenesFromCells]:
+
+def genesfromcells_get_logic(neo4j_instance) -> List[GenesList]:
     """
     Returns information on genes identified with a specified threshold of significance by the Cells API.
     """

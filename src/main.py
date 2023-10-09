@@ -11,7 +11,7 @@ from hs_ontology_api.routes.relationships.relationships_controller import relati
 from hs_ontology_api.routes.valueset.valueset_controller import valueset_blueprint
 # JAS September 2023
 from hs_ontology_api.routes.genedetail.genedetail_controller import genedetail_blueprint
-from hs_ontology_api.routes.genesfromcells.genesfromcells_controller import genesfromcells_blueprint
+from hs_ontology_api.routes.geneslist.geneslist_controller import geneslist_blueprint
 
 
 def make_flask_config():
@@ -31,7 +31,7 @@ app.register_blueprint(relationships_blueprint)
 app.register_blueprint(valueset_blueprint)
 # JAS Sept 2023
 app.register_blueprint(genedetail_blueprint)
-app.register_blueprint(genesfromcells_blueprint)
+app.register_blueprint(geneslist_blueprint)
 
 
 # Define the /status endpoint in the ubkg_api package will causes 500 error
