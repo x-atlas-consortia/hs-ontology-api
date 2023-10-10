@@ -681,6 +681,11 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
     """
     # response list
+
+    # Read indexed cell-type data from Cells API.
+    oc = OntologyCellsClient()
+    test = oc.celltypes_for_gene_csv(gene_id)
+
     genedetails: [GeneDetail] = []
 
     # Load annotated Cypher query from the cypher directory.

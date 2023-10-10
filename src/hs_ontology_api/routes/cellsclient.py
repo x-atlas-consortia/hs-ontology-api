@@ -7,7 +7,8 @@ import logging
 from hubmap_api_py_client import Client
 from hubmap_api_py_client.errors import ClientError
 
-import csv
+import pandas as pd
+import os
 
 class OntologyCellsClient():
 
@@ -46,5 +47,19 @@ class OntologyCellsClient():
             self.logger.info(f'{gene_symbol}: error')
             return []
 
+    def celltypes_for_gene_csv(self, gene_symbol:str) -> list[str]:
+
+        # Reads the CSV file built by the build_index script in the cells_index directory.
+        # Obtains the list of cell type information for a specific gene.
+
+        # Hard code file name for now.
+        # Read CSV and filter for gene symbol.
+        fpath = os.path.dirname(os.getcwd())
+        fpath = os.path.join(fpath, 'src/cells_index/cells.tsv')
+        dfcelltype = pd.read_csv(fpath,sep='\t')
+        dfcelltype = dfcelltype[dfcelltype['gene_symbol']==gene_symbol]
+
+        # Map rows to cell_types structure used with neo4j query.
 
 
+        return []
