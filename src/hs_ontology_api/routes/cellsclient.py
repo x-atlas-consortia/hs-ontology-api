@@ -7,6 +7,8 @@ import logging
 from hubmap_api_py_client import Client
 from hubmap_api_py_client.errors import ClientError
 
+import csv
+
 class OntologyCellsClient():
 
     def __init__(self):
@@ -43,4 +45,6 @@ class OntologyCellsClient():
             # The client returns an error if a "gene" is not in a list internal to the client.
             self.logger.info(f'{gene_symbol}: error')
             return []
+
+
 

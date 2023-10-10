@@ -2,7 +2,7 @@
 # JAS September 2023
 from flask import Blueprint, jsonify, current_app, request, make_response
 from ..neo4j_logic import genedetail_get_logic
-from ..cellsclient import OntologyCellsClient
+
 
 genedetail_blueprint = Blueprint('genedetail', __name__, url_prefix='/gene_detail')
 

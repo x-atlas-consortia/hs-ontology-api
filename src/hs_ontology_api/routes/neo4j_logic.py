@@ -13,6 +13,7 @@ from hs_ontology_api.models.genedetail import GeneDetail
 # JAS October 2023
 from hs_ontology_api.models.genelist import GeneList
 from hs_ontology_api.models.genelist_detail import GeneListDetail
+from .cellsclient import OntologyCellsClient
 
 # Query utilities
 from hs_ontology_api.cypher.util_query import loadquerystring
@@ -679,7 +680,6 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     """
     Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
     """
-
     # response list
     genedetails: [GeneDetail] = []
 
@@ -704,7 +704,7 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
                                record.get('alias_names'), record.get('references'), record.get('summaries'),
                                record.get('cell_types_code'), record.get('cell_types_code_name'),
                                record.get('cell_types_code_definition'),
-                               record.get('cell_types_codes_organ')).serialize()
+                               record.get('cell_types_codes_organ'),record.get('cell_types_codes_source')).serialize()
                 genedetails.append(genedetail)
             except KeyError:
                 pass
