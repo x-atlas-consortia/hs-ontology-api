@@ -1,7 +1,7 @@
 # coding: utf-8
 
 # JAS October 2023
-# GenesList model class
+# GenesListDetail model class
 # Used by the geneslist endpoint.
 # Provides information on genes identified by either the UBKG or the Cells API--i.e., that have relevance to HuBMAP/SenNet.
 
@@ -10,9 +10,9 @@ from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
-class GenesList(Model):
-    def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, description=None, page=None):
-        """GenesList - a model defined in OpenAPI
+class GeneListDetail(Model):
+    def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, description=None):
+        """GenesListDetail - a model defined in OpenAPI
 
             :param hgnc_id: hgnc ID
             :type hgnc_id: str
@@ -22,8 +22,6 @@ class GenesList(Model):
             :type approved_name: str
             :param description: RefSeq description
             :type description: str
-            :param page: page offset
-            :type page: str
 
         """
         # Types for JSON objects
@@ -31,8 +29,7 @@ class GenesList(Model):
             'hgnc_id': str,
             'approved_symbol': str,
             'approved_name': str,
-            'description': str,
-            'page':int
+            'description': str
         }
 
         # Attribute mappings used by the base Model class to assert key/value pairs.
@@ -40,13 +37,11 @@ class GenesList(Model):
             'hgnc_id': 'hgnc_id',
             'approved_symbol': 'approved_symbol',
             'approved_name': 'approved_name',
-            'description': 'description',
-            'page':'page'
+            'description': 'description'
         }
 
         # Property assignments
         self._hgnc_id = hgnc_id
-        self._page = int(page)
         if approved_symbol is None:
             self._approved_symbol = ''
         else:
@@ -66,11 +61,10 @@ class GenesList(Model):
             "approved_symbol": self._approved_symbol,
             "approved_name": self._approved_name,
             "description": self._description,
-            "page": self._page
         }
 
     @classmethod
-    def from_dict(cls, dikt) -> 'GenesList':
+    def from_dict(cls, dikt) -> 'GenesListDetail':
         """Returns the dict as a model
 
         :param dikt: A dict.
@@ -82,17 +76,17 @@ class GenesList(Model):
 
     @property
     def hgnc_id(self):
-        """Gets the hgnc_id of this GenesList.
+        """Gets the hgnc_id of this GenesListDetail.
 
         Current HGNC approved id for the gene.
-        :return: The hgnc_id of this GeneDetail.
+        :return: The hgnc_id of this GeneListDetail.
         :rtype: str
         """
         return self._hgnc_id
 
     @hgnc_id.setter
     def hgnc_id(self, hgnc_id):
-        """Sets the hgnc_id of this GenesList.
+        """Sets the hgnc_id of this GeneListDetail.
 
         Current HGNC approved id for the gene.
 
@@ -104,17 +98,17 @@ class GenesList(Model):
 
     @property
     def approved_symbol(self):
-        """Gets the approved_symbol of this GenesList.
+        """Gets the approved_symbol of this GeneListDetail.
 
         Current HGNC approved symbol for the gene.
-        :return: The approved_symbol of this GenesList.
+        :return: The approved_symbol of this GeneListDetail.
         :rtype: str
         """
         return self._approved_symbol
 
     @approved_symbol.setter
     def approved_symbol(self, approved_symbol):
-        """Sets the approved_symbol of this GenesList.
+        """Sets the approved_symbol of this GenesListDetail.
 
         Current HGNC approved symbol for the gene.
 
@@ -126,7 +120,7 @@ class GenesList(Model):
 
     @property
     def approved_name(self):
-        """Gets the approved_name of this GenesList.
+        """Gets the approved_name of this GenesListDetail.
 
         Current HGNC approved name for the gene.
         :return: The approved_name of this GenesList.
@@ -136,7 +130,7 @@ class GenesList(Model):
 
     @approved_name.setter
     def approved_name(self, approved_name):
-        """Sets the approved_name of this GenesList.
+        """Sets the approved_name of this GenesListDetail.
 
         Current HGNC approved name for the gene.
 
@@ -148,17 +142,17 @@ class GenesList(Model):
 
     @property
     def description(self):
-        """Gets the description of this GenesList.
+        """Gets the description of this GenesListDetail.
 
         RefSeq summary for the gene.
-        :return: The description of this GenesList.
+        :return: The description of this GenesListDetail.
         :rtype: str
         """
         return self._description
 
     @description.setter
     def description(self, description):
-        """Sets the description of this GenesList.
+        """Sets the description of this GenesListDetail.
 
        RefSeq summary for the gene.
 
@@ -167,25 +161,3 @@ class GenesList(Model):
         """
 
         self._description = description
-
-    @property
-    def page(self):
-        """Gets the page of this GenesList.
-
-        Offset page.
-        :return: The page of this GenesList.
-        :rtype: int
-        """
-        return self._page
-
-    @description.setter
-    def description(self, page):
-        """Sets the page of this GenesList.
-
-       Offset page.
-
-        :param page: The description of this Gene
-        :type description: int
-        """
-
-        self._page = page

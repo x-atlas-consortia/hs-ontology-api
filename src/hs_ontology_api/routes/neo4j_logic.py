@@ -11,7 +11,8 @@ from hs_ontology_api.models.sab_code_term import SabCodeTerm
 # JAS Sept 2023
 from hs_ontology_api.models.genedetail import GeneDetail
 # JAS October 2023
-from hs_ontology_api.models.geneslist import GenesList
+from hs_ontology_api.models.genelist import GeneList
+from hs_ontology_api.models.genelist_detail import GeneListDetail
 
 # Query utilities
 from hs_ontology_api.cypher.util_query import loadquerystring
@@ -710,18 +711,18 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
-def genesfromubkg_get_logic(neo4j_instance, page: str, genesperpage:str) -> List[GenesList]:
+def genesfromubkg_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str) -> List[GeneList]:
 
     """
     Returns information on genes in the UBKG.
     :param neo4j_instance:  neo4j client
     :page: number of pages with rows=pagesize to skip in neo4j query
     :genesperpage: number of rows to limit in neo4j query
-    :return: List[GenesList]
+    :return: List[GeneList]
     """
 
     # response list
-    geneslist: [GenesList] = []
+    retlist: [GeneList] = []
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'geneslist.cypher'
@@ -738,18 +739,20 @@ def genesfromubkg_get_logic(neo4j_instance, page: str, genesperpage:str) -> List
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
 
-        # Build response object.
+        genes: [GeneListDetail] = []
+        # Build the list of gene details for this page
         if page == '0':
             page = '1'
         for record in recds:
             try:
-                gene: GenesList = \
-                    GenesList(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'), record.get('description'),page).serialize()
-                geneslist.append(gene)
+                gene: GeneListDetail = \
+                    GeneListDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'), record.get('description')).serialize()
+                genes.append(gene)
             except KeyError:
                 pass
-
-    return geneslist
+        # Use the list of gene details with the page to build a genelist object.
+        genelist: GeneList = GeneList(page, total_pages, genesperpage, genes).serialize()
+    return genelist
 
 def genesfromubkg_count_get_logic(neo4j_instance) -> int:
 

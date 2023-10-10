@@ -41,11 +41,15 @@ def geneslist() -> list[str]:
     if page == '0':
         page = '1'
 
+    # Obtain the total count of genes.
+    gene_count = genesfromubkg_count_get_logic(neo4j_instance)
+    # Calculate the total number of pages
+    total_pages = str(int(gene_count)//int(genesperpage) - 1)
+
     if page == 'last':
-        # Calculate the last page after obtaining the total count of rows.
-        neo4j_instance = current_app.neo4jConnectionHelper.instance()
-        gene_count = genesfromubkg_count_get_logic(neo4j_instance)
-        page = str(int(gene_count)//int(genesperpage))
+        page = str(int(total_pages) + 1)
+    if page == 'first':
+        page = '1'
 
     # Parameter validation.
     if not page.isnumeric():
@@ -57,4 +61,4 @@ def geneslist() -> list[str]:
     page = str(int(page) - 1)
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(genesfromubkg_get_logic(neo4j_instance, page=page, genesperpage=genesperpage))
+    return jsonify(genesfromubkg_get_logic(neo4j_instance, page=page, total_pages=total_pages, genesperpage=genesperpage))
