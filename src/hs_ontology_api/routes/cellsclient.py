@@ -2,6 +2,7 @@
 # JAS October 2023
 
 # Wrapper for the Cells client (hubmap-api-py-client).
+import logging
 
 from hubmap_api_py_client import Client
 from hubmap_api_py_client.errors import ClientError
@@ -10,57 +11,36 @@ class OntologyCellsClient():
 
     def __init__(self):
 
-        # Obtains relatively invariant data from Cells API regarding datasets, cells, and genes.
+        logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S',
+                            level=logging.INFO)
+        self.logger = logging.getLogger(__name__)
+
+        #self.logger.info(f'Startup: getting preliminary information from Cells API...')
 
         # Instantiate hubmap-api-py-client.
         self.client_url = 'https://cells.dev.hubmapconsortium.org/api/'
         self.client = Client(self.client_url)
 
-        # Load dataset and cell information using Cells API.
-        # These objects will be used in set operations to identify genes.
+    def celltypes_for_gene(self, gene_symbol: str) -> list[str]:
 
-        # All datasets
-        self.datasets = self.client.select_datasets()
-        print(f'{len(self.datasets)} datasets')
+        """
+        Returns a list of Cell Ontology identifiers for cell types of cells that associate with a gene.
+        :param gene_symbol: approved HGNC gene symbol
+        :return: List[str]
+        """
 
-        # All cells in datasets.
-        dataset_uuids = []
-        datasets = self.datasets.get_list()
-        for d in datasets:
-            dataset_uuids.append(d['uuid'])
+        logging.info('celltypes_for_gene')
+        try:
+            cells_with_gene = self.client.select_cells(where='gene', has=[f'{gene_symbol} > 1'],
+                                                       genomic_modality='rna').get_list()
+            cell_type_names = []
+            for c in cells_with_gene:
+                if not c['cell_type'] in cell_type_names:
+                    cell_type_names.append(c['cell_type'])
+            return cell_type_names
+        except ClientError:
+            # The client returns an error if a "gene" is not in a list internal to the client.
+            self.logger.info(f'{gene_symbol}: error')
+            return []
 
-        self.cells_in_datasets = self.client.select_cells(where='dataset', has=dataset_uuids)
-        print(f'{len(self.cells_in_datasets)} cells in datasets')
-
-        # All genes
-        self.genes = self.client.select_genes().get_list()
-        print(f'{len(self.genes)} genes')
-
-    def genes_from_cells(self) -> list[str]:
-
-        # Returns a list of HGNC IDs for genes that have been identified in cells in datasets.
-
-        gene_symbols = []
-        testcount = 0
-
-        # Check every gene for presence in cells in datasets
-        for gene in self.genes:
-            gene_symbol = gene['gene_symbol']
-            try:
-                cells_with_gene = self.client.select_cells(where='gene', has=[f'{gene_symbol} > 0.5'], genomic_modality='rna')
-
-                # The cells_in_datasets object was instantiated at API startup.
-                cells_with_gene_in_datasets = cells_with_gene & self.cells_in_datasets
-
-                cells_list = cells_with_gene_in_datasets.get_list()
-                if len(cells_list) > 0:
-                    print(f'{gene_symbol} is in cells in datasets')
-                    gene_symbols.append(gene_symbol)
-                testcount = testcount + 1
-                if testcount > 4: # For debugging, because there are over 60K "genes" in list
-                    break
-            except ClientError:
-                print(f'{gene_symbol}: error')
-                pass
-
-        return gene_symbols

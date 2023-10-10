@@ -1,6 +1,7 @@
 import logging
 import neo4j
 from typing import List
+import pandas as pd
 
 # Classes for JSON objects in response body
 from hs_ontology_api.models.assay_type_property_info import AssayTypePropertyInfo
@@ -673,16 +674,98 @@ def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
 
     return genedetails
 
-
-def genesfromcells_get_logic(neo4j_instance) -> List[GenesList]:
+def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     """
-    Returns information on genes identified with a specified threshold of significance by the Cells API.
+    Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
     """
-
-    logger.info(f'genesfromcells')
 
     # response list
-    #genesfromcells: [GenesFromCells] = []
-    hgnc_ids = ["test"]
+    genedetails: [GeneDetail] = []
 
-    return hgnc_ids
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'genedetail.cypher'
+    query = loadquerystring(queryfile)
+
+    query = query.replace('$ids', f'\'{gene_id}\'')
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                genedetail: GeneDetail = \
+                    GeneDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'),
+                               record.get('previous_symbols'), record.get('previous_names'),
+                               record.get('alias_symbols'),
+                               record.get('alias_names'), record.get('references'), record.get('summaries'),
+                               record.get('cell_types_code'), record.get('cell_types_code_name'),
+                               record.get('cell_types_code_definition'),
+                               record.get('cell_types_codes_organ')).serialize()
+                genedetails.append(genedetail)
+            except KeyError:
+                pass
+
+    return genedetails
+
+def genesfromubkg_get_logic(neo4j_instance, page: str, genesperpage:str) -> List[GenesList]:
+
+    """
+    Returns information on genes in the UBKG.
+    :param neo4j_instance:  neo4j client
+    :page: number of pages with rows=pagesize to skip in neo4j query
+    :genesperpage: number of rows to limit in neo4j query
+    :return: List[GenesList]
+    """
+
+    # response list
+    geneslist: [GenesList] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'geneslist.cypher'
+    query = loadquerystring(queryfile)
+
+    # The query is parameterized with variables $skiprows and $limitrows.
+    # Calculate variable values from parameters.
+
+    skiprows = int(page) * int(genesperpage)
+    query = query.replace('$skiprows', str(skiprows))
+    query = query.replace('$limitrows', str(genesperpage))
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        if page == '0':
+            page = '1'
+        for record in recds:
+            try:
+                gene: GenesList = \
+                    GenesList(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'), record.get('description'),page).serialize()
+                geneslist.append(gene)
+            except KeyError:
+                pass
+
+    return geneslist
+
+def genesfromubkg_count_get_logic(neo4j_instance) -> int:
+
+    # Returns the count of HGNC genes in the UBKG.
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'geneslist_count.cypher'
+    query = loadquerystring(queryfile)
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        for record in recds:
+            try:
+                genecount = record.get('genelistcount')
+            except KeyError:
+                pass
+    return genecount
+

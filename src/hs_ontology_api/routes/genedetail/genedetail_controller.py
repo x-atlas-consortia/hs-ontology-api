@@ -1,21 +1,17 @@
 # coding: utf-8
 # JAS September 2023
-from flask import Blueprint, jsonify, current_app, request
-from ..neo4j_logic import genesfromcells_get_logic
+from flask import Blueprint, jsonify, current_app, request, make_response
+from ..neo4j_logic import genedetail_get_logic
+from ..cellsclient import OntologyCellsClient
 
-# Cells API
-from hubmap_api_py_client import Client
+genedetail_blueprint = Blueprint('genedetail', __name__, url_prefix='/gene_detail')
 
-genedetail_blueprint = Blueprint('genes', __name__, url_prefix='/genes')
-
-
-@genedetail_blueprint.route('', methods=['POST'])
-def genedetail_expand_post():
+@genedetail_blueprint.route('', methods=['GET'])
+def genedetail_expand_get():
     """Returns a unique list of genes.
 
     :rtype: Union[List[GeneDetail]]
 
-    The request body is an array of HGNC identifiers.
     The following types of identifiers can be used in the list:
     1. HGNC numeric IDs (e.g., 7178)
     2. HGNC approved symbols (e.g., MMRN1)
@@ -24,8 +20,13 @@ def genedetail_expand_post():
     5. names (approved name, previous name, alias name).
 
     Because exact matches would be required, it is unlikely that names would be useful criteria.
-    If no criteria are specified, return information on all HGNC genes.
 
     """
+
+    # Obtain the list of gene IDs from parameters.
+    id = request.args.get('id')
+    if id =='' or id is None:
+        return make_response('The id parameter is blank. It should specify a gene identifier.',400)
+
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(genedetail_post_logic(neo4j_instance, request.get_json()))
+    return jsonify(genedetail_get_logic(neo4j_instance, id))
