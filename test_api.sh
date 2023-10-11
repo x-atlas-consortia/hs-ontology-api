@@ -1,11 +1,59 @@
 #!/bin/bash
+##########
+# Test script for UBKG API
+##########
+
+
 set -e
 set -u
+###########
+# Help function
+##########
+Help()
+{
+   # Display Help
+   echo ""
+   echo "****************************************"
+   echo "HELP: UBKG API test script"
+   echo
+   echo "Syntax: ./test_api.sh [-option]..."
+   echo "option"
+   echo "-v     test environment: l (local), d (DEV), or p (PROD)"
+}
 
+#####
+# Get options
+while getopts ":hv:" option; do
+   case $option in
+      h) # display Help
+         Help
+         exit;;
+      v) # environment
+         env=$OPTARG;;
+      \?) # Invalid option
+         echo "Error: Invalid option"
+         exit;;
+   esac
+done
+
+# Environment URLs.
 UBKG_URL_PROD=https://ontology.api.hubmapconsortium.org
 UBKG_URL_DEV=https://ontology-api.dev.hubmapconsortium.org
 UBKG_URL_LOCAL=http://127.0.0.1:5002
-UBKG_URL="${UBKG_URL:-$UBKG_URL_DEV}"
+
+# Map to selected API environment.
+case "$env" in
+  l) # local
+    UBKG_URL="${UBKG_URL:-$UBKG_URL_LOCAL}";;
+  d) # DEV
+    UBKG_URL="${UBKG_URL:-$UBKG_URL_DEV}";;
+  p) # PROD
+    UBKG_URL="${UBKG_URL:-$UBKG_URL_PROD}";;
+  \?) # default to local machine
+    UBKG_URL="${UBKG_URL:-$UBKG_URL_LOCAL}";;
+
+esac
+
 echo "Using UBKG at: ${UBKG_URL}"
 # $ ./test_api.sh
 # Using UBKG at: https://ontology-api.dev.hubmapconsortium.org
@@ -67,10 +115,20 @@ curl --request GET \
  --header "Content-Type: application/json"
 echo
 
-# JAS Sept 2023 - Removed duplicate calls.
+# Test for gene_list endpoint
+echo "gene_list GET"
+curl --request GET \
+ --url "${UBKG_URL}/gene_list?page=1&genesperpage=3" \
+ --header "Content-Type: application/json"
+echo
+echo "gene_list GET last page"
+curl --request GET \
+ --url "${UBKG_URL}/gene_list?page=last&genesperpage=3" \
+ --header "Content-Type: application/json"
+echo
 
-# JAS Sept 2023 - Test for genes endpoint.
-echo "gene_detail GET"
+# Test for gene_detail endpoint.
+echo "gene_detail GET for MMRN1"
 curl --request GET \
  --url "${UBKG_URL}/gene_detail?id=MMRN1" \
  --header "Content-Type: application/json"
