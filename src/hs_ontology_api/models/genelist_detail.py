@@ -11,7 +11,7 @@ from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
 class GeneListDetail(Model):
-    def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, description=None):
+    def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, summary=None):
         """GenesListDetail - a model defined in OpenAPI
 
             :param hgnc_id: hgnc ID
@@ -20,8 +20,8 @@ class GeneListDetail(Model):
             :type approved_symbol: str
             :param approved_name: approved name
             :type approved_name: str
-            :param description: RefSeq description
-            :type description: str
+            :param summary: RefSeq description
+            :type summary: str
 
         """
         # Types for JSON objects
@@ -29,7 +29,7 @@ class GeneListDetail(Model):
             'hgnc_id': str,
             'approved_symbol': str,
             'approved_name': str,
-            'description': str
+            'summary': str
         }
 
         # Attribute mappings used by the base Model class to assert key/value pairs.
@@ -37,7 +37,7 @@ class GeneListDetail(Model):
             'hgnc_id': 'hgnc_id',
             'approved_symbol': 'approved_symbol',
             'approved_name': 'approved_name',
-            'description': 'description'
+            'summary': 'summary'
         }
 
         # Property assignments
@@ -52,7 +52,10 @@ class GeneListDetail(Model):
         else:
             self._approved_name = approved_name[0]
 
-        self._description = description
+        if summary is None:
+            self._summary = ''
+        else:
+            self._summary = summary[0]
 
     def serialize(self):
         # Key/value format of response.
@@ -60,7 +63,7 @@ class GeneListDetail(Model):
             "hgnc_id": self._hgnc_id,
             "approved_symbol": self._approved_symbol,
             "approved_name": self._approved_name,
-            "description": self._description,
+            "summary": self._summary,
         }
 
     @classmethod
@@ -141,23 +144,23 @@ class GeneListDetail(Model):
         self._approved_name = approved_name
 
     @property
-    def description(self):
-        """Gets the description of this GenesListDetail.
+    def summary(self):
+        """Gets the summary of this GenesListDetail.
 
         RefSeq summary for the gene.
-        :return: The description of this GenesListDetail.
+        :return: The summary of this GenesListDetail.
         :rtype: str
         """
-        return self._description
+        return self._summary
 
-    @description.setter
-    def description(self, description):
-        """Sets the description of this GenesListDetail.
+    @summary.setter
+    def summary(self, summary):
+        """Sets the summary of this GenesListDetail.
 
        RefSeq summary for the gene.
 
-        :param description: The description of this Gene
-        :type description: str
+        :param summary: The description of this Gene
+        :type summary: str
         """
 
-        self._description = description
+        self._summary = summary

@@ -34,7 +34,7 @@ class GeneDetailCellType(Model):
             'name': str,
             'definition': str,
             'organs': List[GeneDetailCellTypeOrgan],
-            'source': List[str]
+            'sources': List[str]
         }
         # attributions
         self.attribute_map = {
@@ -42,7 +42,7 @@ class GeneDetailCellType(Model):
             'name': 'name',
             'definition': 'definition',
             'organs': 'organs',
-            'source': 'source'
+            'sources': 'sources'
         }
         # assignments
         self._id = id
@@ -59,9 +59,9 @@ class GeneDetailCellType(Model):
         else:
             self._organs = self._makereorgandict(organ_list)
         if source_list is None:
-            self._source = []
+            self._sources = []
         else:
-            self._source = source_list
+            self._sources = source_list
 
     def _makereorgandict(self, organs=None) ->List[dict]:
 
@@ -94,7 +94,7 @@ class GeneDetailCellType(Model):
             "name": self._name,
             "definition": self._definition,
             "organs": self._organs,
-            "source": self._source
+            "sources": self._sources
         }
 
     @classmethod
@@ -190,21 +190,21 @@ class GeneDetailCellType(Model):
         self._organs = organs
 
     @property
-    def source(self):
-        """Gets the source of this GeneDetailCellType.
+    def sources(self):
+        """Gets the sources of this GeneDetailCellType.
 
-        Source for the cell type association
-        :return: source for the cell type association
+        Sources for the cell type association
+        :return: sources for the cell type association
         :rtype: str
         """
-        return self._source
+        return self._sources
 
-    @source.setter
-    def source(self, source):
-        """Sets the source of this GeneDetailCellType.
+    @sources.setter
+    def sources(self, sources):
+        """Sets the sources of this GeneDetailCellType.
         Source for the cell type association
 
-        :param source: The source
-        :type source: str
+        :param sources: The source
+        :type sources: str
         """
-        self._source = source
+        self._sources = sources

@@ -624,58 +624,6 @@ def query_cypher_dataset_info(sab: str) -> str:
     qry = qry + 'ORDER BY tolower(data_type)'
     return qry
 
-
-def genedetail_post_logic(neo4j_instance, gene_ids) -> List[GeneDetail]:
-    """
-    Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
-
-     Example request body:
-    {
-        "ids": [
-            "60",
-            "MMRN1",
-            "FANCS"
-        ]
-    }
-    """
-
-    logger.info(f'concepts_expand_post; Request Body: {gene_ids}')
-
-    # response list
-    genedetails: [GeneDetail] = []
-
-    # Load annotated Cypher query from the cypher directory.
-    # The query is parameterized with variable $ids.
-    queryfile = 'genedetail.cypher'
-    query = loadquerystring(queryfile)
-
-    # Incorporate ids from request body into parameterized Cypher query string.
-    ids: str = ', '.join("'{0}'".format(i) for i in gene_ids['ids'])
-    query = query.replace('$ids', ids)
-
-    logger.info(f'query: "{query}"')
-
-    with neo4j_instance.driver.session() as session:
-        # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
-
-        # Build response object.
-        for record in recds:
-            try:
-                genedetail: GeneDetail = \
-                    GeneDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'),
-                               record.get('previous_symbols'), record.get('previous_names'),
-                               record.get('alias_symbols'),
-                               record.get('alias_names'), record.get('references'), record.get('summaries'),
-                               record.get('cell_types_code'), record.get('cell_types_code_name'),
-                               record.get('cell_types_code_definition'),
-                               record.get('cell_types_codes_organ')).serialize()
-                genedetails.append(genedetail)
-            except KeyError:
-                pass
-
-    return genedetails
-
 def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     """
     Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
@@ -716,14 +664,18 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
-def genesfromubkg_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str) -> List[GeneList]:
+def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str) -> List[GeneList]:
 
     """
-    Returns information on genes in the UBKG.
+    Returns information on HGNC genes.
+    Intended to support a Data Portal landing page featuring a high-level
+    list with pagination features.
+
     :param neo4j_instance:  neo4j client
-    :page: number of pages with rows=pagesize to skip in neo4j query
+    :page: Zero-based number of pages with rows=pagesize to skip in neo4j query
     :genesperpage: number of rows to limit in neo4j query
     :return: List[GeneList]
+
     """
 
     # response list
@@ -736,7 +688,14 @@ def genesfromubkg_get_logic(neo4j_instance, page:str, total_pages:str, genesperp
     # The query is parameterized with variables $skiprows and $limitrows.
     # Calculate variable values from parameters.
 
-    skiprows = int(page) * int(genesperpage)
+    # SKIP in the neo4j query is 0-based--i.e., SKIP 0 means the first page.
+    # UI-based pagination, however, is 1-based.
+    # The controller will pass a default value of 1 for cases of no value (default)
+    # or 0.
+    # Convert to 1-based.
+    intpage = int(page)-1
+
+    skiprows = intpage * int(genesperpage)
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(genesperpage))
 
@@ -745,9 +704,7 @@ def genesfromubkg_get_logic(neo4j_instance, page:str, total_pages:str, genesperp
         recds: neo4j.Result = session.run(query)
 
         genes: [GeneListDetail] = []
-        # Build the list of gene details for this page
-        if page == '0':
-            page = '1'
+        # Build the list of gene details for this page.
         for record in recds:
             try:
                 gene: GeneListDetail = \
@@ -759,7 +716,7 @@ def genesfromubkg_get_logic(neo4j_instance, page:str, total_pages:str, genesperp
         genelist: GeneList = GeneList(page, total_pages, genesperpage, genes).serialize()
     return genelist
 
-def genesfromubkg_count_get_logic(neo4j_instance) -> int:
+def genelist_count_get_logic(neo4j_instance) -> int:
 
     # Returns the count of HGNC genes in the UBKG.
 

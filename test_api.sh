@@ -70,11 +70,10 @@ echo
 # JAS Sept 2023 - Removed duplicate calls.
 
 # JAS Sept 2023 - Test for genes endpoint.
-echo "genes POST"
-curl --request POST \
- --url "${UBKG_URL}/genes" \
- --header "Content-Type: application/json" \
- --data '{"ids": ["60","MMRN1","FANCS"]}'
+echo "gene_detail GET"
+curl --request GET \
+ --url "${UBKG_URL}/gene_detail?id=MMRN1" \
+ --header "Content-Type: application/json"
 echo
 
 echo "SENNET source types"
