@@ -22,9 +22,9 @@ def geneslist() -> list[str]:
     if genesperpage is None:
         genesperpage = '10'
     if not genesperpage.isnumeric():
-        return make_response(f'Page genesperpage={genesperpage} is not numeric', 400)
-    if int(genesperpage) < 0:
-        return make_response(f'Parameter genesperpage={genesperpage} cannot be negative', 400)
+        return make_response(f'The value for parameter genesperpage ({genesperpage}) must be numeric.', 400)
+    if int(genesperpage) <= 0:
+        return (make_response(f'The value for parameter genesperpage ({genesperpage}) must be greater than zero.', 400))
 
     # Default values for page.
     # Case: No parameter specified.
@@ -47,9 +47,12 @@ def geneslist() -> list[str]:
         page = '1'
     # Parameter validation.
     if not page.isnumeric():
-        return make_response(f'Parameter page={page} is not numeric', 400)
+        return make_response(f'The value for parameter page ({page}) must be either a number >=0 or the words \'first\' or \'last\'.', 400)
     if int(page) < 0:
-        return make_response(f'Parameter page={page} cannot be negative', 400)
+        return make_response(f'The value for parameter page ({page}) must be >= 0', 400)
+
+    if int(page) > int(total_pages):
+        return make_response(f'The value for parameter page ({page}) is greater than the total number of pages ({total_pages}) of size {genesperpage}.')
 
     # Obtain results.
     neo4j_instance = current_app.neo4jConnectionHelper.instance()

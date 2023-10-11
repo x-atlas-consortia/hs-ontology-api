@@ -356,7 +356,7 @@ paths:
         - name: genesperpage
           in: query
           required: false
-          description: Number of genes per "page" to return. Can be a non-negative number.
+          description: Number of genes per "page" to return. Can be a nonzero number.
           schema:
             type: string
             default: 10
