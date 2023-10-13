@@ -45,6 +45,14 @@ def geneslist() -> list[str]:
         page = str(int(total_pages))
     if page == 'first':
         page = '1'
+
+    # To support type-ahead
+    starts_with = request.args.get('starts_with')
+    if not starts_with is None:
+        page = '1'
+    else:
+        starts_with = ''
+
     # Parameter validation.
     if not page.isnumeric():
         return make_response(f'The value for parameter page ({page}) must be either a number >=0 or the words \'first\' or \'last\'.', 400)
@@ -54,6 +62,8 @@ def geneslist() -> list[str]:
     if int(page) > int(total_pages):
         return make_response(f'The value for parameter page ({page}) is greater than the total number of pages ({total_pages}) of size {genesperpage}.')
 
+
+
     # Obtain results.
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(genelist_get_logic(neo4j_instance, page=page, total_pages=total_pages, genesperpage=genesperpage))
+    return jsonify(genelist_get_logic(neo4j_instance, page=page, total_pages=total_pages, genesperpage=genesperpage, starts_with=starts_with))

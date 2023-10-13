@@ -15,7 +15,7 @@ from ubkg_api.models import util
 from hs_ontology_api.models.genelist_detail import GeneListDetail
 
 class GeneList():
-    def __init__(self, page=None, total_pages=None, genesperpage=None, genes=None):
+    def __init__(self, page=None, total_pages=None, genesperpage=None, genes=None, starts_with=None):
         """GeneList - a model defined in OpenAPI
 
                     :param page: Relative "page" (block of genes)
@@ -26,6 +26,8 @@ class GeneList():
                     :type genes: List[GeneListDetail]
                     :param genesperpage: Number of genes in each "page" (block)
                     :type genes: str
+                    :starts_with: Search string for type ahead
+                    :type starts_with: str
 
 
                 """
@@ -37,20 +39,23 @@ class GeneList():
             'page': int,
             'total_pages': int,
             'genes_per_page': int,
-            'genes': List[GeneListDetail]
+            'genes': List[GeneListDetail],
+            'starts_with': str
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
             'page': 'page',
             'total_pages': 'total_pages',
             'genes_per_page': 'genes_per_page',
-            'genes': 'genes'
+            'genes': 'genes',
+            'starts_with': 'starts_with'
         }
         # Property assignments
         self._page = int(page)
         self._total_pages = int(total_pages)
         self._genes_per_page = int(genesperpage)
         self._genes = genes
+        self._starts_with = starts_with
 
     def serialize(self):
         # Key/value format of response.
@@ -58,7 +63,8 @@ class GeneList():
             "page": self._page,
             "total_pages": self._total_pages,
             "genes_per_page": self._genes_per_page,
-            "genes": self._genes
+            "genes": self._genes,
+            "starts_with": self._starts_with
         }
 
     @classmethod
@@ -159,3 +165,24 @@ class GeneList():
         """
 
         self._genes_per_page = genes_per_page
+    @property
+    def starts_with(self):
+        """Gets the starts_with of this GeneList.
+
+        Optional type-ahead search string
+        :return: The starts_with of this GeneList.
+        :rtype: str
+        """
+        return self._starts_with
+
+    @starts_with.setter
+    def starts_with(self, starts_with):
+        """Sets the starts_with of this GeneList.
+
+        Optional type-ahead search string
+
+        :param starts_with: The genes_per_page of this GeneList
+        :type starts_with: int
+        """
+
+        self._starts_with = starts_with

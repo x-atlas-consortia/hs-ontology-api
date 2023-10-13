@@ -127,6 +127,12 @@ curl --request GET \
  --header "Content-Type: application/json"
 echo
 
+echo "gene_list GET starts_with B"
+curl --request GET \
+ --url "${UBKG_URL}/gene_list?genesperpage=3&starts_with=B" \
+ --header "Content-Type: application/json"
+echo
+
 # Test for gene_detail endpoint.
 echo "gene_detail GET for MMRN1"
 curl --request GET \

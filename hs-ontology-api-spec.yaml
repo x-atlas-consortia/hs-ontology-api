@@ -360,6 +360,13 @@ paths:
           schema:
             type: string
             default: 10
+        - name: starts_with
+          in: query
+          required: false
+          description: Optional string by which to filter by gene symbol. If this parameter has a value, the page of results is set to 1.
+          schema:
+            type: string
+            example: M
       responses:
         '200':
           description: high-level information on genes specified by HGNC identifiers.
@@ -590,12 +597,16 @@ components:
           example: 3
         page:
           type: number
-          description: value of page paramater from the gene_list_endpoint
+          description: value of page paramater from the gene_list endpoint
           example: 1
         total_pages:
           type: number
           description: total number of "pages" based on the values of genesperpage and the total number of genes
           example: 14381
+        starts_with:
+          type: string
+          description: value of starts_with from the gene_list endpoint
+          example: M
     GeneDetailResponse: # JAS Sept 2023
       type: object
       description: Detailed information on a gene.

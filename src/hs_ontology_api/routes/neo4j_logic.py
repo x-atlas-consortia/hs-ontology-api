@@ -664,7 +664,7 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
-def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str) -> List[GeneList]:
+def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str, starts_with:str) -> List[GeneList]:
 
     """
     Returns information on HGNC genes.
@@ -675,6 +675,8 @@ def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:s
     :page: Zero-based number of pages with rows=pagesize to skip in neo4j query
     :genesperpage: number of rows to limit in neo4j query
     :return: List[GeneList]
+    :startswith: string for type-ahead (starts with) searches
+    :return: str
 
     """
 
@@ -696,6 +698,11 @@ def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:s
     intpage = int(page)-1
 
     skiprows = intpage * int(genesperpage)
+
+    starts_with_clause = ''
+    if starts_with != '':
+        starts_with_clause = f'AND map[\'approved_symbol\'][0] STARTS WITH \'{starts_with}\''
+    query = query.replace('$starts_with_clause',starts_with_clause)
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(genesperpage))
 
@@ -713,7 +720,7 @@ def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:s
             except KeyError:
                 pass
         # Use the list of gene details with the page to build a genelist object.
-        genelist: GeneList = GeneList(page, total_pages, genesperpage, genes).serialize()
+        genelist: GeneList = GeneList(page, total_pages, genesperpage, genes, starts_with).serialize()
     return genelist
 
 def genelist_count_get_logic(neo4j_instance) -> int:

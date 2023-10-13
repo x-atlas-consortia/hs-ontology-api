@@ -14,6 +14,8 @@ ORDER BY hgnc_id, ret_key
 WITH hgnc_id,ret_key, COLLECT(ret_value) AS values
 WITH hgnc_id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 WHERE hgnc_id IS NOT NULL
+// Allow for typeahead searches. neo4j_logic will replace $starts_with_clause with a parameterized STARTS WITH clause.
+$starts_with_clause
 RETURN hgnc_id,
 map['approved_symbol'] AS approved_symbol,
 map['approved_name'] AS approved_name,
