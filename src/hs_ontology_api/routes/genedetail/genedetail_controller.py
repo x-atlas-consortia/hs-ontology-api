@@ -4,11 +4,16 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 from ..neo4j_logic import genedetail_get_logic
 
 
-genedetail_blueprint = Blueprint('genedetail', __name__, url_prefix='/gene_detail')
+genedetail_blueprint = Blueprint('genedetail', __name__, url_prefix='/gene')
 
 @genedetail_blueprint.route('', methods=['GET'])
 def genedetail_expand_get():
-    """Returns a unique list of genes.
+    return make_response('The /gene endpoint should specify a single HGNC gene identifier--e.g., /gene/MMRN1.', 400)
+
+
+@genedetail_blueprint.route('/<id>', methods=['GET'])
+def genedetail_id_expand_get(id=None):
+    """Returns detailed information on a single gene.
 
     :rtype: Union[List[GeneDetail]]
 
@@ -23,10 +28,11 @@ def genedetail_expand_get():
 
     """
 
-    # Obtain the list of gene IDs from parameters.
-    id = request.args.get('id')
     if id =='' or id is None:
-        return make_response('The id parameter is blank. It should specify a gene identifier.',400)
+        return make_response('The /gene endpoint should specify a HGNC gene identifier--e.g., /gene/MMRN1.',400)
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(genedetail_get_logic(neo4j_instance, id))
+    result = genedetail_get_logic(neo4j_instance, id)
+    if result is None or result == []:
+        return make_response(f"No information for gene with HGNC identifier {id}.", 400)
+    return jsonify(result)

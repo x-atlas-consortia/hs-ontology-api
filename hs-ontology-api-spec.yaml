@@ -340,7 +340,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTerm'
-  /gene_list:
+  /genes:
     get:
       operationId: gene_list_get
       summary: Return high-level information on a set of genes specified by pagination parameters.
@@ -377,13 +377,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/GeneListResponse'
 
-  /gene_detail:
+  /gene/{id}:
     get:
       operationId: gene_detail_get
       summary: Return detailed information on a gene specified by a HGNC identifier.
       parameters:
         - name: id
-          in: query
+          in: path
           required: true
           description: HGNC identifier. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
           schema:
@@ -391,7 +391,7 @@ paths:
             example: MMRN1
       responses:
         '200':
-          description: detailed information on genes specified by HGNC identifiers.
+          description: detailed information on the gene specified by a HGNC identifier.
           content:
             application/json:
               schema:
