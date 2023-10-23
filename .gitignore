@@ -21,6 +21,9 @@ api/.openapi-generator/*
 # config file
 src/hs_ontology_api/instance/app.cfg
 
+# Ignore docker env file
+docker/.env
+
 # log files in any path
 **/*.log
 
