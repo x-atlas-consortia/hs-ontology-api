@@ -3,6 +3,8 @@ import neo4j
 from typing import List
 import pandas as pd
 
+from flask import current_app
+
 # Classes for JSON objects in response body
 from hs_ontology_api.models.assay_type_property_info import AssayTypePropertyInfo
 from hs_ontology_api.models.dataset_property_info import DatasetPropertyInfo
@@ -13,7 +15,6 @@ from hs_ontology_api.models.genedetail import GeneDetail
 # JAS October 2023
 from hs_ontology_api.models.genelist import GeneList
 from hs_ontology_api.models.genelist_detail import GeneListDetail
-from .cellsclient import OntologyCellsClient
 
 # Query utilities
 from hs_ontology_api.cypher.util_query import loadquerystring
@@ -631,9 +632,12 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     # response list
 
     # Read indexed cell-type data from Cells API.
-    oc = OntologyCellsClient()
-    test = oc.celltypes_for_gene_csv(gene_id)
+    # The cells_client was instantiated at startup.
+    oc = current_app.cells_client
 
+    # The current prototype call reads a CSV of static information obtained from
+    # prior calls to the Cells API.
+    cellsapi_celltypes = oc.celltypes_for_gene_csv(gene_id)
     genedetails: [GeneDetail] = []
 
     # Load annotated Cypher query from the cypher directory.
@@ -658,7 +662,12 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
                                record.get('cell_types_code'), record.get('cell_types_code_name'),
                                record.get('cell_types_code_definition'),
                                record.get('cell_types_codes_organ'),record.get('cell_types_codes_source')).serialize()
+
+                # Append cell type information from Cells API.
+                for cell_type in cellsapi_celltypes:
+                    genedetail['cell_types'].append(cell_type)
                 genedetails.append(genedetail)
+
             except KeyError:
                 pass
 

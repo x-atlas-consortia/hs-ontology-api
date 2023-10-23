@@ -13,7 +13,7 @@ from ubkg_api.models import util
 from hs_ontology_api.models.genedetail_celltype_organ import GeneDetailCellTypeOrgan
 
 class GeneDetailCellType(Model):
-    def __init__(self, id=None, name=None, definition=None, organ_list=None, source_list=None):
+    def __init__(self, id=None, name=None, definition=None, organ_list=None, reference_list=None):
         """GeneDetailCellType - a model defined in OpenAPI
             :param id: the code in Cell Ontology that HRA indicates is associated with a gene (in format CL:CODE)
             :type id: str
@@ -23,7 +23,7 @@ class GeneDetailCellType(Model):
             :type id: str
             :param organ_list: a list of optional organ associations for the cell type in Cell Ontology
             :type id: str
-            :param source_list: a list of optional sources associations for the cell type in Cell Ontology
+            :param reference_list: a list of optional reference associations for the cell type in Cell Ontology
             :type id: str
         """
         # The parameter organ_list will be used to generate nested objects of type GeneDetailCellTypeOrgan.
@@ -34,7 +34,7 @@ class GeneDetailCellType(Model):
             'name': str,
             'definition': str,
             'organs': List[GeneDetailCellTypeOrgan],
-            'sources': List[str]
+            'references': List[str]
         }
         # attributions
         self.attribute_map = {
@@ -42,7 +42,7 @@ class GeneDetailCellType(Model):
             'name': 'name',
             'definition': 'definition',
             'organs': 'organs',
-            'sources': 'sources'
+            'references': 'references'
         }
         # assignments
         self._id = id
@@ -58,10 +58,10 @@ class GeneDetailCellType(Model):
             self._organs = []
         else:
             self._organs = self._makereorgandict(organ_list)
-        if source_list is None:
-            self._sources = []
+        if reference_list is None:
+            self.references = []
         else:
-            self._sources = source_list
+            self._references = reference_list
 
     def _makereorgandict(self, organs=None) ->List[dict]:
 
@@ -190,21 +190,21 @@ class GeneDetailCellType(Model):
         self._organs = organs
 
     @property
-    def sources(self):
-        """Gets the sources of this GeneDetailCellType.
+    def references(self):
+        """Gets the references of this GeneDetailCellType.
 
-        Sources for the cell type association
-        :return: sources for the cell type association
+        References for the cell type association
+        :return: references for the cell type association
         :rtype: str
         """
-        return self._sources
+        return self._references
 
-    @sources.setter
-    def sources(self, sources):
-        """Sets the sources of this GeneDetailCellType.
-        Source for the cell type association
+    @references.setter
+    def references(self, references):
+        """Sets the references of this GeneDetailCellType.
+        Reference for the cell type association
 
-        :param sources: The source
-        :type sources: str
+        :param references: The source
+        :type references: str
         """
-        self._sources = sources
+        self._references = references

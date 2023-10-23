@@ -13,6 +13,8 @@ from hs_ontology_api.routes.valueset.valueset_controller import valueset_bluepri
 from hs_ontology_api.routes.genedetail.genedetail_controller import genedetail_blueprint
 from hs_ontology_api.routes.geneslist.geneslist_controller import geneslist_blueprint
 
+# Cells API client
+from hs_ontology_api.routes.cellsclient import OntologyCellsClient
 
 def make_flask_config():
     temp_flask_app = Flask(__name__,
@@ -33,6 +35,9 @@ app.register_blueprint(valueset_blueprint)
 app.register_blueprint(genedetail_blueprint)
 app.register_blueprint(geneslist_blueprint)
 
+# Instantiate a Cells API client.
+cellsurl = make_flask_config().get('CELLSURL')
+app.cells_client = OntologyCellsClient(cellsurl)
 
 # Define the /status endpoint in the ubkg_api package will causes 500 error
 # Because the VERSION and BUILD files are not built into the package

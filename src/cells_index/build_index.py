@@ -1,22 +1,33 @@
 # coding: utf-8
 
 # Prototype utility that builds a CSV file of information extracted from the Cells API.
+# This script is not part of the Flask Blueprint architecture, but shares the app.cfg file.
 
 import logging
 import csv
 import os
 
+# Cells API client
 from hubmap_api_py_client import Client
 from hubmap_api_py_client.errors import ClientError
+
+from flask import Flask
+
+# Instantiate hubmap-api-py-client. Obtain URL from the Flask app's config file.
+def make_flask_config():
+    temp_flask_app = Flask(__name__,
+                      instance_path=os.path.join(os.path.dirname(os.getcwd()), 'hs_ontology_api/instance'),
+                      instance_relative_config=True)
+    temp_flask_app.config.from_pyfile('app.cfg')
+    return temp_flask_app.config
+
+# ---
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.info(f'Getting information from Cells API...')
-
-# Instantiate hubmap-api-py-client.
-client_url = 'https://cells.dev.hubmapconsortium.org/api/'
+client_url = make_flask_config()['CELLSURL']
 client = Client(client_url)
 
 # Open CSV and write header.
