@@ -20,7 +20,7 @@ class GeneDetail(Model):
     def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, previous_symbols=None,
                  previous_names=None, alias_symbols=None, alias_names=None, references=None,
                  summaries=None, cell_types_code=None, cell_types_code_name=None, cell_types_code_definition=None,
-                 cell_types_codes_organ=None):
+                 cell_types_codes_organ=None, cell_types_code_source=None):
         """GeneDetail - a model defined in OpenAPI
 
                 :param hgnc_id: HGNC id approved id for the gene
@@ -45,10 +45,12 @@ class GeneDetail(Model):
                 :type cell_types: List[GeneDetailCellType]
                 :param cell_types_code_name: list of names for cell types for the gene
                 :type cell_types_code_name: List[str]
+                :param cell_types_code_source: list of sources for cell types associations for the gene
+                :type cell_types_code_source: List[str]
 
         """
         #
-        # cell_types_code, cell_types_code_name, cell_types_code_definition, and cell_types_codes_organ are used
+        # cell_types_code, cell_types_code_name and the cell_types_code_* parameters are used
         # to build a nested objects named cell_types.
         # Cell type information except for CL code is optional. The cell_types_code parameter lists all cell types
         # associated with a gene; the cell_types_code_* parameters contain optional information.
@@ -111,7 +113,8 @@ class GeneDetail(Model):
             self._cell_types = []
         else:
             self._cell_types = self._makecelltypedict(cell_types_code, cell_types_code_name,
-                                                      cell_types_code_definition, cell_types_codes_organ)
+                                                      cell_types_code_definition, cell_types_codes_organ,
+                                                      cell_types_code_source)
 
     def _makereferencedict(self, references=None) ->List[dict]:
 
@@ -133,7 +136,7 @@ class GeneDetail(Model):
         return listret
 
     def _makecelltypedict(self, cell_types_code=None, cell_types_code_name=None,
-                         cell_types_code_definition=None, cell_types_code_organ=None) ->List[dict]:
+                         cell_types_code_definition=None, cell_types_code_organ=None, cell_types_code_source=None) ->List[dict]:
 
         # Builds a list of dictionaries of cell types associated with a gene.
         # The cell_types_code parameter is an optional list of optional codes from Cell Ontology--e.g., [CL:X, CL:Y].
@@ -159,6 +162,7 @@ class GeneDetail(Model):
             name = ''
             definition = ''
             organ_list = []
+            source_list = []
             # name
             if cell_types_code_name is not None:
                 for nam in cell_types_code_name:
@@ -183,9 +187,18 @@ class GeneDetail(Model):
                         # The list of organs is a string delimited as SAB1:CODE1*name1,SAB2:CODE2*name2.
                         # Convert to a list.
                         organ_list = org.split('|')[1].split(',')
+            # source
+
+            if cell_types_code_source is not None:
+                for source in cell_types_code_source:
+                    cl_code = source.split('|')[0]
+                    if cl_code == cell:
+                        # The list of organs is a string delimited as SAB1:CODE1*name1,SAB2:CODE2*name2.
+                        # Convert to a list.
+                        source_list = source.split('|')[1].split(',')
 
             # Instantiate a cell type object.
-            genedetailcelltype = GeneDetailCellType(cell, name, definition, organ_list)
+            genedetailcelltype = GeneDetailCellType(cell, name, definition, organ_list,source_list)
             # Use the to_dict method of the Model base class to obtain a dict for the list.
             dictcell = genedetailcelltype.to_dict()
             listret.append(dictcell)

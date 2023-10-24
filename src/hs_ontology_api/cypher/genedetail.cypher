@@ -1,5 +1,6 @@
+// GENE DETAIL
 // Return detailed information on a gene, based on a input list of HGNC identifiers.
-// Used by the genes endpoint.
+// Used by the gene_detail endpoint.
 
 CALL
 
@@ -131,6 +132,13 @@ OPTIONAL MATCH (cAZ:Code)<-[:CODE]-(pAZ:Concept)-[rAZUB:located_in]->(pUB:Concep
 WITH hgnc_id, CLID,UBERONID
 RETURN DISTINCT hgnc_id,'cell_types_organ' as ret_key, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",")  AS ret_value
 ORDER BY hgnc_id, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",")
+
+// Indicate the source of cell type information.
+UNION
+WITH GeneCUI
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,'cell_types_source' as ret_key, cCL.CodeID + '|Human Reference Atlas' as ret_value
+ORDER BY hgnc_id,cCL.CodeID + '|Human Reference Atlas'
+
 }
 
 WITH hgnc_id, ret_key, COLLECT(ret_value) AS values
@@ -148,6 +156,7 @@ map['summary'] AS summaries,
 map['cell_types_code'] AS cell_types_code,
 map['cell_types_name'] AS cell_types_code_name,
 map['cell_types_definition'] AS cell_types_code_definition,
-map['cell_types_organ'] AS cell_types_codes_organ
+map['cell_types_organ'] AS cell_types_codes_organ,
+map['cell_types_source'] AS cell_types_codes_source
 
 order by hgnc_id
