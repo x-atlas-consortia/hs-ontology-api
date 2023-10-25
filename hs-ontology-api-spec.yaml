@@ -37,6 +37,12 @@ paths:
                 vitessce-hints: ["pyramid","anndata"]
                 contains-pii: true
                 vis-only: true
+        '400':
+          description: Invalid request - missing request body; missing key *name* in request body; value for key *name* incorrectly specified
+        '404':
+          description: No assay type found corresponding to the value of the *name* key in the request body
+        '5XX':
+          description: Unknown error
   /assaytype:
     get:
       operationId: assaytype_get
@@ -301,6 +307,10 @@ paths:
                 symbol-approved: ["MMRN1"]
                 symbol-previous: ["MMRN"]
                 symbol-alias: ["EMILIN4", "GPIa*", "ECM"]
+        '404':
+          description: Nothing found for gene target symbol *target_symbol*.
+        '5XX':
+          description: Unknown error
   /valueset:
     get:
       operationId: valueset_get
@@ -363,7 +373,7 @@ paths:
         - name: starts_with
           in: query
           required: false
-          description: Optional string by which to filter by gene symbol. If this parameter has a value, the page of results is set to 1.
+          description: Optional string by which to filter by gene symbol.
           schema:
             type: string
             example: M
@@ -376,6 +386,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/GeneListResponse'
+        '400':
+          description: Invalid parameter--e.g., *genesperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '404':
+          description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
+        '5XX':
+          description: Unexpected error
 
   /gene/{id}:
     get:
@@ -398,6 +414,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/GeneDetailResponse'
+        '404':
+          description: No information for gene with HGNC identifier *id*.
+        '5XX':
+          description: Unexpected error
 components:
   schemas:
     AssayTypePropertyInfo:
@@ -607,6 +627,10 @@ components:
           type: string
           description: value of starts_with from the gene_list endpoint
           example: M
+        gene_count:
+          type: number
+          description: Count of genes. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
+          example: 500
     GeneDetailResponse: # JAS Sept 2023
       type: object
       description: Detailed information on a gene.

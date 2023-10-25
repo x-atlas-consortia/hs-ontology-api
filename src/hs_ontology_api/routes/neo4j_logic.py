@@ -673,7 +673,7 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
-def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str, starts_with:str) -> List[GeneList]:
+def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str, starts_with:str, gene_count:str) -> List[GeneList]:
 
     """
     Returns information on HGNC genes.
@@ -684,7 +684,9 @@ def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:s
     :page: Zero-based number of pages with rows=pagesize to skip in neo4j query
     :genesperpage: number of rows to limit in neo4j query
     :return: List[GeneList]
-    :startswith: string for type-ahead (starts with) searches
+    :starts_with: string for type-ahead (starts with) searches
+    :return: str
+    :gene_count: filtered count of genes
     :return: str
 
     """
@@ -729,16 +731,28 @@ def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:s
             except KeyError:
                 pass
         # Use the list of gene details with the page to build a genelist object.
-        genelist: GeneList = GeneList(page, total_pages, genesperpage, genes, starts_with).serialize()
+        genelist: GeneList = GeneList(page, total_pages, genesperpage, genes, starts_with, gene_count).serialize()
     return genelist
 
-def genelist_count_get_logic(neo4j_instance) -> int:
-
-    # Returns the count of HGNC genes in the UBKG.
+def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
+    """
+        Returns the count of HGNC genes in the UBKG.
+        If starts_with is non-null, returns the count of HGNC genes with approved symbol
+        that starts with the parameter value.
+        :param neo4j_instance:  neo4j client
+        :param starts_with: filtering string for STARTS WITH queries
+        :return: integer count
+    """
+    #
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'geneslist_count.cypher'
     query = loadquerystring(queryfile)
+    starts_with_clause = ''
+    if starts_with != '':
+        starts_with_clause = f'AND tGene.name STARTS WITH \'{starts_with}\''
+    query = query.replace('$starts_with_clause', starts_with_clause)
+
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
