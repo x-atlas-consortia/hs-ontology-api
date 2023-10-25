@@ -29,10 +29,12 @@ def genedetail_id_expand_get(id=None):
     """
 
     if id =='' or id is None:
-        return make_response('The /gene endpoint should specify a HGNC gene identifier--e.g., /gene/MMRN1.',400)
+        # Missing ID parameter in URL
+        return make_response('The /gene endpoint must specify a HGNC gene identifier--e.g., /gene/MMRN1.',400)
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = genedetail_get_logic(neo4j_instance, id)
     if result is None or result == []:
-        return make_response(f"No information for gene with HGNC identifier {id}.", 400)
+        # Empty result
+        return make_response(f"No information for gene with HGNC identifier {id}.", 404)
     return jsonify(result)

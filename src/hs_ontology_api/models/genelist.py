@@ -15,7 +15,7 @@ from ubkg_api.models import util
 from hs_ontology_api.models.genelist_detail import GeneListDetail
 
 class GeneList():
-    def __init__(self, page=None, total_pages=None, genesperpage=None, genes=None, starts_with=None):
+    def __init__(self, page=None, total_pages=None, genesperpage=None, genes=None, starts_with=None, gene_count=None):
         """GeneList - a model defined in OpenAPI
 
                     :param page: Relative "page" (block of genes)
@@ -28,6 +28,8 @@ class GeneList():
                     :type genes: str
                     :starts_with: Search string for type ahead
                     :type starts_with: str
+                    :gene_count: Count of (filtered) genes
+                    :type gene_count: str
 
 
                 """
@@ -40,7 +42,8 @@ class GeneList():
             'total_pages': int,
             'genes_per_page': int,
             'genes': List[GeneListDetail],
-            'starts_with': str
+            'starts_with': str,
+            'gene_count': int
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
@@ -48,7 +51,8 @@ class GeneList():
             'total_pages': 'total_pages',
             'genes_per_page': 'genes_per_page',
             'genes': 'genes',
-            'starts_with': 'starts_with'
+            'starts_with': 'starts_with',
+            'gene_count': 'gene_count'
         }
         # Property assignments
         self._page = int(page)
@@ -56,6 +60,7 @@ class GeneList():
         self._genes_per_page = int(genesperpage)
         self._genes = genes
         self._starts_with = starts_with
+        self._gene_count = gene_count
 
     def serialize(self):
         # Key/value format of response.
@@ -64,7 +69,8 @@ class GeneList():
             "total_pages": self._total_pages,
             "genes_per_page": self._genes_per_page,
             "genes": self._genes,
-            "starts_with": self._starts_with
+            "starts_with": self._starts_with,
+            "gene_count": self._gene_count
         }
 
     @classmethod
@@ -186,3 +192,24 @@ class GeneList():
         """
 
         self._starts_with = starts_with
+    @property
+    def gene_count(self):
+        """Gets the gene_count of this GeneList.
+
+        Count of genes
+        :return: The gene_count of this GeneList.
+        :rtype: str
+        """
+        return self._gene_count
+
+    @gene_count.setter
+    def gene_count(self, gene_count):
+        """Sets the gene_count of this GeneList.
+
+        Count of genes
+
+        :param gene_count: The gene_count of this GeneList
+        :type gene_count: int
+        """
+
+        self._gene_count = gene_count

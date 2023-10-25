@@ -40,5 +40,6 @@ def assaytype_name_get(name):
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = assaytype_name_get_logic(neo4j_instance, name, None, application_context)
     if result is None:
-        return make_response(f"No such assay_type {name}", 400)
+        # JAS Oct 2023 changed from 400 to 404
+        return make_response(f"No such assay_type {name}", 404)
     return jsonify(result)
