@@ -14,7 +14,7 @@ as a PyPi package.
 ![img.png](img.png)
 
 # SmartAPI documentation
-The SmartAPI documentation for the hs-ontology-api can be found [here](https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837#/default).
+The SmartAPI documentation for the hs-ontology-api can be found [here](https://smart-api.info/ui/d10ff85265d8b749fbe3ad7b51d0bf0a).
 
 # Development/testing environment for hs-ontology-api
 
