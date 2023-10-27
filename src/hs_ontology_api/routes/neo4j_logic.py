@@ -1,18 +1,28 @@
 import logging
 import neo4j
 from typing import List
+import pandas as pd
 
+from flask import current_app
+
+# Classes for JSON objects in response body
 from hs_ontology_api.models.assay_type_property_info import AssayTypePropertyInfo
 from hs_ontology_api.models.dataset_property_info import DatasetPropertyInfo
 from hs_ontology_api.models.sab_code_term_rui_code import SabCodeTermRuiCode
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
+# JAS Sept 2023
+from hs_ontology_api.models.genedetail import GeneDetail
+# JAS October 2023
+from hs_ontology_api.models.genelist import GeneList
+from hs_ontology_api.models.genelist_detail import GeneListDetail
 
+# Query utilities
+from hs_ontology_api.cypher.util_query import loadquerystring
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 def make_assaytype_property_info(record):
     return AssayTypePropertyInfo(
@@ -24,7 +34,7 @@ def make_assaytype_property_info(record):
         record['vis_only'])
 
 
-def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str = 'HUBMAP')\
+def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str = 'HUBMAP') \
         -> AssayTypePropertyInfo:
     # Build the Cypher query that will return the table of data.
     query = query_cypher_dataset_info(application_context)
@@ -44,7 +54,7 @@ def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str 
     return result
 
 
-def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, application_context: str = 'HUBMAP')\
+def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, application_context: str = 'HUBMAP') \
         -> AssayTypePropertyInfo:
     """
     This is intended to be a drop in replacement for the same endpoint in search-src.
@@ -67,9 +77,8 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
 
 def dataset_get_logic(neo4j_instance, data_type: str = '', description: str = '',
                       alt_name: str = '', primary: str = '', contains_pii: str = '', vis_only: str = '',
-                      vitessce_hint: str = '', dataset_provider: str = '', application_context: str = 'HUBMAP')\
+                      vitessce_hint: str = '', dataset_provider: str = '', application_context: str = 'HUBMAP') \
         -> List[DatasetPropertyInfo]:
-
     # JAS FEB 2023
     # Returns an array of objects corresponding to Dataset (type) nodes in the HubMAP
     # or SenNet application ontology.
@@ -207,7 +216,7 @@ def get_organ_types_logic(neo4j_instance, sab):
         "CALL " \
         "{ " \
         "WITH OrganCUI " \
-        "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term) "\
+        "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term) " \
         "WHERE pOrgan.CUI=OrganCUI " \
         "AND cOrgan.SAB='UBERON' " \
         "AND r2.CUI=pOrgan.CUI " \
@@ -615,3 +624,143 @@ def query_cypher_dataset_info(sab: str) -> str:
     qry = qry + 'RETURN data_type, description, alt_names, primary, dataset_provider, vis_only, contains_pii, vitessce_hints '
     qry = qry + 'ORDER BY tolower(data_type)'
     return qry
+
+def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
+    """
+    Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
+    """
+    # response list
+
+    # Read indexed cell-type data from Cells API.
+    # The cells_client was instantiated at startup.
+    oc = current_app.cells_client
+
+    # The current prototype call reads a CSV of static information obtained from
+    # prior calls to the Cells API.
+    cellsapi_celltypes = oc.celltypes_for_gene_csv(gene_id)
+    genedetails: [GeneDetail] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'genedetail.cypher'
+    query = loadquerystring(queryfile)
+
+    query = query.replace('$ids', f'\'{gene_id}\'')
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                genedetail: GeneDetail = \
+                    GeneDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'),
+                               record.get('previous_symbols'), record.get('previous_names'),
+                               record.get('alias_symbols'),
+                               record.get('alias_names'), record.get('references'), record.get('summaries'),
+                               record.get('cell_types_code'), record.get('cell_types_code_name'),
+                               record.get('cell_types_code_definition'),
+                               record.get('cell_types_codes_organ'),record.get('cell_types_codes_source')).serialize()
+
+                # Append cell type information from Cells API.
+                for cell_type in cellsapi_celltypes:
+                    genedetail['cell_types'].append(cell_type)
+                genedetails.append(genedetail)
+
+            except KeyError:
+                pass
+
+    return genedetails
+
+def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str, starts_with:str, gene_count:str) -> List[GeneList]:
+
+    """
+    Returns information on HGNC genes.
+    Intended to support a Data Portal landing page featuring a high-level
+    list with pagination features.
+
+    :param neo4j_instance:  neo4j client
+    :page: Zero-based number of pages with rows=pagesize to skip in neo4j query
+    :genesperpage: number of rows to limit in neo4j query
+    :return: List[GeneList]
+    :starts_with: string for type-ahead (starts with) searches
+    :return: str
+    :gene_count: filtered count of genes
+    :return: str
+
+    """
+
+    # response list
+    retlist: [GeneList] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'geneslist.cypher'
+    query = loadquerystring(queryfile)
+
+    # The query is parameterized with variables $skiprows and $limitrows.
+    # Calculate variable values from parameters.
+
+    # SKIP in the neo4j query is 0-based--i.e., SKIP 0 means the first page.
+    # UI-based pagination, however, is 1-based.
+    # The controller will pass a default value of 1 for cases of no value (default)
+    # or 0.
+    # Convert to 1-based.
+    intpage = int(page)-1
+
+    skiprows = intpage * int(genesperpage)
+
+    starts_with_clause = ''
+    if starts_with != '':
+        starts_with_clause = f'AND map[\'approved_symbol\'][0] STARTS WITH \'{starts_with}\''
+    query = query.replace('$starts_with_clause',starts_with_clause)
+    query = query.replace('$skiprows', str(skiprows))
+    query = query.replace('$limitrows', str(genesperpage))
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        genes: [GeneListDetail] = []
+        # Build the list of gene details for this page.
+        for record in recds:
+            try:
+                gene: GeneListDetail = \
+                    GeneListDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'), record.get('description')).serialize()
+                genes.append(gene)
+            except KeyError:
+                pass
+        # Use the list of gene details with the page to build a genelist object.
+        genelist: GeneList = GeneList(page, total_pages, genesperpage, genes, starts_with, gene_count).serialize()
+    return genelist
+
+def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
+    """
+        Returns the count of HGNC genes in the UBKG.
+        If starts_with is non-null, returns the count of HGNC genes with approved symbol
+        that starts with the parameter value.
+        :param neo4j_instance:  neo4j client
+        :param starts_with: filtering string for STARTS WITH queries
+        :return: integer count
+    """
+    #
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'geneslist_count.cypher'
+    query = loadquerystring(queryfile)
+    starts_with_clause = ''
+    if starts_with != '':
+        starts_with_clause = f'AND tGene.name STARTS WITH \'{starts_with}\''
+    query = query.replace('$starts_with_clause', starts_with_clause)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        for record in recds:
+            try:
+                genecount = record.get('genelistcount')
+            except KeyError:
+                pass
+    return genecount
+

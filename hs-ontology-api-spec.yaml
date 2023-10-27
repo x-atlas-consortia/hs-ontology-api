@@ -1,13 +1,14 @@
 openapi: 3.0.3
 info:
   title: HubMAP/SenNet Ontology API (hs-ontology-api)
-  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a UBKG(https://ubkg.docs.xconsortia.org/) instance with content from the HuBMAP/SenNet context (https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context)
+  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a UBKG(https://ubkg.docs.xconsortia.org/) instance with content from the HuBMAP/SenNet context (https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://github.com/x-atlas-consortia/ubkg-api), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code. This specification describes endpoints of both hs-ontology-api and ubkg-api.
   version: 1.3.1
+  contact:
+    name: GitHub repository
+    url: https://github.com/x-atlas-consortia/hs-ontology-api
 servers:
   - url: https://ontology.api.hubmapconsortium.org/
     description: Production server
-  - url: https://ontology-api.dev.hubmapconsortium.org/
-    description: Development server
 paths:
   /assayname: # CPK MAR 2023 - replacement for search-api endpoint of the same name
     post:
@@ -36,6 +37,12 @@ paths:
                 vitessce-hints: ["pyramid","anndata"]
                 contains-pii: true
                 vis-only: true
+        '400':
+          description: Invalid request - missing request body; missing key *name* in request body; value for key *name* incorrectly specified
+        '404':
+          description: No assay type found corresponding to the value of the *name* key in the request body
+        '5XX':
+          description: Unknown error
   /assaytype:
     get:
       operationId: assaytype_get
@@ -282,7 +289,7 @@ paths:
       operationId: relationships_for_gene_target_symbol_get
       summary: Returns relationships associated with the gene
       parameters:
-        - name: target-symbol
+        - name: target_symbol
           in: path
           required: true
           description: one of gene name, symbol, alias, or prior symbol
@@ -300,6 +307,10 @@ paths:
                 symbol-approved: ["MMRN1"]
                 symbol-previous: ["MMRN"]
                 symbol-alias: ["EMILIN4", "GPIa*", "ECM"]
+        '404':
+          description: Nothing found for gene target symbol *target_symbol*.
+        '5XX':
+          description: Unknown error
   /valueset:
     get:
       operationId: valueset_get
@@ -328,7 +339,7 @@ paths:
             uniqueItems: true
             items:
               type: string
-              example: HUSAT,SNOMEDCT_US
+              example: HUBMAP,SNOMEDCT_US
             default: [ ]
       responses:
         '200':
@@ -339,6 +350,74 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTerm'
+  /genes:
+    get:
+      operationId: gene_list_get
+      summary: Return high-level information on a set of genes specified by pagination parameters.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Offset set of genes of count=genesperpage. Can be a non-negative number or the words "first" or "last".
+          schema:
+            type: string
+            default: 1
+          example: 1
+        - name: genesperpage
+          in: query
+          required: false
+          description: Number of genes per "page" to return. Can be a nonzero number.
+          schema:
+            type: string
+            default: 10
+        - name: starts_with
+          in: query
+          required: false
+          description: Optional string by which to filter by gene symbol.
+          schema:
+            type: string
+            example: M
+      responses:
+        '200':
+          description: high-level information on genes specified by HGNC identifiers.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneListResponse'
+        '400':
+          description: Invalid parameter--e.g., *genesperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '404':
+          description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
+        '5XX':
+          description: Unexpected error
+
+  /gene/{id}:
+    get:
+      operationId: gene_detail_get
+      summary: Return detailed information on a gene specified by a HGNC identifier.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: HGNC identifier. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
+          schema:
+            type: string
+            example: MMRN1
+      responses:
+        '200':
+          description: detailed information on the gene specified by a HGNC identifier.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneDetailResponse'
+        '404':
+          description: No information for gene with HGNC identifier *id*.
+        '5XX':
+          description: Unexpected error
 components:
   schemas:
     AssayTypePropertyInfo:
@@ -488,3 +567,171 @@ components:
         term:
           type: string
           example: Microscopy
+    AssayNameRequest: # Schema name CPK MR 2023.
+      type: object
+      description: Request body for assaytype POST request
+      properties:
+        name:
+          anyOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: AssayType name which can be a string or an array of strings
+          example: [ PAS, Image Pyramid ]
+        application_context:
+          type: string
+          default: HUBMAP
+          enum:
+            - HUBMAP
+            - SENNET
+            - hubmap
+            - sennet
+            - HuBMAP
+            - SenNet
+    GeneListResponse:
+      type: object
+      description: High-level information on a set of genes requested by the gene_list endpoint.
+      properties:
+        genes:
+          type: array
+          description: gene information
+          items:
+            type: object
+            properties:
+              approved_name:
+                type: string
+                description: HGNC approved name
+                example: multimerin 1
+              approved_symbol:
+                type: string
+                description: HGNC approved symbol
+                example: MMRN1
+              summary:
+                type: string
+                description: RefSeq summary for the gene
+                example: Multimerin is a massive, soluble protein found in....
+        genes_per_page:
+          type: number
+          description: value of genesperpage paramater from the gene_list endpoint
+          example: 3
+        page:
+          type: number
+          description: value of page paramater from the gene_list endpoint
+          example: 1
+        total_pages:
+          type: number
+          description: total number of "pages" based on the values of genesperpage and the total number of genes
+          example: 14381
+        starts_with:
+          type: string
+          description: value of starts_with from the gene_list endpoint
+          example: M
+        gene_count:
+          type: number
+          description: Count of genes. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
+          example: 500
+    GeneDetailResponse: # JAS Sept 2023
+      type: object
+      description: Detailed information on a gene.
+      properties:
+        alias_names:
+          type: array
+          description: HGNC alias names
+          items:
+            type: string
+          example: [glycoprotein Ia*]
+        alias_symbols:
+          type: array
+          description: HGNC alias symbols
+          items:
+            type: string
+          example: [GPIa*,EMILIN4,ECM]
+        approved_name:
+          type: string
+          description: HGNC approved name
+          example: multimerin 1
+        approved_symbol:
+          type: string
+          description: HGNC approved symbol
+          example: MMRN1
+        cell_types:
+          type: array
+          description: Cell Ontology cell types associated with a HGNC gene in the Human Referene Atlas (HRA)
+          items:
+            type: object
+            properties:
+              definition:
+                type: string
+                description: Definition of the cell type from Cell Ontology
+                example: A endothelial cell of a lymphatic ....
+              id:
+                type: string
+                description: Identifier for the cell type, in format CL<colon>code
+                example: CL:0002138
+              name:
+                type: string
+                description: Name (preferred term) for the cell type from Cell Ontology
+                example: endothelial cell of lymphatic vessel
+              organs:
+                type: array
+                description: Array of organs associated with the cell type, based on relationships in the Human Resource Atlas and Azimuth
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: Identifier (code) for the organ in source
+                      example: 0000948
+                    source:
+                      type: string
+                      description: Source vocabulary for id for organ
+                      example: UBERON
+                    name:
+                      type: string
+                      description: Name (preferred term) for organ in source
+                      example: heart
+              sources:
+                type: array
+                description: Array of identifiers of sources for the association of the cell type to the gene
+                items:
+                  type: string
+                  example: Human Reference Atlas
+        hgnc_id:
+          type: number
+          description: numeric HGNC ID for the gene
+          example: 60
+        previous_names:
+          type: array
+          description: previous names for the gene in HGNC
+          items:
+            type: string
+          example: [multimerin]
+        previous_symbols:
+          type: array
+          description: previous symbols for the gene in HGNC
+          items:
+            type: string
+            example: [MMRN]
+        references:
+          type: array
+          description: Reference for the gene between HGNC and other vocabularies. References can be either a cross-reference (e.g., between HGNC ID and NCBI Entrez ID) or from a known relationship (e.g., gene-protein relationships between a gene in HGNC and a protein in UniProtKB).
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID (code) for the reference in the source
+                example: 22915
+              source:
+                type: string
+                description: source vocabulary for the reference
+                example: entrez
+              url:
+                type: string
+                description: URL to reference site
+                example: https://www.ncbi.nlm.nih.gov/gene/22915
+        summary:
+          type: string
+          description: RefSeq summary of the gene
+          example: Multimerin is a massive, soluble protein found in....
