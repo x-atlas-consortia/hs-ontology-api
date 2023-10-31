@@ -657,9 +657,6 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
                                record.get('cell_types_code_definition'),
                                record.get('cell_types_codes_organ'),record.get('cell_types_codes_source')).serialize()
 
-                # Append cell type information from Cells API.
-                for cell_type in cellsapi_celltypes:
-                    genedetail['cell_types'].append(cell_type)
                 genedetails.append(genedetail)
 
             except KeyError:
