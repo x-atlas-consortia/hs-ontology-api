@@ -628,16 +628,10 @@ def query_cypher_dataset_info(sab: str) -> str:
 def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     """
     Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
+    :param neo4j_instance: instance of neo4j connection
+    :param gene_id: HGNC identifier for a gene
     """
     # response list
-
-    # Read indexed cell-type data from Cells API.
-    # The cells_client was instantiated at startup.
-    oc = current_app.cells_client
-
-    # The current prototype call reads a CSV of static information obtained from
-    # prior calls to the Cells API.
-    cellsapi_celltypes = oc.celltypes_for_gene_csv(gene_id)
     genedetails: [GeneDetail] = []
 
     # Load annotated Cypher query from the cypher directory.
