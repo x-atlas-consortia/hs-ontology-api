@@ -350,7 +350,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTerm'
-  /genes:
+  /gene-info:
     get:
       operationId: gene_list_get
       summary: Return high-level information on a set of genes specified by pagination parameters.
@@ -392,7 +392,6 @@ paths:
           description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
-
   /gene/{id}:
     get:
       operationId: gene_detail_get
@@ -416,6 +415,266 @@ paths:
                   $ref: '#/components/schemas/GeneDetailResponse'
         '404':
           description: No information for gene with HGNC identifier *id*.
+        '5XX':
+          description: Unexpected error
+  /protein-info:
+    get:
+      operationId: protein_list_get
+      summary: Return high-level information on a set of proteins specified by pagination parameters.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Offset set of proteins of count=proteinsperpage. Can be a non-negative number or the words "first" or "last".
+          schema:
+            type: string
+            default: 1
+          example: 1
+        - name: proteinsperpage
+          in: query
+          required: false
+          description: Number of proteins per "page" to return. Can be a nonzero number.
+          schema:
+            type: string
+            default: 10
+        - name: starts_with
+          in: query
+          required: false
+          description: Optional *case-insensitive* string by which to filter by UniProtKB protein name.
+          schema:
+            type: string
+            example: M
+      responses:
+        '200':
+          description: high-level information on proteins specified by UniProtKB identifiers.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProteinListResponse'
+        '400':
+          description: Invalid parameter--e.g., *proteinsperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '404':
+          description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB names that start with the string specified in the *starts_with* parameter.
+        '5XX':
+          description: Unexpected error
+  /protein/{id}:
+    get:
+      operationId: protein_detail_get
+      summary: Return detailed information on a protein specified by a UniProtKB identifier.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Case-insensitive UniProtKB identifier
+          schema:
+            type: string
+            example: Q13201
+      responses:
+        '200':
+          description: detailed information on the protein specified by a UniProtKB identifier.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProteinDetailResponse'
+        '404':
+          description: No information for protein with UniProtKB identifier *id*.
+        '5XX':
+          description: Unexpected error
+  /celltype-info:
+    get:
+      operationId: celltype_list_get
+      summary: Return high-level information on a set of cell types specified by pagination parameters.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Offset set of genes of count=celltypesperpage. Can be a non-negative number or the words "first" or "last".
+          schema:
+            type: string
+            default: 1
+          example: 1
+        - name: celltypesperpage
+          in: query
+          required: false
+          description: Number of cell types per "page" to return. Can be a nonzero number.
+          schema:
+            type: string
+            default: 10
+        - name: starts_with
+          in: query
+          required: false
+          description: Optional *case-insensitive* string by which to filter by cell type name.
+          schema:
+            type: string
+            example: E
+      responses:
+        '200':
+          description: high-level information on cell types specified by Cell Ontology.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CellTypeListResponse'
+        '400':
+          description: Invalid parameter--e.g., *celltypesperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '404':
+          description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
+        '5XX':
+          description: Unexpected error
+  /celltype/{id}:
+    get:
+      operationId: celltype_detail_get
+      summary: Return detailed information on a cell type specified by a name.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: case-insensitive Cell Ontology identifier in format CL{id}
+          schema:
+            type: string
+            example: CL0002138
+      responses:
+        '200':
+          description: detailed information on the cell type specified by a Cell Ontology identifier.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CellTypeDetailResponse'
+        '404':
+          description: No information for cell type with identifier *id*.
+        '5XX':
+          description: Unexpected error
+  /field_descriptions:
+    get:
+      operationId: field_descriptions_get
+      summary: Return descriptions for ingest metadata fields. Replacement for field_descriptions.yaml.
+      responses:
+        '200':
+          description: Ingest metadata fields and descriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldDescriptionsResponse'
+        '5XX':
+          description: Unexpected error
+  /field_types:
+    get:
+      operationId: field_types_get
+      summary: Return data types for ingest metadata fields. Replacement for field_types.yaml.
+      responses:
+        '200':
+          description: Ingest metadata fields mapped to XSD data types.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldTypesResponse'
+        '5XX':
+          description: Unexpected error
+  /field_entities:
+    get:
+      operationId: field_entities_get
+      summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field_types.yaml.
+      parameters:
+        - name: application_context
+          in: query
+          required: true
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: Associations between ingest metadata fields and application-specific provenance entities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldEntitiesResponse'
+        '400':
+          description: missing application context
+        '5XX':
+          description: Unexpected error
+  /field_assays:
+    get:
+      operationId: field_assays_get
+      summary: Return associations between ingest metadata fields and the "assays" (dataset data types) for an application. Replacement for field_assays.yaml.
+      parameters:
+        - name: application_context
+          in: query
+          required: true
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: Associations between ingest metadata fields and application-specific assays/dataset types.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldAssaysResponse'
+        '400':
+          description: missing application context
+        '5XX':
+          description: Unexpected error
+  /field_schemas:
+    get:
+      operationId: field_schemas_get
+      summary: Return associations between ingest metadata fields and metadata schemas for an application. Replacement for field_schemas.yaml.
+      parameters:
+        - name: application_context
+          in: query
+          required: true
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: Associations between ingest metadata fields and application-specific metadata schemas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldSchemasResponse'
+        '400':
+          description: missing application context
         '5XX':
           description: Unexpected error
 components:
@@ -591,8 +850,32 @@ components:
             - SenNet
     GeneListResponse:
       type: object
-      description: High-level information on a set of genes requested by the gene_list endpoint.
+      description: High-level information on a set of genes requested by the genes endpoint.
       properties:
+        pagination:
+          type: object
+          description: pagination information related to the request
+          properties:
+            items_per_page:
+              type: number
+              description: value of genesperpage parameter from the gene_list endpoint
+              example: 3
+            page:
+              type: number
+              description: value of page parameter from the gene_list endpoint
+              example: 1
+            total_pages:
+              type: number
+              description: total number of "pages" based on the values of genesperpage and the total number of genes
+              example: 14381
+            item_count:
+              type: number
+              description: Count of genes. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
+              example: 500
+            starts_with:
+              type: string
+              description: value of starts_with from the gene_list endpoint
+              example: M
         genes:
           type: array
           description: gene information
@@ -611,29 +894,9 @@ components:
                 type: string
                 description: RefSeq summary for the gene
                 example: Multimerin is a massive, soluble protein found in....
-        genes_per_page:
-          type: number
-          description: value of genesperpage paramater from the gene_list endpoint
-          example: 3
-        page:
-          type: number
-          description: value of page paramater from the gene_list endpoint
-          example: 1
-        total_pages:
-          type: number
-          description: total number of "pages" based on the values of genesperpage and the total number of genes
-          example: 14381
-        starts_with:
-          type: string
-          description: value of starts_with from the gene_list endpoint
-          example: M
-        gene_count:
-          type: number
-          description: Count of genes. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
-          example: 500
     GeneDetailResponse: # JAS Sept 2023
       type: object
-      description: Detailed information on a gene.
+      description: Detailed information on a gene requested by the gene endpoint
       properties:
         alias_names:
           type: array
@@ -735,3 +998,382 @@ components:
           type: string
           description: RefSeq summary of the gene
           example: Multimerin is a massive, soluble protein found in....
+    ProteinListResponse:
+      type: object
+      description: High-level list of proteins with pagination details, requested by the proteins endpoint.
+      properties:
+        pagination:
+          type: object
+          description: pagination information related to the request
+          properties:
+            items_per_page:
+              type: number
+              description: value of proteinsperpage parameter from the proteins endpoint
+              example: 3
+            page:
+              type: number
+              description: value of page parameter from the proteins endpoint
+              example: 1
+            total_pages:
+              type: number
+              description: total number of "pages" based on the values of proteinsperpage and the total number of proteins
+              example: 14381
+            item_count:
+              type: number
+              description: Count of proteins. If starts_with is non-null, the count is that of the proteins with names that start with the value of starts_with.
+              example: 500
+            starts_with:
+              type: string
+              description: value of starts_with from the proteins endpoint
+              example: M
+        proteins:
+          type: array
+          description: protein information
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: UniProtKB identifier
+                example: Q13201
+              entry_name:
+                type: string
+                description: UniProtKB Entry Name
+                example: MMRN1_HUMAN
+              recommended_name:
+                type: string
+                description: UniProtKB Recommended Name
+                example: multimerin-1
+    ProteinDetailResponse:
+      type: object
+      description: Detailed information on a protein requested by the protein endpoint
+      properties:
+        id:
+          type: string
+          description: UniProtKB identifier
+          example: Q13201
+        entry_name:
+          type: string
+          description: UniProtKB Entry Name
+          example: MMRN1_HUMAN
+        recommended_name:
+          type: string
+          description: UniProtKB Recommended Name
+          example: multimerin-1
+        synonyms:
+          type: array
+          description: alternative names
+          items:
+            type: string
+          example: [EMILIN-4,Elastin microfibril interface located protein 4 (Elastin microfibril interfacer 4),Endothelial cell multimerin]
+        references:
+          type: array
+          description: Array of links to protein databases
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+                description: protein database name
+                example: uniprotkb
+              entry:
+                type: string
+                description: description of protein in source--e.g., the "function" in UniProtKB
+                example: Carrier protein for platelet (but not plasma) factor V/Va. Plays a role…
+              url:
+                type: string
+                description: URL to reference site
+                example: https://www.ncbi.nlm.nih.gov/gene/22915
+              curation:
+                type: string
+                description: method of curation
+                enum:
+                  - swissprot
+                  - trembl
+        organisms:
+          type: array
+          description: array of relevant organism, named in binomial nomenclature
+          items:
+            type: string
+            example: [Homo sapiens]
+    CellTypeListResponse:
+      type: object
+      description: High-level list of cell types with pagination details, requested by the celltypes endpoint.
+      properties:
+        pagination:
+          type: object
+          description: pagination information related to the request
+          properties:
+            items_per_page:
+              type: number
+              description: value of celltypesperpage parameter from the celltypes endpoint
+              example: 3
+            page:
+              type: number
+              description: value of page parameter from the celltypes endpoint
+              example: 1
+            total_pages:
+              type: number
+              description: total number of "pages" based on the values of celltypesperpage and the total number of celltypes
+              example: 14381
+            starts_with:
+              type: string
+              description: value of starts_with from the celltypes endpoint
+              example: E
+            item_count:
+              type: number
+              description: Count of cell types. If starts_with is non-null, the count is that of the cell types with names that start with the value of starts_with.
+              example: 500
+        celltypes:
+          type: array
+          description: cell type information
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Cell Ontology code
+                example: CL:0002138
+              name:
+                type: string
+                description: Preferred term for the cell type from Cell Ontology
+                example: endothelial cell of lymphatic vessel
+              definition:
+                type: string
+                description: Definition of the cell type from Cell Ontology
+                example: A endothelial cell of a lymphatic vessel. The border of…
+    CellTypeDetailResponse:
+      type: object
+      description: Detailed information on a cell type requested by the celltype endpoint
+      properties:
+        id:
+          type: string
+          description: Cell Ontology code
+          example: CL:0002138
+        name:
+          type: string
+          description: Preferred term for the cell type from Cell Ontology
+          example: endothelial cell of lymphatic vessel
+        definition:
+          type: string
+          description: Definition of the cell type from Cell Ontology
+          example: A endothelial cell of a lymphatic vessel. The border of…
+        biomarkers:
+          type: array
+          description: Array of biomarkers associated with the cell type
+          items:
+            type: object
+            properties:
+              reference:
+                type: string
+                description: source for association between cell type and biomarker
+                enum:
+                  - Human Reference Atlas
+                  - Cells
+              biomarker_type:
+                type: string
+                description: type of biomarker
+                enum:
+                  - gene
+                  - protein
+                  - lipid
+                  - metabolite
+              entry:
+                type: object
+                description: Encoded entry in reference
+                properties:
+                  vocabulary:
+                    type: string
+                    description: vocabulary for entry
+                    example: hgnc
+                  id:
+                    type: string
+                    description: identifier for entry in vocabulary
+                    example: 7178
+                  symbol:
+                    type: string
+                    description: symbol for entry in vocabulary
+                    example: MMRN1
+                  name:
+                    type: string
+                    description: preferred term for entry in vocabulary
+                    example: multimerin-1
+        organs:
+          type: array
+          description: Organs associated with the cell type, based on relationships in the Human Resource Atlas and Azimuth
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Identifier (code) for the organ in source
+                example: 0000948
+              source:
+                type: string
+                description: Source vocabulary for id for organ
+                example: UBERON
+              name:
+                type: string
+                description: Name (preferred term) for organ in source
+                example: heart
+    FieldDescriptionsResponse:
+      type: object
+      description: Descriptions ingest metadata fields from legacy field_descriptions.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields and their descriptions
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              description:
+                type: string
+                description: description of field
+                example: Units of x resolution distance between laser ablation shots.
+    FieldTypesResponse:
+      type: object
+      description: Associations between metadata field and data type ingest metadata fields from legacy field_types.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields and their data types
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              type:
+                type: object
+                properties:
+                  XSDCode:
+                    type: string
+                    description: Code in XSD
+                    example: xsd:string
+                  name:
+                    type: string
+                    description: name for type
+                    example: string
+    FieldEntitiesResponse:
+      type: object
+      description: Associations between fields and provenance entities for ingest metadata fields from legacy field_types.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields, each with its associated provenance entities
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              entities:
+                type: array
+                description: array of provenance entities associated with the field
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: Code in application ontology
+                      example: HUBMAP:C040001
+                    name:
+                      type: string
+                      description: name
+                      example: dataset
+    FieldAssaysResponse:
+      type: object
+      description: Associations between fields and "assays" (dataset types) for ingest metadata fields from legacy field_assays.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields, each with its associated assays/dataset types
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              assays:
+                type: array
+                description: array of "assays" (dataset types) associated with the field
+                items:
+                  type: object
+                  properties:
+                    data_type:
+                      type: object
+                      description: The data_type for the assay/dataset type--i.e., the key for ingest workflows
+                      properties:
+                        code:
+                          type: string
+                          description: Code in application ontology
+                          example: HUBMAP:C006904
+                        name:
+                          type: string
+                          description: the data_type string used in ingest workflows
+                          example: IMC
+                    display_name:
+                      type: string
+                      description: The display name for the assay/dataset type in the Portal UI
+                      example: Imaging Mass Cytometry (2D)
+                    alt-names:
+                      type: array
+                      description: The set of alt-names (synonyms for data_type) for the assay/dataset type
+                      items:
+                        type: string
+                        example: [Imaging Mass Cytometry,2D-IMC,IMC]
+    FieldSchemasResponse:
+      type: object
+      description: Associations between fields and metadata schemas for ingest metadata fields from legacy field_schemas.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields, each with its associated schemas
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              schemas:
+                type: array
+                description: array of metadata schemas associated with the field
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: Code in HMFIELD ontology
+                      example: HMFIELD:1001
+                    name:
+                      type: string
+                      description: name
+                      example: imc3d
