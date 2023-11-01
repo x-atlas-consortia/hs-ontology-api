@@ -551,7 +551,7 @@ paths:
           description: No information for cell type with identifier *id*.
         '5XX':
           description: Unexpected error
-  /field_descriptions:
+  /field-descriptions:
     get:
       operationId: field_descriptions_get
       summary: Return descriptions for ingest metadata fields. Replacement for field_descriptions.yaml.
@@ -566,7 +566,7 @@ paths:
                   $ref: '#/components/schemas/FieldDescriptionsResponse'
         '5XX':
           description: Unexpected error
-  /field_types:
+  /field-types:
     get:
       operationId: field_types_get
       summary: Return data types for ingest metadata fields. Replacement for field_types.yaml.
@@ -581,7 +581,7 @@ paths:
                   $ref: '#/components/schemas/FieldTypesResponse'
         '5XX':
           description: Unexpected error
-  /field_entities:
+  /field-entities:
     get:
       operationId: field_entities_get
       summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field_types.yaml.
@@ -613,7 +613,7 @@ paths:
           description: missing application context
         '5XX':
           description: Unexpected error
-  /field_assays:
+  /field-assays:
     get:
       operationId: field_assays_get
       summary: Return associations between ingest metadata fields and the "assays" (dataset data types) for an application. Replacement for field_assays.yaml.
@@ -645,7 +645,7 @@ paths:
           description: missing application context
         '5XX':
           description: Unexpected error
-  /field_schemas:
+  /field-schemas:
     get:
       operationId: field_schemas_get
       summary: Return associations between ingest metadata fields and metadata schemas for an application. Replacement for field_schemas.yaml.
