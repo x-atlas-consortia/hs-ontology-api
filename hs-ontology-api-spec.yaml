@@ -551,6 +551,132 @@ paths:
           description: No information for cell type with identifier *id*.
         '5XX':
           description: Unexpected error
+  /field_descriptions:
+    get:
+      operationId: field_descriptions_get
+      summary: Return descriptions for ingest metadata fields. Replacement for field_descriptions.yaml.
+      responses:
+        '200':
+          description: Ingest metadata fields and descriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldDescriptionsResponse'
+        '5XX':
+          description: Unexpected error
+  /field_types:
+    get:
+      operationId: field_types_get
+      summary: Return data types for ingest metadata fields. Replacement for field_types.yaml.
+      responses:
+        '200':
+          description: Ingest metadata fields mapped to XSD data types.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldTypesResponse'
+        '5XX':
+          description: Unexpected error
+  /field_entities:
+    get:
+      operationId: field_entities_get
+      summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field_types.yaml.
+      parameters:
+        - name: application_context
+          in: query
+          required: true
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: Associations between ingest metadata fields and application-specific provenance entities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldEntitiesResponse'
+        '400':
+          description: missing application context
+        '5XX':
+          description: Unexpected error
+  /field_assays:
+    get:
+      operationId: field_assays_get
+      summary: Return associations between ingest metadata fields and the "assays" (dataset data types) for an application. Replacement for field_assays.yaml.
+      parameters:
+        - name: application_context
+          in: query
+          required: true
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: Associations between ingest metadata fields and application-specific assays/dataset types.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldAssaysResponse'
+        '400':
+          description: missing application context
+        '5XX':
+          description: Unexpected error
+  /field_schemas:
+    get:
+      operationId: field_schemas_get
+      summary: Return associations between ingest metadata fields and metadata schemas for an application. Replacement for field_schemas.yaml.
+      parameters:
+        - name: application_context
+          in: query
+          required: true
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: Associations between ingest metadata fields and application-specific metadata schemas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldSchemasResponse'
+        '400':
+          description: missing application context
+        '5XX':
+          description: Unexpected error
 components:
   schemas:
     AssayTypePropertyInfo:
@@ -1078,3 +1204,164 @@ components:
                 type: string
                 description: Name (preferred term) for organ in source
                 example: heart
+    FieldDescriptionsResponse:
+      type: object
+      description: Descriptions ingest metadata fields from legacy field_descriptions.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields and their descriptions
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              description:
+                type: string
+                description: description of field
+                example: Units of x resolution distance between laser ablation shots.
+    FieldTypesResponse:
+      type: object
+      description: Associations between metadata field and data type ingest metadata fields from legacy field_types.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields and their data types
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              type:
+                type: object
+                properties:
+                  XSDCode:
+                    type: string
+                    description: Code in XSD
+                    example: xsd:string
+                  name:
+                    type: string
+                    description: name for type
+                    example: string
+    FieldEntitiesResponse:
+      type: object
+      description: Associations between fields and provenance entities for ingest metadata fields from legacy field_types.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields, each with its associated provenance entities
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              entities:
+                type: array
+                description: array of provenance entities associated with the field
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: Code in application ontology
+                      example: HUBMAP:C040001
+                    name:
+                      type: string
+                      description: name
+                      example: dataset
+    FieldAssaysResponse:
+      type: object
+      description: Associations between fields and "assays" (dataset types) for ingest metadata fields from legacy field_assays.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields, each with its associated assays/dataset types
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              assays:
+                type: array
+                description: array of "assays" (dataset types) associated with the field
+                items:
+                  type: object
+                  properties:
+                    data_type:
+                      type: object
+                      description: The data_type for the assay/dataset type--i.e., the key for ingest workflows
+                      properties:
+                        code:
+                          type: string
+                          description: Code in application ontology
+                          example: HUBMAP:C006904
+                        name:
+                          type: string
+                          description: the data_type string used in ingest workflows
+                          example: IMC
+                    display_name:
+                      type: string
+                      description: The display name for the assay/dataset type in the Portal UI
+                      example: Imaging Mass Cytometry (2D)
+                    alt-names:
+                      type: array
+                      description: The set of alt-names (synonyms for data_type) for the assay/dataset type
+                      items:
+                        type: string
+                        example: [Imaging Mass Cytometry,2D-IMC,IMC]
+    FieldSchemasResponse:
+      type: object
+      description: Associations between fields and metadata schemas for ingest metadata fields from legacy field_schemas.yaml
+      properties:
+        fields:
+          type: array
+          description: array of fields, each with its associated schemas
+          items:
+            type: object
+            properties:
+              codeID:
+                type: string
+                description: Code in the HMFIELD ontology
+                example: HMFIELD:1001
+              identifier:
+                type: string
+                description: identifier for metadata field
+                example: ablation_distance_between_shots_x_units
+              schemas:
+                type: array
+                description: array of metadata schemas associated with the field
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: Code in HMFIELD ontology
+                      example: HMFIELD:1001
+                    name:
+                      type: string
+                      description: name
+                      example: imc3d
