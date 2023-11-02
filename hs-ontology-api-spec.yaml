@@ -350,7 +350,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTerm'
-  /gene-info:
+  /genes-info:
     get:
       operationId: gene_list_get
       summary: Return high-level information on a set of genes specified by pagination parameters.
@@ -392,7 +392,7 @@ paths:
           description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
-  /gene/{id}:
+  /genes/{id}:
     get:
       operationId: gene_detail_get
       summary: Return detailed information on a gene specified by a HGNC identifier.
@@ -417,7 +417,7 @@ paths:
           description: No information for gene with HGNC identifier *id*.
         '5XX':
           description: Unexpected error
-  /protein-info:
+  /proteins-info:
     get:
       operationId: protein_list_get
       summary: Return high-level information on a set of proteins specified by pagination parameters.
@@ -459,7 +459,7 @@ paths:
           description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB names that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
-  /protein/{id}:
+  /proteins/{id}:
     get:
       operationId: protein_detail_get
       summary: Return detailed information on a protein specified by a UniProtKB identifier.
@@ -484,7 +484,7 @@ paths:
           description: No information for protein with UniProtKB identifier *id*.
         '5XX':
           description: Unexpected error
-  /celltype-info:
+  /celltypes-info:
     get:
       operationId: celltype_list_get
       summary: Return high-level information on a set of cell types specified by pagination parameters.
@@ -526,7 +526,7 @@ paths:
           description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
-  /celltype/{id}:
+  /celltypes/{id}:
     get:
       operationId: celltype_detail_get
       summary: Return detailed information on a cell type specified by a name.
@@ -850,7 +850,7 @@ components:
             - SenNet
     GeneListResponse:
       type: object
-      description: High-level information on a set of genes requested by the genes endpoint.
+      description: High-level information on a set of genes requested by the genes-info endpoint.
       properties:
         pagination:
           type: object
@@ -858,11 +858,11 @@ components:
           properties:
             items_per_page:
               type: number
-              description: value of genesperpage parameter from the gene_list endpoint
+              description: value of genesperpage parameter from the endpoint
               example: 3
             page:
               type: number
-              description: value of page parameter from the gene_list endpoint
+              description: value of page parameter from endpoint
               example: 1
             total_pages:
               type: number
@@ -874,7 +874,7 @@ components:
               example: 500
             starts_with:
               type: string
-              description: value of starts_with from the gene_list endpoint
+              description: value of starts_with from the endpoint
               example: M
         genes:
           type: array
@@ -896,7 +896,7 @@ components:
                 example: Multimerin is a massive, soluble protein found in....
     GeneDetailResponse: # JAS Sept 2023
       type: object
-      description: Detailed information on a gene requested by the gene endpoint
+      description: Detailed information on a gene requested by the genes endpoint
       properties:
         alias_names:
           type: array
@@ -1000,7 +1000,7 @@ components:
           example: Multimerin is a massive, soluble protein found in....
     ProteinListResponse:
       type: object
-      description: High-level list of proteins with pagination details, requested by the proteins endpoint.
+      description: High-level list of proteins with pagination details, requested by the proteins-info endpoint.
       properties:
         pagination:
           type: object
@@ -1008,11 +1008,11 @@ components:
           properties:
             items_per_page:
               type: number
-              description: value of proteinsperpage parameter from the proteins endpoint
+              description: value of proteinsperpage parameter from the endpoint
               example: 3
             page:
               type: number
-              description: value of page parameter from the proteins endpoint
+              description: value of page parameter from the endpoint
               example: 1
             total_pages:
               type: number
@@ -1024,7 +1024,7 @@ components:
               example: 500
             starts_with:
               type: string
-              description: value of starts_with from the proteins endpoint
+              description: value of starts_with from the endpoint
               example: M
         proteins:
           type: array
@@ -1098,7 +1098,7 @@ components:
             example: [Homo sapiens]
     CellTypeListResponse:
       type: object
-      description: High-level list of cell types with pagination details, requested by the celltypes endpoint.
+      description: High-level list of cell types with pagination details, requested by the celltypes-info endpoint.
       properties:
         pagination:
           type: object
@@ -1106,11 +1106,11 @@ components:
           properties:
             items_per_page:
               type: number
-              description: value of celltypesperpage parameter from the celltypes endpoint
+              description: value of celltypesperpage parameter from the endpoint
               example: 3
             page:
               type: number
-              description: value of page parameter from the celltypes endpoint
+              description: value of page parameter from the endpoint
               example: 1
             total_pages:
               type: number
@@ -1118,7 +1118,7 @@ components:
               example: 14381
             starts_with:
               type: string
-              description: value of starts_with from the celltypes endpoint
+              description: value of starts_with from the endpoint
               example: E
             item_count:
               type: number
