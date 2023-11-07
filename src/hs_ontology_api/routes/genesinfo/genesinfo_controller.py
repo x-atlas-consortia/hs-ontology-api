@@ -4,9 +4,9 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 from ..neo4j_logic import genelist_get_logic,genelist_count_get_logic
 import math
 
-geneslist_blueprint = Blueprint('geneslist', __name__, url_prefix='/genes')
+genesinfo_blueprint = Blueprint('genes-info', __name__, url_prefix='/genes-info')
 
-@geneslist_blueprint.route('', methods=['GET'])
+@genesinfo_blueprint.route('', methods=['GET'])
 def geneslist() -> list[str]:
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()

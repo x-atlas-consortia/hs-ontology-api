@@ -10,8 +10,8 @@ from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
 from hs_ontology_api.routes.relationships.relationships_controller import relationships_blueprint
 from hs_ontology_api.routes.valueset.valueset_controller import valueset_blueprint
 # JAS September 2023
-from hs_ontology_api.routes.genedetail.genedetail_controller import genedetail_blueprint
-from hs_ontology_api.routes.geneslist.geneslist_controller import geneslist_blueprint
+from hs_ontology_api.routes.genes.genes_controller import genes_blueprint
+from hs_ontology_api.routes.genesinfo.genesinfo_controller import genesinfo_blueprint
 
 # Cells API client
 from hs_ontology_api.routes.cellsclient import OntologyCellsClient
@@ -32,8 +32,8 @@ app.register_blueprint(organs_blueprint)
 app.register_blueprint(relationships_blueprint)
 app.register_blueprint(valueset_blueprint)
 # JAS Sept 2023
-app.register_blueprint(genedetail_blueprint)
-app.register_blueprint(geneslist_blueprint)
+app.register_blueprint(genes_blueprint)
+app.register_blueprint(genesinfo_blueprint)
 
 # Instantiate a Cells API client.
 cellsurl = make_flask_config().get('CELLSURL')
