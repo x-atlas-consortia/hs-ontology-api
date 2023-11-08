@@ -551,10 +551,10 @@ paths:
           description: No information for cell type with identifier *id*.
         '5XX':
           description: Unexpected error
-  /field_descriptions:
+  /field-descriptions:
     get:
       operationId: field_descriptions_get
-      summary: Return descriptions for ingest metadata fields. Replacement for field_descriptions.yaml.
+      summary: Return descriptions for ingest metadata fields. Replacement for field-descriptions.yaml.
       responses:
         '200':
           description: Ingest metadata fields and descriptions
@@ -566,10 +566,10 @@ paths:
                   $ref: '#/components/schemas/FieldDescriptionsResponse'
         '5XX':
           description: Unexpected error
-  /field_types:
+  /field-types:
     get:
       operationId: field_types_get
-      summary: Return data types for ingest metadata fields. Replacement for field_types.yaml.
+      summary: Return data types for ingest metadata fields. Replacement for field-types.yaml.
       responses:
         '200':
           description: Ingest metadata fields mapped to XSD data types.
@@ -581,10 +581,10 @@ paths:
                   $ref: '#/components/schemas/FieldTypesResponse'
         '5XX':
           description: Unexpected error
-  /field_entities:
+  /field-entities:
     get:
       operationId: field_entities_get
-      summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field_types.yaml.
+      summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field-types.yaml.
       parameters:
         - name: application_context
           in: query
@@ -613,10 +613,10 @@ paths:
           description: missing application context
         '5XX':
           description: Unexpected error
-  /field_assays:
+  /field-assays:
     get:
       operationId: field_assays_get
-      summary: Return associations between ingest metadata fields and the "assays" (dataset data types) for an application. Replacement for field_assays.yaml.
+      summary: Return associations between ingest metadata fields and the "assays" (dataset data types) for an application. Replacement for field-assays.yaml.
       parameters:
         - name: application_context
           in: query
@@ -645,10 +645,10 @@ paths:
           description: missing application context
         '5XX':
           description: Unexpected error
-  /field_schemas:
+  /field-schemas:
     get:
       operationId: field_schemas_get
-      summary: Return associations between ingest metadata fields and metadata schemas for an application. Replacement for field_schemas.yaml.
+      summary: Return associations between ingest metadata fields and metadata schemas for an application. Replacement for field-schemas.yaml.
       parameters:
         - name: application_context
           in: query
@@ -1218,7 +1218,7 @@ components:
                 example: heart
     FieldDescriptionsResponse:
       type: object
-      description: Descriptions ingest metadata fields from legacy field_descriptions.yaml
+      description: Descriptions ingest metadata fields from legacy field-descriptions.yaml
       properties:
         fields:
           type: array
@@ -1240,7 +1240,7 @@ components:
                 example: Units of x resolution distance between laser ablation shots.
     FieldTypesResponse:
       type: object
-      description: Associations between metadata field and data type ingest metadata fields from legacy field_types.yaml
+      description: Associations between metadata field and data type ingest metadata fields from legacy field-types.yaml
       properties:
         fields:
           type: array
@@ -1269,7 +1269,7 @@ components:
                     example: string
     FieldEntitiesResponse:
       type: object
-      description: Associations between fields and provenance entities for ingest metadata fields from legacy field_types.yaml
+      description: Associations between fields and provenance entities for ingest metadata fields from legacy field-types.yaml
       properties:
         fields:
           type: array
@@ -1301,7 +1301,7 @@ components:
                       example: dataset
     FieldAssaysResponse:
       type: object
-      description: Associations between fields and "assays" (dataset types) for ingest metadata fields from legacy field_assays.yaml
+      description: Associations between fields and "assays" (dataset types) for ingest metadata fields from legacy field-assays.yaml
       properties:
         fields:
           type: array
@@ -1347,7 +1347,7 @@ components:
                         example: [Imaging Mass Cytometry,2D-IMC,IMC]
     FieldSchemasResponse:
       type: object
-      description: Associations between fields and metadata schemas for ingest metadata fields from legacy field_schemas.yaml
+      description: Associations between fields and metadata schemas for ingest metadata fields from legacy field-schemas.yaml
       properties:
         fields:
           type: array
