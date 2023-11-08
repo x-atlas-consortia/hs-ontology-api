@@ -2,7 +2,7 @@
 
 # JAS October 2023
 # GeneList model class
-# Used by the geneslist endpoint.
+# Used by the genes-info endpoints.
 # Provides information on genes identified by either the UBKG or the Cells API--i.e., that have relevance to HuBMAP/SenNet.
 
 from __future__ import absolute_import
@@ -13,64 +13,50 @@ from ubkg_api.models import util
 # Sub-object models
 # Array of gene detail objects
 from hs_ontology_api.models.genelist_detail import GeneListDetail
+from hs_ontology_api.models.pagination import Pagination
 
 class GeneList():
-    def __init__(self, page=None, total_pages=None, genesperpage=None, genes=None, starts_with=None, gene_count=None):
+    def __init__(self, page=None, totalpages=None, genesperpage=None, genes=None, startswith=None, genecount=None):
         """GeneList - a model defined in OpenAPI
 
-                    :param page: Relative "page" (block of genes)
+                    :param page: Requested relative "page" (block of genes)
                     :type page: str
-                    :param total_pages: Total number of "pages" (blocks of genes)
-                    :type total_pages: str
-                    :param genes: List of genes in page
+                    :param totalpages: Calculated total number of "pages" (blocks of genes)
+                    :type totalpages: str
+                    :param genes: List of gene objects for an array
                     :type genes: List[GeneListDetail]
-                    :param genesperpage: Number of genes in each "page" (block)
-                    :type genes: str
-                    :starts_with: Search string for type ahead
-                    :type starts_with: str
-                    :gene_count: Count of (filtered) genes
-                    :type gene_count: str
-
+                    :param genesperpage: Requested number of genes in each "page" (block)
+                    :type genesperpage: str
+                    :startswith: Optional search string for type ahead
+                    :type startswith: str
+                    :genecount: Calculated count of genes that satisfied the search criteria
+                    :type genecount: str
 
                 """
 
-        # Parameters other than page will be used to build nested GeneListDetail objects.
+        # The page, totalpages, genesperpage, startswith, and genecount parameters will be used to build a
+        # Pagination object.
+        # The genes parameter will be used to build an array of GeneListDetail objects.
 
         # Types for JSON objects
         self.openapi_types = {
-            'page': int,
-            'total_pages': int,
-            'genes_per_page': int,
+            'pagination': Pagination,
             'genes': List[GeneListDetail],
-            'starts_with': str,
-            'gene_count': int
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
-            'page': 'page',
-            'total_pages': 'total_pages',
-            'genes_per_page': 'genes_per_page',
+            'pagination': 'pagination',
             'genes': 'genes',
-            'starts_with': 'starts_with',
-            'gene_count': 'gene_count'
         }
         # Property assignments
-        self._page = int(page)
-        self._total_pages = int(total_pages)
-        self._genes_per_page = int(genesperpage)
         self._genes = genes
-        self._starts_with = starts_with
-        self._gene_count = gene_count
+        self._pagination = Pagination(page, totalpages, genesperpage, startswith, genecount).serialize()
 
     def serialize(self):
         # Key/value format of response.
         return {
-            "page": self._page,
-            "total_pages": self._total_pages,
-            "genes_per_page": self._genes_per_page,
+            "pagination": self._pagination,
             "genes": self._genes,
-            "starts_with": self._starts_with,
-            "gene_count": self._gene_count
         }
 
     @classmethod
@@ -85,26 +71,25 @@ class GeneList():
         return util.deserialize_model(dikt, cls)
 
     @property
-    def page(self):
-        """Gets the page of this GeneList.
+    def pagination(self):
+        """Gets the pagination of this GeneList.
 
-        'Page' or relative block of genes.
-        :return: The page of this GeneList.
+        Pagination statistics
+        :return: The pagination of this GeneList.
         :rtype: str
         """
-        return self._page
+        return self._pagination
 
-    @page.setter
-    def page(self, page):
-        """Sets the page of this GeneList.
+    @pagination.setter
+    def pagination(self, pagination):
+        """Sets the pagination of this GeneList.
 
-        'Page' or relative block of genes.
-
-        :param page: The page of this GeneList
-        :type page: str
+        Pagination statistics
+        :param pagination: The pagination of this GeneList
+        :type pagination: str
         """
 
-        self._page = page
+        self._pagination = pagination
 
     @property
     def genes(self):
@@ -128,88 +113,3 @@ class GeneList():
 
         self._genes = genes
 
-    @property
-    def total_pages(self):
-        """Gets the total_pages of this GeneList.
-
-        Total number of "pages" (blocks of genes)
-        :return: The total_pages of this GeneList.
-        :rtype: int
-        """
-        return self._total_pages
-
-    @total_pages.setter
-    def total_pages(self, total_pages):
-        """Sets the total_pages of this GeneList.
-
-        Total number of "pages" (blocks of genes)
-
-        :param total_pages: The genes of this GeneList
-        :type genes: int
-        """
-
-        self._total_pages = total_pages
-
-    @property
-    def genes_per_page(self):
-        """Gets the genes_per_page of this GeneList.
-
-        Number of genes per "page" or block of returns
-        :return: The total_pages of this GeneList.
-        :rtype: int
-        """
-        return self._total_pages
-
-    @genes_per_page.setter
-    def genes_per_page(self, genes_per_page):
-        """Sets the genes_per_page of this GeneList.
-
-        Number of genes per "page" or block of returns
-
-        :param genes_per_page: The genes_per_page of this GeneList
-        :type genes_per_page: int
-        """
-
-        self._genes_per_page = genes_per_page
-    @property
-    def starts_with(self):
-        """Gets the starts_with of this GeneList.
-
-        Optional type-ahead search string
-        :return: The starts_with of this GeneList.
-        :rtype: str
-        """
-        return self._starts_with
-
-    @starts_with.setter
-    def starts_with(self, starts_with):
-        """Sets the starts_with of this GeneList.
-
-        Optional type-ahead search string
-
-        :param starts_with: The genes_per_page of this GeneList
-        :type starts_with: int
-        """
-
-        self._starts_with = starts_with
-    @property
-    def gene_count(self):
-        """Gets the gene_count of this GeneList.
-
-        Count of genes
-        :return: The gene_count of this GeneList.
-        :rtype: str
-        """
-        return self._gene_count
-
-    @gene_count.setter
-    def gene_count(self, gene_count):
-        """Sets the gene_count of this GeneList.
-
-        Count of genes
-
-        :param gene_count: The gene_count of this GeneList
-        :type gene_count: int
-        """
-
-        self._gene_count = gene_count

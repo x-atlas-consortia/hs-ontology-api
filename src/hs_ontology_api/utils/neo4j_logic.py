@@ -2,6 +2,7 @@ import logging
 import neo4j
 from typing import List
 import pandas as pd
+import os
 
 from flask import current_app
 
@@ -17,12 +18,27 @@ from hs_ontology_api.models.genelist import GeneList
 from hs_ontology_api.models.genelist_detail import GeneListDetail
 
 # Query utilities
-from hs_ontology_api.cypher.util_query import loadquerystring
+# from hs_ontology_api.cypher.util_query import loadquerystring
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def loadquerystring(filename: str) ->str:
+
+    # Load a query string from a file.
+    # filename: filename, without path.
+
+    # Assumes that the file is in the cypher directory.
+
+    fpath = os.path.dirname(os.getcwd())
+    fpath = os.path.join(fpath,'src/hs_ontology_api/cypher',filename)
+
+    f = open(fpath, "r")
+    query = f.read()
+    f.close()
+    return query
 
 def make_assaytype_property_info(record):
     return AssayTypePropertyInfo(
@@ -664,7 +680,7 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
-def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:str, starts_with:str, gene_count:str) -> List[GeneList]:
+def genelist_get_logic(neo4j_instance, page:str, totalpages:str, genesperpage:str, startswith:str, genecount:str) -> List[GeneList]:
 
     """
     Returns information on HGNC genes.
@@ -672,13 +688,12 @@ def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:s
     list with pagination features.
 
     :param neo4j_instance:  neo4j client
-    :page: Zero-based number of pages with rows=pagesize to skip in neo4j query
-    :genesperpage: number of rows to limit in neo4j query
+    :param page: Zero-based number of pages with rows=pagesize to skip in neo4j query
+    :param totalpages: Calculated number of pages of genes
+    :param genesperpage: number of rows to limit in neo4j query
+    :param startswith: string for type-ahead (starts with) searches
+    :param genecount: Calculated total count of genes, optionally filtered with startswith
     :return: List[GeneList]
-    :starts_with: string for type-ahead (starts with) searches
-    :return: str
-    :gene_count: filtered count of genes
-    :return: str
 
     """
 
@@ -702,8 +717,8 @@ def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:s
     skiprows = intpage * int(genesperpage)
 
     starts_with_clause = ''
-    if starts_with != '':
-        starts_with_clause = f'AND map[\'approved_symbol\'][0] STARTS WITH \'{starts_with}\''
+    if startswith != '':
+        starts_with_clause = f'AND map[\'approved_symbol\'][0] STARTS WITH \'{startswith}\''
     query = query.replace('$starts_with_clause',starts_with_clause)
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(genesperpage))
@@ -722,16 +737,16 @@ def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genesperpage:s
             except KeyError:
                 pass
         # Use the list of gene details with the page to build a genelist object.
-        genelist: GeneList = GeneList(page, total_pages, genesperpage, genes, starts_with, gene_count).serialize()
+        genelist: GeneList = GeneList(page, totalpages, genesperpage, genes, startswith, genecount).serialize()
     return genelist
 
-def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
+def genelist_count_get_logic(neo4j_instance, startswith: str) -> int:
     """
         Returns the count of HGNC genes in the UBKG.
-        If starts_with is non-null, returns the count of HGNC genes with approved symbol
+        If startswith is non-null, returns the count of HGNC genes with approved symbol
         that starts with the parameter value.
         :param neo4j_instance:  neo4j client
-        :param starts_with: filtering string for STARTS WITH queries
+        :param startswith: filtering string for STARTS WITH queries
         :return: integer count
     """
     #
@@ -740,8 +755,8 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     queryfile = 'geneslist_count.cypher'
     query = loadquerystring(queryfile)
     starts_with_clause = ''
-    if starts_with != '':
-        starts_with_clause = f'AND tGene.name STARTS WITH \'{starts_with}\''
+    if startswith != '':
+        starts_with_clause = f'AND tGene.name STARTS WITH \'{startswith}\''
     query = query.replace('$starts_with_clause', starts_with_clause)
 
     with neo4j_instance.driver.session() as session:

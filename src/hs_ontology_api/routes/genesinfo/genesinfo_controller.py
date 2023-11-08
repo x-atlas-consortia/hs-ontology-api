@@ -1,7 +1,7 @@
 # coding: utf-8
 # JAS October 2023
 from flask import Blueprint, jsonify, current_app, request, make_response
-from ..neo4j_logic import genelist_get_logic,genelist_count_get_logic
+from hs_ontology_api.utils.neo4j_logic import genelist_get_logic,genelist_count_get_logic
 import math
 
 genesinfo_blueprint = Blueprint('genes-info', __name__, url_prefix='/genes-info')
@@ -18,9 +18,9 @@ def geneslist() -> list[str]:
     # Obtain parameters.
     page = request.args.get('page')
     genesperpage = request.args.get('genesperpage')
-    starts_with = request.args.get('starts_with')
-    if starts_with is None:
-        starts_with = ''
+    startswith = request.args.get('startswith')
+    if startswith is None:
+        startswith = ''
 
     # Validate and set defaults for genesperpage.
     if genesperpage is None:
@@ -31,9 +31,9 @@ def geneslist() -> list[str]:
         return (make_response(f'The value for parameter genesperpage ({genesperpage}) must be greater than zero.', 400))
 
     # Obtain the total count of genes, considering the filter starts_with.
-    gene_count = genelist_count_get_logic(neo4j_instance, starts_with)
-    if gene_count == 0:
-        return make_response(f'There are no genes with HGNC symbols that start with \'{starts_with}\'.', 404)
+    genecount = genelist_count_get_logic(neo4j_instance, startswith)
+    if genecount == 0:
+        return make_response(f'There are no genes with HGNC symbols that start with \'{startswith}\'.', 404)
 
     # Default values for page.
     # Case: No parameter specified.
@@ -45,12 +45,12 @@ def geneslist() -> list[str]:
         page = '1'
 
     # Calculate the total number of (filtered) pages.
-    total_pages = str(math.ceil(int(gene_count) / int(genesperpage)))
+    totalpages = str(math.ceil(int(genecount) / int(genesperpage)))
 
     # Translation for cases "last" or "first"
-    print(f'total_pages={total_pages}')
+    print(f'total_pages={totalpages}')
     if page == 'last':
-        page = str(int(total_pages))
+        page = str(int(totalpages))
     if page == 'first':
         page = '1'
 
@@ -60,9 +60,9 @@ def geneslist() -> list[str]:
     if int(page) < 0:
         return make_response(f'The value for parameter page ({page}) must be >= 0', 400)
 
-    if int(page) > int(total_pages):
-        page = str(int(total_pages))
+    if int(page) > int(totalpages):
+        page = str(int(totalpages))
 
     # Obtain results.
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(genelist_get_logic(neo4j_instance, page=page, total_pages=total_pages, genesperpage=genesperpage, starts_with=starts_with, gene_count=gene_count))
+    return jsonify(genelist_get_logic(neo4j_instance, page=page, totalpages=totalpages, genesperpage=genesperpage, startswith=startswith, genecount=genecount))

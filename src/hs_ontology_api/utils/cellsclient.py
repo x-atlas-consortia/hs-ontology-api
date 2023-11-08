@@ -8,7 +8,7 @@ from hubmap_api_py_client import Client
 from hubmap_api_py_client.errors import ClientError
 
 # Array of cell type objects
-from ..models.genedetail_celltype import GeneDetailCellType
+from hs_ontology_api.models.genedetail_celltype import GeneDetailCellType
 
 import pandas as pd
 import os

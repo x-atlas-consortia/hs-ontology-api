@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, current_app, make_response
 
-from ..neo4j_logic import relationships_for_gene_target_symbol_get_logic
+from hs_ontology_api.utils.neo4j_logic import relationships_for_gene_target_symbol_get_logic
 
 
 relationships_blueprint = Blueprint('relationships', __name__, url_prefix='/relationships')

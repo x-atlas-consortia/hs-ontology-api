@@ -14,7 +14,7 @@ from hs_ontology_api.routes.genes.genes_controller import genes_blueprint
 from hs_ontology_api.routes.genesinfo.genesinfo_controller import genesinfo_blueprint
 
 # Cells API client
-from hs_ontology_api.routes.cellsclient import OntologyCellsClient
+from hs_ontology_api.utils.cellsclient import OntologyCellsClient
 
 def make_flask_config():
     temp_flask_app = Flask(__name__,

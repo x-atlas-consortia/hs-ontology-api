@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, current_app, request, make_response
 
-from hs_ontology_api.routes.neo4j_logic import assaytype_name_get_logic
+from hs_ontology_api.utils.neo4j_logic import assaytype_name_get_logic
 
 assayname_blueprint = Blueprint('assayname', __name__, url_prefix='/assayname')
 

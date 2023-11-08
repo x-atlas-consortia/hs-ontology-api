@@ -1,7 +1,7 @@
 # coding: utf-8
 # JAS September 2023
-from flask import Blueprint, jsonify, current_app, request, make_response
-from ..neo4j_logic import genedetail_get_logic
+from flask import Blueprint, jsonify, current_app, make_response
+from hs_ontology_api.utils.neo4j_logic import genedetail_get_logic
 
 
 genes_blueprint = Blueprint('genes', __name__, url_prefix='/genes')
