@@ -11,49 +11,49 @@ from ubkg_api.models import util
 
 class Pagination():
 
-    def __init__(self, page=None, totalpages=None, itemsperpage=None, startswith=None, itemcount=None):
+    def __init__(self, page=None, total_pages=None, items_per_page=None, starts_with=None, item_count=None):
         """Pagination - a model defined in OpenAPI
 
         :param page: Relative "page" (block of items)
-        :param totalpages: Total number of "pages" (blocks of items)
-        :param itemsperpage: Number of items in each "page" (block)
-        :param startswith: Optional search string for type ahead
-        :param itemcount: Count of items, optionally filtered by startswith
+        :param total_pages: Total number of "pages" (blocks of items)
+        :param items_per_page: Number of items in each "page" (block)
+        :param starts_with: Optional search string for type ahead
+        :param item_count: Count of items, optionally filtered by starts_with
 
         """
 
         # Types for JSON objects
         self.openapi_types = {
             'page': int,
-            'totalpages': int,
-            'itemsperpage': int,
-            'startswith': str,
-            'itemcount': int
+            'total_pages': int,
+            'items_per_page': int,
+            'starts_with': str,
+            'item_count': int
         }
 
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
             'page': 'page',
-            'totalpages': 'totalpages',
-            'itemsperpage': 'itemsperpage',
-            'startswith': 'startswith',
-            'itemcount': 'itemcount'
+            'total_pages': 'total_pages',
+            'items_per_page': 'items_per_page',
+            'starts_with': 'starts_with',
+            'item_count': 'item_count'
         }
         # Property assignments
         self._page = int(page)
-        self._totalpages = int(totalpages)
-        self._itemsperpage = int(itemsperpage)
-        self._startswith = startswith
-        self._itemcount = itemcount
+        self._total_pages = int(total_pages)
+        self._items_per_page = int(items_per_page)
+        self._starts_with = starts_with
+        self._item_count = item_count
 
     def serialize(self):
         # Key/value format of response.
         return {
             "page": self._page,
-            "totalpages": self._totalpages,
-            "genes_per_page": self._itemsperpage,
-            "startswith": self._startswith,
-            "itemcount": self._itemcount
+            "total_pages": self._total_pages,
+            "genes_per_page": self._items_per_page,
+            "starts_with": self._starts_with,
+            "item_count": self._item_count
         }
 
     @classmethod
@@ -71,10 +71,10 @@ class Pagination():
         # Key/value format of response.
         return {
             "page": self._page,
-            "totalpages": self._totalpages,
-            "itemsperpage": self._itemsperpage,
-            "startswith": self._startswith,
-            "itemcount": self._itemcount
+            "total_pages": self._total_pages,
+            "items_per_page": self._items_per_page,
+            "starts_with": self._starts_with,
+            "item_count": self._item_count
         }
 
     @property
@@ -100,89 +100,89 @@ class Pagination():
         self._page = page
 
     @property
-    def totalpages(self):
+    def total_pages(self):
         """Gets the total_pages of this Pagination.
 
         Total number of "pages" (blocks of items)
         :return: The total_pages of this Pagination.
         :rtype: int
         """
-        return self._totalpages
+        return self._total_pages
 
-    @totalpages.setter
-    def total_pages(self, totalpages):
+    @total_pages.setter
+    def total_pages(self, total_pages):
         """Sets the total_pages of this Pagination.
 
         Total number of "pages" (blocks of items)
 
-        :param totalpages: The number of itmes in this Pagination
+        :param total_pages: The number of itmes in this Pagination
         :type genes: int
         """
 
-        self._totalpages = totalpages
+        self._total_pages = total_pages
 
     @property
-    def itemsperpage(self):
-        """Gets the itemsperpage of this Pagination.
+    def items_per_page(self):
+        """Gets the items_per_page of this Pagination.
 
         Number of items per "page" or block of returns
-        :return: The itemsperpage of this Pagination.
+        :return: The items_per_page of this Pagination.
         :rtype: int
         """
-        return self._itemsperpage
+        return self._items_per_page
 
-    @itemsperpage.setter
-    def genes_per_page(self, itemsperpage):
-        """Sets the itemsperpage of this Pagination.
+    @items_per_page.setter
+    def genes_per_page(self, items_per_page):
+        """Sets the items_per_page of this Pagination.
 
         Number of items per "page" or block of returns
 
-        :param itemsperpage: The itemsperpage of this Pagination
-        :type itemsperpage: int
+        :param items_per_page: The items_per_page of this Pagination
+        :type items_per_page: int
         """
 
-        self._itemsperpage = itemsperpage
+        self._items_per_page = items_per_page
 
     @property
-    def startswith(self):
-        """Gets the startswith of this Pagination.
+    def starts_with(self):
+        """Gets the starts_with of this Pagination.
 
         Optional type-ahead search string
-        :return: The startswith of this Pagination.
+        :return: The starts_with of this Pagination.
         :rtype: str
         """
-        return self._startswith
+        return self._starts_with
 
-    @startswith.setter
-    def startswith(self, startswith):
-        """Sets the startswith of this Pagination.
+    @starts_with.setter
+    def starts_with(self, starts_with):
+        """Sets the starts_with of this Pagination.
 
         Optional type-ahead search string
 
-        :param starts_with: The startswith of this Pagination
-        :type startswith: int
+        :param starts_with: The starts_with of this Pagination
+        :type starts_with: int
         """
 
-        self._startswith = startswith
+        self._starts_with = starts_with
 
     @property
-    def itemcount(self):
-        """Gets the itemcount of this Pagination.
+    def item_count(self):
+        """Gets the item_count of this Pagination.
 
-        Count of items, optionally filtered by startswith.
-        :return: The itemcount of this Pagination.
+        Count of items, optionally filtered by starts_with.
+        :return: The item_count of this Pagination.
         :rtype: str
         """
-        return self._itemcount
+        return self._item_count
 
-    @itemcount.setter
-    def itemcount(self, itemcount):
-        """Sets the itemcount of this Pagination.
+    @item_count.setter
+    def item_count(self, item_count):
+        """Sets the item_count of this Pagination.
 
-        Count of items, optionally filtered by startswith
+        Count of items, optionally filtered by starts_with
 
-        :param itemcount: The itemcount of this Pagination
-        :type itemcount: int
+        :param item_count: The item_count of this Pagination
+        :type item_count: int
         """
 
-        self._itemcount = itemcount
+        self._item_count = item_count

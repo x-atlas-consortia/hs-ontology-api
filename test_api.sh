@@ -118,18 +118,18 @@ echo
 # Test for gene_list endpoint
 echo "genes-info GET"
 curl --request GET \
- --url "${UBKG_URL}/genes-info?page=1&genesperpage=3" \
+ --url "${UBKG_URL}/genes-info?page=1&genes_per_page=3" \
  --header "Content-Type: application/json"
 echo
 echo "genes-info GET last page"
 curl --request GET \
- --url "${UBKG_URL}/genes-info?page=last&genesperpage=3" \
+ --url "${UBKG_URL}/genes-info?page=last&genes_per_page=3" \
  --header "Content-Type: application/json"
 echo
 
 echo "genes-info GET starts_with B"
 curl --request GET \
- --url "${UBKG_URL}/genes-info?genesperpage=3&starts_with=B" \
+ --url "${UBKG_URL}/genes-info?genes_per_page=3&starts_with=B" \
  --header "Content-Type: application/json"
 echo
 

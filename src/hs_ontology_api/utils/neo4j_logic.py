@@ -680,7 +680,7 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
-def genelist_get_logic(neo4j_instance, page:str, totalpages:str, genesperpage:str, startswith:str, genecount:str) -> List[GeneList]:
+def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genes_per_page:str, starts_with:str, gene_count:str) -> List[GeneList]:
 
     """
     Returns information on HGNC genes.
@@ -689,10 +689,10 @@ def genelist_get_logic(neo4j_instance, page:str, totalpages:str, genesperpage:st
 
     :param neo4j_instance:  neo4j client
     :param page: Zero-based number of pages with rows=pagesize to skip in neo4j query
-    :param totalpages: Calculated number of pages of genes
-    :param genesperpage: number of rows to limit in neo4j query
-    :param startswith: string for type-ahead (starts with) searches
-    :param genecount: Calculated total count of genes, optionally filtered with startswith
+    :param total_pages: Calculated number of pages of genes
+    :param genes_per_page: number of rows to limit in neo4j query
+    :param starts_with: string for type-ahead (starts with) searches
+    :param gene_count: Calculated total count of genes, optionally filtered with starts_with
     :return: List[GeneList]
 
     """
@@ -714,14 +714,14 @@ def genelist_get_logic(neo4j_instance, page:str, totalpages:str, genesperpage:st
     # Convert to 1-based.
     intpage = int(page)-1
 
-    skiprows = intpage * int(genesperpage)
+    skiprows = intpage * int(genes_per_page)
 
     starts_with_clause = ''
-    if startswith != '':
-        starts_with_clause = f'AND map[\'approved_symbol\'][0] STARTS WITH \'{startswith}\''
+    if starts_with != '':
+        starts_with_clause = f'AND map[\'approved_symbol\'][0] STARTS WITH \'{starts_with}\''
     query = query.replace('$starts_with_clause',starts_with_clause)
     query = query.replace('$skiprows', str(skiprows))
-    query = query.replace('$limitrows', str(genesperpage))
+    query = query.replace('$limitrows', str(genes_per_page))
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
@@ -737,16 +737,16 @@ def genelist_get_logic(neo4j_instance, page:str, totalpages:str, genesperpage:st
             except KeyError:
                 pass
         # Use the list of gene details with the page to build a genelist object.
-        genelist: GeneList = GeneList(page, totalpages, genesperpage, genes, startswith, genecount).serialize()
+        genelist: GeneList = GeneList(page, total_pages, genes_per_page, genes, starts_with, gene_count).serialize()
     return genelist
 
-def genelist_count_get_logic(neo4j_instance, startswith: str) -> int:
+def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     """
         Returns the count of HGNC genes in the UBKG.
-        If startswith is non-null, returns the count of HGNC genes with approved symbol
+        If starts_with is non-null, returns the count of HGNC genes with approved symbol
         that starts with the parameter value.
         :param neo4j_instance:  neo4j client
-        :param startswith: filtering string for STARTS WITH queries
+        :param starts_with: filtering string for STARTS WITH queries
         :return: integer count
     """
     #
@@ -755,8 +755,8 @@ def genelist_count_get_logic(neo4j_instance, startswith: str) -> int:
     queryfile = 'geneslist_count.cypher'
     query = loadquerystring(queryfile)
     starts_with_clause = ''
-    if startswith != '':
-        starts_with_clause = f'AND tGene.name STARTS WITH \'{startswith}\''
+    if starts_with != '':
+        starts_with_clause = f'AND tGene.name STARTS WITH \'{starts_with}\''
     query = query.replace('$starts_with_clause', starts_with_clause)
 
     with neo4j_instance.driver.session() as session:
@@ -765,8 +765,8 @@ def genelist_count_get_logic(neo4j_instance, startswith: str) -> int:
 
         for record in recds:
             try:
-                genecount = record.get('genelistcount')
+                gene_count = record.get('genelistcount')
             except KeyError:
                 pass
-    return genecount
+    return gene_count
 

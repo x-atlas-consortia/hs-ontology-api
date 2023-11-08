@@ -17,23 +17,23 @@ def geneslist() -> list[str]:
 
     # Obtain parameters.
     page = request.args.get('page')
-    genesperpage = request.args.get('genesperpage')
-    startswith = request.args.get('startswith')
-    if startswith is None:
-        startswith = ''
+    genes_per_page = request.args.get('genes_per_page')
+    starts_with = request.args.get('starts_with')
+    if starts_with is None:
+        starts_with = ''
 
-    # Validate and set defaults for genesperpage.
-    if genesperpage is None:
-        genesperpage = '10'
-    if not genesperpage.isnumeric():
-        return make_response(f'The value for parameter genesperpage ({genesperpage}) must be numeric.', 400)
-    if int(genesperpage) <= 0:
-        return (make_response(f'The value for parameter genesperpage ({genesperpage}) must be greater than zero.', 400))
+    # Validate and set defaults for genes_per_page.
+    if genes_per_page is None:
+        genes_per_page = '10'
+    if not genes_per_page.isnumeric():
+        return make_response(f'The value for parameter genes_per_page ({genes_per_page}) must be numeric.', 400)
+    if int(genes_per_page) <= 0:
+        return (make_response(f'The value for parameter genes_per_page ({genes_per_page}) must be greater than zero.', 400))
 
     # Obtain the total count of genes, considering the filter starts_with.
-    genecount = genelist_count_get_logic(neo4j_instance, startswith)
-    if genecount == 0:
-        return make_response(f'There are no genes with HGNC symbols that start with \'{startswith}\'.', 404)
+    gene_count = genelist_count_get_logic(neo4j_instance, starts_with)
+    if gene_count == 0:
+        return make_response(f'There are no genes with HGNC symbols that start with \'{starts_with}\'.', 404)
 
     # Default values for page.
     # Case: No parameter specified.
@@ -45,12 +45,12 @@ def geneslist() -> list[str]:
         page = '1'
 
     # Calculate the total number of (filtered) pages.
-    totalpages = str(math.ceil(int(genecount) / int(genesperpage)))
+    total_pages = str(math.ceil(int(gene_count) / int(genes_per_page)))
 
     # Translation for cases "last" or "first"
-    print(f'total_pages={totalpages}')
+    print(f'total_pages={total_pages}')
     if page == 'last':
-        page = str(int(totalpages))
+        page = str(int(total_pages))
     if page == 'first':
         page = '1'
 
@@ -60,9 +60,10 @@ def geneslist() -> list[str]:
     if int(page) < 0:
         return make_response(f'The value for parameter page ({page}) must be >= 0', 400)
 
-    if int(page) > int(totalpages):
-        page = str(int(totalpages))
+    if int(page) > int(total_pages):
+        page = str(int(total_pages))
 
     # Obtain results.
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(genelist_get_logic(neo4j_instance, page=page, totalpages=totalpages, genesperpage=genesperpage, startswith=startswith, genecount=genecount))
+    return jsonify(genelist_get_logic(neo4j_instance, page=page, total_pages=total_pages, genes_per_page=genes_per_page,
+                                      starts_with=starts_with, gene_count=gene_count))

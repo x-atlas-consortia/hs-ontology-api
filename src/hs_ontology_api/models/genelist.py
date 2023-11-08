@@ -16,25 +16,25 @@ from hs_ontology_api.models.genelist_detail import GeneListDetail
 from hs_ontology_api.models.pagination import Pagination
 
 class GeneList():
-    def __init__(self, page=None, totalpages=None, genesperpage=None, genes=None, startswith=None, genecount=None):
+    def __init__(self, page=None, total_pages=None, genes_per_page=None, genes=None, starts_with=None, gene_count=None):
         """GeneList - a model defined in OpenAPI
 
                     :param page: Requested relative "page" (block of genes)
                     :type page: str
-                    :param totalpages: Calculated total number of "pages" (blocks of genes)
-                    :type totalpages: str
+                    :param total_pages: Calculated total number of "pages" (blocks of genes)
+                    :type total_pages: str
                     :param genes: List of gene objects for an array
                     :type genes: List[GeneListDetail]
-                    :param genesperpage: Requested number of genes in each "page" (block)
-                    :type genesperpage: str
-                    :startswith: Optional search string for type ahead
-                    :type startswith: str
-                    :genecount: Calculated count of genes that satisfied the search criteria
-                    :type genecount: str
+                    :param genes_per_page: Requested number of genes in each "page" (block)
+                    :type genes_per_page: str
+                    :starts_with: Optional search string for type ahead
+                    :type starts_with: str
+                    :gene_count: Calculated count of genes that satisfied the search criteria
+                    :type gene_count: str
 
                 """
 
-        # The page, totalpages, genesperpage, startswith, and genecount parameters will be used to build a
+        # The page, total_pages, genes_per_page, starts_with, and gene_count parameters will be used to build a
         # Pagination object.
         # The genes parameter will be used to build an array of GeneListDetail objects.
 
@@ -50,7 +50,7 @@ class GeneList():
         }
         # Property assignments
         self._genes = genes
-        self._pagination = Pagination(page, totalpages, genesperpage, startswith, genecount).serialize()
+        self._pagination = Pagination(page, total_pages, genes_per_page, starts_with, gene_count).serialize()
 
     def serialize(self):
         # Key/value format of response.

@@ -358,19 +358,19 @@ paths:
         - name: page
           in: query
           required: false
-          description: Offset set of genes of count=genesperpage. Can be a non-negative number or the words "first" or "last".
+          description: Offset set of genes of count=genes_per_page. Can be a non-negative number or the words "first" or "last".
           schema:
             type: string
             default: 1
           example: 1
-        - name: genesperpage
+        - name: genes_per_page
           in: query
           required: false
           description: Number of genes per "page" to return. Can be a nonzero number.
           schema:
             type: string
             default: 10
-        - name: startswith
+        - name: starts_with
           in: query
           required: false
           description: Optional string by which to filter by gene symbol.
@@ -387,9 +387,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/GeneListResponse'
         '400':
-          description: Invalid parameter--e.g., *genesperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+          description: Invalid parameter--e.g., *genes_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
         '404':
-          description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *startswith* parameter.
+          description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
   /genes/{id}:
@@ -425,19 +425,19 @@ paths:
         - name: page
           in: query
           required: false
-          description: Offset set of proteins of count=proteinsperpage. Can be a non-negative number or the words "first" or "last".
+          description: Offset set of proteins of count=proteins_per_page. Can be a non-negative number or the words "first" or "last".
           schema:
             type: string
             default: 1
           example: 1
-        - name: proteinsperpage
+        - name: proteins_per_page
           in: query
           required: false
           description: Number of proteins per "page" to return. Can be a nonzero number.
           schema:
             type: string
             default: 10
-        - name: startswith
+        - name: starts_with
           in: query
           required: false
           description: Optional *case-insensitive* string by which to filter by UniProtKB protein name.
@@ -454,9 +454,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProteinListResponse'
         '400':
-          description: Invalid parameter--e.g., *proteinsperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+          description: Invalid parameter--e.g., *proteins_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
         '404':
-          description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB names that start with the string specified in the *startswith* parameter.
+          description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB names that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
   /proteins/{id}:
@@ -492,19 +492,19 @@ paths:
         - name: page
           in: query
           required: false
-          description: Offset set of genes of count=celltypesperpage. Can be a non-negative number or the words "first" or "last".
+          description: Offset set of genes of count=celltypes_per_page. Can be a non-negative number or the words "first" or "last".
           schema:
             type: string
             default: 1
           example: 1
-        - name: celltypesperpage
+        - name: celltypes_per_page
           in: query
           required: false
           description: Number of cell types per "page" to return. Can be a nonzero number.
           schema:
             type: string
             default: 10
-        - name: startswith
+        - name: starts_with
           in: query
           required: false
           description: Optional *case-insensitive* string by which to filter by cell type name.
@@ -521,9 +521,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/CellTypeListResponse'
         '400':
-          description: Invalid parameter--e.g., *celltypesperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+          description: Invalid parameter--e.g., *celltypes_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
         '404':
-          description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *startswith* parameter.
+          description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
   /celltypes/{id}:
@@ -874,25 +874,25 @@ components:
           type: object
           description: pagination statistics
           properties:
-            itemsperpage:
+            items_per_page:
               type: number
-              description: original value of genesperpage request parameter
+              description: original value of genes_per_page request parameter
               example: 3
             page:
               type: number
               description: original value of page request parameter
               example: 1
-            totalpages:
+            total_pages:
               type: number
-              description: calculated total number of "pages" (blocks) based on the values of itemsperpage and the total number of items
+              description: calculated total number of "pages" (blocks) based on the values of items_per_page and the total number of items
               example: 14381
-            startswith:
+            starts_with:
               type: string
-              description: original value of startswith request parameter
+              description: original value of starts_with request parameter
               example: M
-            itemcount:
+            item_count:
               type: number
-              description: Calculated count of items. If startswith is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
+              description: Calculated count of items. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
               example: 500
     GeneDetailResponse: # JAS Sept 2023
       type: object
@@ -1024,25 +1024,25 @@ components:
           type: object
           description: pagination statistics
           properties:
-            itemsperpage:
+            items_per_page:
               type: number
-              description: original value of proteinsperpage request parameter
+              description: original value of proteins_per_page request parameter
               example: 3
             page:
               type: number
               description: original value of page request parameter
               example: 1
-            totalpages:
+            total_pages:
               type: number
-              description: calculated total number of "pages" (blocks) based on the values of proteinsperpage and the total number of proteins
+              description: calculated total number of "pages" (blocks) based on the values of proteins_per_page and the total number of proteins
               example: 14381
-            startswith:
+            starts_with:
               type: string
-              description: original value of startswith request parameter
+              description: original value of starts_with request parameter
               example: M
-            itemcount:
+            item_count:
               type: number
-              description: Count of proteins. If startswith is non-null, the count is that of the proteins with names that start with the value of startswith.
+              description: Count of proteins. If starts_with is non-null, the count is that of the proteins with names that start with the value of starts_with.
               example: 500
     ProteinDetailResponse:
       type: object
@@ -1122,25 +1122,25 @@ components:
           type: object
           description: pagination statistics
           properties:
-            itemsperpage:
+            items_per_page:
               type: number
-              description: original value of celltypesperpage request parameter
+              description: original value of celltypes_per_page request parameter
               example: 3
             page:
               type: number
               description: original value of page request parameter
               example: 1
-            totalpages:
+            total_pages:
               type: number
-              description: calculated total number of "pages" (blocks) based on the values of celltypesperpage and the total number of celltypes
+              description: calculated total number of "pages" (blocks) based on the values of celltypes_per_page and the total number of celltypes
               example: 14381
-            startswith:
+            starts_with:
               type: string
-              description: original value of startswith request parameter
+              description: original value of starts_with request parameter
               example: E
-            itemcount:
+            item_count:
               type: number
-              description: calculated count of cell types. If startswith is non-null, the count is that of the cell types with names that start with the value of startswith.
+              description: calculated count of cell types. If starts_with is non-null, the count is that of the cell types with names that start with the value of starts_with.
               example: 500
     CellTypeDetailResponse:
       type: object
