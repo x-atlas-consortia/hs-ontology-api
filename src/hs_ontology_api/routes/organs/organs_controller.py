@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, current_app
 
 from ubkg_api.common_routes.validate import validate_application_context
 
-from ..neo4j_logic import get_organ_types_logic
+from hs_ontology_api.utils.neo4j_logic import get_organ_types_logic
 
 organs_blueprint = Blueprint('organs_hs', __name__, url_prefix='/organs')
 

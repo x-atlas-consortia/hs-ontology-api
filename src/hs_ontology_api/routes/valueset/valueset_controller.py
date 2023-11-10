@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, current_app, request
 
-from ..neo4j_logic import valueset_get_logic
+from hs_ontology_api.utils.neo4j_logic import valueset_get_logic
 
 valueset_blueprint = Blueprint('valueset_hs', __name__, url_prefix='/valueset')
 

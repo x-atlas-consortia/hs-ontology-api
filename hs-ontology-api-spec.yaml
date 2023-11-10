@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: HubMAP/SenNet Ontology API (hs-ontology-api)
-  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a UBKG(https://ubkg.docs.xconsortia.org/) instance with content from the HuBMAP/SenNet context (https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://github.com/x-atlas-consortia/ubkg-api), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code. This specification describes endpoints of both hs-ontology-api and ubkg-api.
-  version: 1.3.1
+  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a [UBKG](https://ubkg.docs.xconsortia.org/) instance with content from the [HuBMAP/SenNet context](https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code.
+  version: 1.4.4
   contact:
     name: GitHub repository
     url: https://github.com/x-atlas-consortia/hs-ontology-api
@@ -352,18 +352,18 @@ paths:
                   $ref: '#/components/schemas/SabCodeTerm'
   /genes-info:
     get:
-      operationId: gene_list_get
-      summary: Return high-level information on a set of genes specified by pagination parameters.
+      operationId: genes_info_get
+      summary: Return high-level information on a set of genes specified by pagination request parameters.
       parameters:
         - name: page
           in: query
           required: false
-          description: Offset set of genes of count=genesperpage. Can be a non-negative number or the words "first" or "last".
+          description: Offset set of genes of count=genes_per_page. Can be a non-negative number or the words "first" or "last".
           schema:
             type: string
             default: 1
           example: 1
-        - name: genesperpage
+        - name: genes_per_page
           in: query
           required: false
           description: Number of genes per "page" to return. Can be a nonzero number.
@@ -387,14 +387,14 @@ paths:
                 items:
                   $ref: '#/components/schemas/GeneListResponse'
         '400':
-          description: Invalid parameter--e.g., *genesperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+          description: Invalid parameter--e.g., *genes_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
         '404':
           description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
   /genes/{id}:
     get:
-      operationId: gene_detail_get
+      operationId: genes_get
       summary: Return detailed information on a gene specified by a HGNC identifier.
       parameters:
         - name: id
@@ -419,18 +419,18 @@ paths:
           description: Unexpected error
   /proteins-info:
     get:
-      operationId: protein_list_get
-      summary: Return high-level information on a set of proteins specified by pagination parameters.
+      operationId: protein_info_get
+      summary: Return high-level information on a set of proteins specified by pagination request parameters.
       parameters:
         - name: page
           in: query
           required: false
-          description: Offset set of proteins of count=proteinsperpage. Can be a non-negative number or the words "first" or "last".
+          description: Offset set of proteins of count=proteins_per_page. Can be a non-negative number or the words "first" or "last".
           schema:
             type: string
             default: 1
           example: 1
-        - name: proteinsperpage
+        - name: proteins_per_page
           in: query
           required: false
           description: Number of proteins per "page" to return. Can be a nonzero number.
@@ -454,14 +454,14 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProteinListResponse'
         '400':
-          description: Invalid parameter--e.g., *proteinsperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+          description: Invalid parameter--e.g., *proteins_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
         '404':
           description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB names that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
   /proteins/{id}:
     get:
-      operationId: protein_detail_get
+      operationId: proteins_get
       summary: Return detailed information on a protein specified by a UniProtKB identifier.
       parameters:
         - name: id
@@ -486,18 +486,18 @@ paths:
           description: Unexpected error
   /celltypes-info:
     get:
-      operationId: celltype_list_get
-      summary: Return high-level information on a set of cell types specified by pagination parameters.
+      operationId: celltypes_info_get
+      summary: Return high-level information on a set of cell types specified by pagination request parameters.
       parameters:
         - name: page
           in: query
           required: false
-          description: Offset set of genes of count=celltypesperpage. Can be a non-negative number or the words "first" or "last".
+          description: Offset set of genes of count=celltypes_per_page. Can be a non-negative number or the words "first" or "last".
           schema:
             type: string
             default: 1
           example: 1
-        - name: celltypesperpage
+        - name: celltypes_per_page
           in: query
           required: false
           description: Number of cell types per "page" to return. Can be a nonzero number.
@@ -521,14 +521,14 @@ paths:
                 items:
                   $ref: '#/components/schemas/CellTypeListResponse'
         '400':
-          description: Invalid parameter--e.g., *celltypesperpage* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+          description: Invalid parameter--e.g., *celltypes_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
         '404':
           description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
   /celltypes/{id}:
     get:
-      operationId: celltype_detail_get
+      operationId: celltypes_get
       summary: Return detailed information on a cell type specified by a name.
       parameters:
         - name: id
@@ -554,7 +554,7 @@ paths:
   /field-descriptions:
     get:
       operationId: field_descriptions_get
-      summary: Return descriptions for ingest metadata fields. Replacement for field_descriptions.yaml.
+      summary: Return descriptions for ingest metadata fields. Replacement for field-descriptions.yaml.
       responses:
         '200':
           description: Ingest metadata fields and descriptions
@@ -569,7 +569,7 @@ paths:
   /field-types:
     get:
       operationId: field_types_get
-      summary: Return data types for ingest metadata fields. Replacement for field_types.yaml.
+      summary: Return data types for ingest metadata fields. Replacement for field-types.yaml.
       responses:
         '200':
           description: Ingest metadata fields mapped to XSD data types.
@@ -584,7 +584,7 @@ paths:
   /field-entities:
     get:
       operationId: field_entities_get
-      summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field_types.yaml.
+      summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field-types.yaml.
       parameters:
         - name: application_context
           in: query
@@ -616,7 +616,7 @@ paths:
   /field-assays:
     get:
       operationId: field_assays_get
-      summary: Return associations between ingest metadata fields and the "assays" (dataset data types) for an application. Replacement for field_assays.yaml.
+      summary: Return associations between ingest metadata fields and the "assays" (dataset data types) for an application. Replacement for field-assays.yaml.
       parameters:
         - name: application_context
           in: query
@@ -648,7 +648,7 @@ paths:
   /field-schemas:
     get:
       operationId: field_schemas_get
-      summary: Return associations between ingest metadata fields and metadata schemas for an application. Replacement for field_schemas.yaml.
+      summary: Return associations between ingest metadata fields and metadata schemas for an application. Replacement for field-schemas.yaml.
       parameters:
         - name: application_context
           in: query
@@ -850,32 +850,8 @@ components:
             - SenNet
     GeneListResponse:
       type: object
-      description: High-level information on a set of genes requested by the genes-info endpoint.
+      description: High-level information on a set of genes requested by the genes endpoint.
       properties:
-        pagination:
-          type: object
-          description: pagination information related to the request
-          properties:
-            items_per_page:
-              type: number
-              description: value of genesperpage parameter from the endpoint
-              example: 3
-            page:
-              type: number
-              description: value of page parameter from endpoint
-              example: 1
-            total_pages:
-              type: number
-              description: total number of "pages" based on the values of genesperpage and the total number of genes
-              example: 14381
-            item_count:
-              type: number
-              description: Count of genes. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
-              example: 500
-            starts_with:
-              type: string
-              description: value of starts_with from the endpoint
-              example: M
         genes:
           type: array
           description: gene information
@@ -894,9 +870,33 @@ components:
                 type: string
                 description: RefSeq summary for the gene
                 example: Multimerin is a massive, soluble protein found in....
+        pagination:
+          type: object
+          description: pagination statistics
+          properties:
+            items_per_page:
+              type: number
+              description: original value of genes_per_page request parameter
+              example: 3
+            page:
+              type: number
+              description: original value of page request parameter
+              example: 1
+            total_pages:
+              type: number
+              description: calculated total number of "pages" (blocks) based on the values of items_per_page and the total number of items
+              example: 14381
+            starts_with:
+              type: string
+              description: original value of starts_with request parameter
+              example: M
+            item_count:
+              type: number
+              description: Calculated count of items. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
+              example: 500
     GeneDetailResponse: # JAS Sept 2023
       type: object
-      description: Detailed information on a gene requested by the genes endpoint
+      description: Detailed information on a gene requested by the gene endpoint
       properties:
         alias_names:
           type: array
@@ -1000,32 +1000,8 @@ components:
           example: Multimerin is a massive, soluble protein found in....
     ProteinListResponse:
       type: object
-      description: High-level list of proteins with pagination details, requested by the proteins-info endpoint.
+      description: High-level list of proteins with pagination details, requested by the proteins endpoint.
       properties:
-        pagination:
-          type: object
-          description: pagination information related to the request
-          properties:
-            items_per_page:
-              type: number
-              description: value of proteinsperpage parameter from the endpoint
-              example: 3
-            page:
-              type: number
-              description: value of page parameter from the endpoint
-              example: 1
-            total_pages:
-              type: number
-              description: total number of "pages" based on the values of proteinsperpage and the total number of proteins
-              example: 14381
-            item_count:
-              type: number
-              description: Count of proteins. If starts_with is non-null, the count is that of the proteins with names that start with the value of starts_with.
-              example: 500
-            starts_with:
-              type: string
-              description: value of starts_with from the endpoint
-              example: M
         proteins:
           type: array
           description: protein information
@@ -1044,6 +1020,30 @@ components:
                 type: string
                 description: UniProtKB Recommended Name
                 example: multimerin-1
+        pagination:
+          type: object
+          description: pagination statistics
+          properties:
+            items_per_page:
+              type: number
+              description: original value of proteins_per_page request parameter
+              example: 3
+            page:
+              type: number
+              description: original value of page request parameter
+              example: 1
+            total_pages:
+              type: number
+              description: calculated total number of "pages" (blocks) based on the values of proteins_per_page and the total number of proteins
+              example: 14381
+            starts_with:
+              type: string
+              description: original value of starts_with request parameter
+              example: M
+            item_count:
+              type: number
+              description: Count of proteins. If starts_with is non-null, the count is that of the proteins with names that start with the value of starts_with.
+              example: 500
     ProteinDetailResponse:
       type: object
       description: Detailed information on a protein requested by the protein endpoint
@@ -1098,33 +1098,9 @@ components:
             example: [Homo sapiens]
     CellTypeListResponse:
       type: object
-      description: High-level list of cell types with pagination details, requested by the celltypes-info endpoint.
+      description: High-level list of cell types with pagination details, requested by the celltypes endpoint.
       properties:
-        pagination:
-          type: object
-          description: pagination information related to the request
-          properties:
-            items_per_page:
-              type: number
-              description: value of celltypesperpage parameter from the endpoint
-              example: 3
-            page:
-              type: number
-              description: value of page parameter from the endpoint
-              example: 1
-            total_pages:
-              type: number
-              description: total number of "pages" based on the values of celltypesperpage and the total number of celltypes
-              example: 14381
-            starts_with:
-              type: string
-              description: value of starts_with from the endpoint
-              example: E
-            item_count:
-              type: number
-              description: Count of cell types. If starts_with is non-null, the count is that of the cell types with names that start with the value of starts_with.
-              example: 500
-        celltypes:
+        proteins:
           type: array
           description: cell type information
           items:
@@ -1142,6 +1118,30 @@ components:
                 type: string
                 description: Definition of the cell type from Cell Ontology
                 example: A endothelial cell of a lymphatic vessel. The border of…
+        pagination:
+          type: object
+          description: pagination statistics
+          properties:
+            items_per_page:
+              type: number
+              description: original value of celltypes_per_page request parameter
+              example: 3
+            page:
+              type: number
+              description: original value of page request parameter
+              example: 1
+            total_pages:
+              type: number
+              description: calculated total number of "pages" (blocks) based on the values of celltypes_per_page and the total number of celltypes
+              example: 14381
+            starts_with:
+              type: string
+              description: original value of starts_with request parameter
+              example: E
+            item_count:
+              type: number
+              description: calculated count of cell types. If starts_with is non-null, the count is that of the cell types with names that start with the value of starts_with.
+              example: 500
     CellTypeDetailResponse:
       type: object
       description: Detailed information on a cell type requested by the celltype endpoint
@@ -1218,7 +1218,7 @@ components:
                 example: heart
     FieldDescriptionsResponse:
       type: object
-      description: Descriptions ingest metadata fields from legacy field_descriptions.yaml
+      description: Descriptions ingest metadata fields from legacy field-descriptions.yaml
       properties:
         fields:
           type: array
@@ -1240,7 +1240,7 @@ components:
                 example: Units of x resolution distance between laser ablation shots.
     FieldTypesResponse:
       type: object
-      description: Associations between metadata field and data type ingest metadata fields from legacy field_types.yaml
+      description: Associations between metadata field and data type ingest metadata fields from legacy field-types.yaml
       properties:
         fields:
           type: array
@@ -1269,7 +1269,7 @@ components:
                     example: string
     FieldEntitiesResponse:
       type: object
-      description: Associations between fields and provenance entities for ingest metadata fields from legacy field_types.yaml
+      description: Associations between fields and provenance entities for ingest metadata fields from legacy field-types.yaml
       properties:
         fields:
           type: array
@@ -1301,7 +1301,7 @@ components:
                       example: dataset
     FieldAssaysResponse:
       type: object
-      description: Associations between fields and "assays" (dataset types) for ingest metadata fields from legacy field_assays.yaml
+      description: Associations between fields and "assays" (dataset types) for ingest metadata fields from legacy field-assays.yaml
       properties:
         fields:
           type: array
@@ -1347,7 +1347,7 @@ components:
                         example: [Imaging Mass Cytometry,2D-IMC,IMC]
     FieldSchemasResponse:
       type: object
-      description: Associations between fields and metadata schemas for ingest metadata fields from legacy field_schemas.yaml
+      description: Associations between fields and metadata schemas for ingest metadata fields from legacy field-schemas.yaml
       properties:
         fields:
           type: array

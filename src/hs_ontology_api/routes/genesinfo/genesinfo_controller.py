@@ -1,12 +1,12 @@
 # coding: utf-8
 # JAS October 2023
 from flask import Blueprint, jsonify, current_app, request, make_response
-from ..neo4j_logic import genelist_get_logic,genelist_count_get_logic
+from hs_ontology_api.utils.neo4j_logic import genelist_get_logic,genelist_count_get_logic
 import math
 
-geneslist_blueprint = Blueprint('geneslist', __name__, url_prefix='/genes')
+genesinfo_blueprint = Blueprint('genes-info', __name__, url_prefix='/genes-info')
 
-@geneslist_blueprint.route('', methods=['GET'])
+@genesinfo_blueprint.route('', methods=['GET'])
 def geneslist() -> list[str]:
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
@@ -17,18 +17,18 @@ def geneslist() -> list[str]:
 
     # Obtain parameters.
     page = request.args.get('page')
-    genesperpage = request.args.get('genesperpage')
+    genes_per_page = request.args.get('genes_per_page')
     starts_with = request.args.get('starts_with')
     if starts_with is None:
         starts_with = ''
 
-    # Validate and set defaults for genesperpage.
-    if genesperpage is None:
-        genesperpage = '10'
-    if not genesperpage.isnumeric():
-        return make_response(f'The value for parameter genesperpage ({genesperpage}) must be numeric.', 400)
-    if int(genesperpage) <= 0:
-        return (make_response(f'The value for parameter genesperpage ({genesperpage}) must be greater than zero.', 400))
+    # Validate and set defaults for genes_per_page.
+    if genes_per_page is None:
+        genes_per_page = '10'
+    if not genes_per_page.isnumeric():
+        return make_response(f'The value for parameter genes_per_page ({genes_per_page}) must be numeric.', 400)
+    if int(genes_per_page) <= 0:
+        return (make_response(f'The value for parameter genes_per_page ({genes_per_page}) must be greater than zero.', 400))
 
     # Obtain the total count of genes, considering the filter starts_with.
     gene_count = genelist_count_get_logic(neo4j_instance, starts_with)
@@ -45,7 +45,7 @@ def geneslist() -> list[str]:
         page = '1'
 
     # Calculate the total number of (filtered) pages.
-    total_pages = str(math.ceil(int(gene_count) / int(genesperpage)))
+    total_pages = str(math.ceil(int(gene_count) / int(genes_per_page)))
 
     # Translation for cases "last" or "first"
     print(f'total_pages={total_pages}')
@@ -65,4 +65,5 @@ def geneslist() -> list[str]:
 
     # Obtain results.
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(genelist_get_logic(neo4j_instance, page=page, total_pages=total_pages, genesperpage=genesperpage, starts_with=starts_with, gene_count=gene_count))
+    return jsonify(genelist_get_logic(neo4j_instance, page=page, total_pages=total_pages, genes_per_page=genes_per_page,
+                                      starts_with=starts_with, gene_count=gene_count))

@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 
 from ubkg_api.common_routes.validate import validate_application_context
 
-from hs_ontology_api.routes.neo4j_logic import assaytype_get_logic, assaytype_name_get_logic
+from hs_ontology_api.utils.neo4j_logic import assaytype_get_logic, assaytype_name_get_logic
 
 assaytype_blueprint = Blueprint('assaytype', __name__, url_prefix='/assaytype')
 
