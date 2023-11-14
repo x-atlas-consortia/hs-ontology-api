@@ -361,10 +361,13 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
 
     query: str = 'CALL'
     query = query + '{'
-    query = query + 'MATCH (codeChild:Code)<-[:CODE]-(conceptChild:Concept)-[:isa]->(conceptParent:Concept)-[' \
+    # JAS Nov 2023 limit SABs for isa relationship to specified child values
+    query = query + 'MATCH (codeChild:Code)<-[:CODE]-(conceptChild:Concept)-[r:isa]->(conceptParent:Concept)-[' \
                     ':CODE]->(codeParent:Code) '
     query = query + ' WHERE codeParent.SAB=\'' + parent_sab + '\' AND codeParent.CODE=\'' + parent_code + '\''
     query = query + ' AND codeChild.SAB IN ' + sab_in
+    # JAS Nov 2023 limit SABs for isa relationship to specified child values
+    query = query + ' AND r.SAB IN ' + sab_in
     query = query + ' RETURN conceptChild.CUI AS conceptChildCUI, min(' + sab_case + ') AS minSAB'
     query = query + ' ORDER BY conceptChildCUI'
     query = query + '}'
@@ -389,6 +392,7 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
     query = query + 'WHERE r.CUI = conceptChildCUI '
     query = query + 'RETURN termChild.name AS term, codeChild.CODE as code,codeChild.SAB as sab'
 
+    print(query)
     # Execute Cypher query and return result.
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
