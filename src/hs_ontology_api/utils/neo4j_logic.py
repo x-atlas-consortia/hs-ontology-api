@@ -392,7 +392,6 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
     query = query + 'WHERE r.CUI = conceptChildCUI '
     query = query + 'RETURN termChild.name AS term, codeChild.CODE as code,codeChild.SAB as sab'
 
-    print(query)
     # Execute Cypher query and return result.
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
