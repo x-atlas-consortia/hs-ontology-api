@@ -440,7 +440,7 @@ paths:
         - name: starts_with
           in: query
           required: false
-          description: Optional *case-insensitive* string by which to filter by UniProtKB protein name.
+          description: Optional *case-insensitive* string by which to filter by UniProtKB recommended name, entry name, or synonym
           schema:
             type: string
             example: M
@@ -456,7 +456,7 @@ paths:
         '400':
           description: Invalid parameter--e.g., *proteins_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
         '404':
-          description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB names that start with the string specified in the *starts_with* parameter.
+          description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB identifiers that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
   /proteins/{id}:
@@ -1020,6 +1020,13 @@ components:
                 type: string
                 description: UniProtKB Recommended Name
                 example: multimerin-1
+              synonyms:
+                type: array
+                description: list of synonyms
+                items:
+                  type: string
+                example:
+                  [p155,p-155,multimerin,Endothelial cell multimerin]
         pagination:
           type: object
           description: pagination statistics

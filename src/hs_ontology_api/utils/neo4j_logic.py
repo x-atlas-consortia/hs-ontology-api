@@ -16,6 +16,9 @@ from hs_ontology_api.models.genedetail import GeneDetail
 # JAS October 2023
 from hs_ontology_api.models.genelist import GeneList
 from hs_ontology_api.models.genelist_detail import GeneListDetail
+# JAS Nov 2023
+from hs_ontology_api.models.proteinlist_detail import ProteinListDetail
+from hs_ontology_api.models.proteinlist import ProteinList
 
 # Query utilities
 # from hs_ontology_api.cypher.util_query import loadquerystring
@@ -773,3 +776,95 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
                 pass
     return gene_count
 
+def proteinlist_get_logic(neo4j_instance, page:str, total_pages:str, proteins_per_page:str, starts_with:str, protein_count:str) -> List[GeneList]:
+
+    """
+    Returns information on UNIPROTKB proteins.
+    Intended to support a Data Portal landing page featuring a high-level
+    list with pagination features.
+
+    :param neo4j_instance:  neo4j client
+    :param page: Zero-based number of pages with rows=pagesize to skip in neo4j query
+    :param total_pages: Calculated number of pages of genes
+    :param proteins_per_page: number of rows to limit in neo4j query
+    :param starts_with: string for type-ahead (starts with) searches
+    :param protein_count: Calculated total count of genes, optionally filtered with starts_with
+    :return: List[ProteinList]
+
+    """
+
+    # response list
+    # retlist: [ProteinList] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'proteinslist.cypher'
+    query = loadquerystring(queryfile)
+
+    # The query is parameterized with variables $skiprows and $limitrows.
+    # Calculate variable values from parameters.
+
+    # SKIP in the neo4j query is 0-based--i.e., SKIP 0 means the first page.
+    # UI-based pagination, however, is 1-based.
+    # The controller will pass a default value of 1 for cases of no value (default)
+    # or 0.
+    # Convert to 1-based.
+    intpage = int(page)-1
+
+    skiprows = intpage * int(proteins_per_page)
+
+    starts_with_clause = ''
+    if starts_with != '':
+        starts_with_clause = f'AND map[\'entry_name\'][0] STARTS WITH \'{starts_with}\' OR map[\'recommended_name\'][0] STARTS WITH \'{starts_with}\' OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
+    query = query.replace('$starts_with_clause',starts_with_clause)
+    query = query.replace('$skiprows', str(skiprows))
+    query = query.replace('$limitrows', str(proteins_per_page))
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        proteins: [ProteinListDetail] = []
+        # Build the list of gene details for this page.
+        for record in recds:
+            try:
+                protein: ProteinListDetail = \
+                    ProteinListDetail(uniprotkb_id=record.get('id'), recommended_name=record.get('recommended_name'),
+                                      entry_name=record.get('entry_name'), synonyms=record.get('synonyms')).serialize()
+                proteins.append(protein)
+            except KeyError:
+                pass
+        # Use the list of protein details with the page to build a ProteinList object.
+        proteinlist: ProteinList = ProteinList(page, total_pages, proteins_per_page, proteins, starts_with, protein_count).serialize()
+    return proteinlist
+
+def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
+    """
+        Returns the count of UniProtKB proteins in the UBKG.
+        If starts_with is non-null, returns the count of UniProtKB proteins with approved identifier
+        that starts with the parameter value.
+        :param neo4j_instance:  neo4j client
+        :param starts_with: filtering string for STARTS WITH queries
+        :return: integer count
+    """
+    #
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'proteinslist_count.cypher'
+    query = loadquerystring(queryfile)
+    starts_with_clause = ''
+    if starts_with != '':
+        # Check for both recommended_name and entry_name
+        starts_with_clause = f'AND map[\'entry_name\'][0] STARTS WITH \'{starts_with}\' OR map[\'recommended_name\'][0] STARTS WITH \'{starts_with}\' OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
+
+    query = query.replace('$starts_with_clause', starts_with_clause)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        for record in recds:
+            try:
+                protein_count = record.get('proteinlistcount')
+            except KeyError:
+                pass
+    return protein_count
