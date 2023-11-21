@@ -1,10 +1,10 @@
 import logging
 import neo4j
 from typing import List
-import pandas as pd
+# import pandas as pd
 import os
 
-from flask import current_app
+# from flask import current_app
 
 # Classes for JSON objects in response body
 from hs_ontology_api.models.assay_type_property_info import AssayTypePropertyInfo
@@ -19,6 +19,7 @@ from hs_ontology_api.models.genelist_detail import GeneListDetail
 # JAS Nov 2023
 from hs_ontology_api.models.proteinlist_detail import ProteinListDetail
 from hs_ontology_api.models.proteinlist import ProteinList
+from hs_ontology_api.models.proteindetail import ProteinDetail
 
 # Query utilities
 # from hs_ontology_api.cypher.util_query import loadquerystring
@@ -28,7 +29,8 @@ logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def loadquerystring(filename: str) ->str:
+
+def loadquerystring(filename: str) -> str:
 
     # Load a query string from a file.
     # filename: filename, without path.
@@ -36,12 +38,13 @@ def loadquerystring(filename: str) ->str:
     # Assumes that the file is in the cypher directory.
 
     fpath = os.path.dirname(os.getcwd())
-    fpath = os.path.join(fpath,'src/hs_ontology_api/cypher',filename)
+    fpath = os.path.join(fpath, 'src/hs_ontology_api/cypher', filename)
 
     f = open(fpath, "r")
     query = f.read()
     f.close()
     return query
+
 
 def make_assaytype_property_info(record):
     return AssayTypePropertyInfo(
@@ -184,7 +187,8 @@ def dataset_get_logic(neo4j_instance, data_type: str = '', description: str = ''
 
 def get_organ_types_logic(neo4j_instance, sab):
     """
-    Objectives: Provide crosswalk information between SenNet and RUI for organ types. Replicate the original organ_types.yaml.
+    Objectives: Provide crosswalk information between SenNet and RUI for organ types.
+    Replicate the original organ_types.yaml.
     1.FindSAB, code, and term for all organs.
     2.Find UBERON codes for organs.The code for Skin maps to UBERON 0002097 and UBERON 002097 cross-references
         UMLS with CUI C1123023; however, the UMLS CUI also maps to UBERON 0000014. It is necessary to specify the
@@ -192,7 +196,8 @@ def get_organ_types_logic(neo4j_instance, sab):
     3.Find two - digit code for organs.
     Order return
 
-    :param sab:
+    :param sab: SAB for application context
+    :param neo4j_instance: pointer to neo4j connection
     :return:
     """
     result = []
@@ -202,23 +207,27 @@ def get_organ_types_logic(neo4j_instance, sab):
     # Change so that it looks like WHERE c.Parent.CodeID IN ['SAB C000008','SAB:C000008']
     # second change
     #  "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' ELSE cOrgan.CodeID END AS OrganUBERON " \
-    # Change so that the return is 'UBERON:0002097'. This will cause inconsistent results when the neo4j is in the old format, but it will not crash the return.
+    # Change so that the return is 'UBERON:0002097'. This will cause inconsistent results when the neo4j
+    # is in the old format, but it will not crash the return.
     #
     # https://github.com/x-atlas-consortia/ubkg-api/issues/3#issuecomment-1507273473
     # From included file 'organ_endpoint_13Apr2023.txt'...
     # //2. Find UBERON codes for organs. Special cases for duplicate cross-references:
     # //   a. The code for Skin maps to UBERON 0002097 and UBERON 002097 cross-references
     # //      UMLS with CUI C1123023; however, the UMLS CUI also maps to UBERON 0000014.
-    # //   b. The code for Muscle maps to UBERON 0005090, which cross-references to UMLS C4083049, along with 2 other UBERON codes.
+    # //   b. The code for Muscle maps to UBERON 0005090, which cross-references to UMLS C4083049,
+    #         along with 2 other UBERON codes.
     # //   For these cases, it is necessary to specify the UBERON code explicitly.
 
     # JAS SEPT 2023
-    # Deprecating the CASE statement (formerly in the second CALL block) that does manual assignments to address duplicate UBERON organ assignments.
-    # "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' WHEN 'C4083049' THEN 'UBERON 0005090'ELSE cOrgan.CodeID END AS OrganUBERON "
+    # Deprecating the CASE statement (formerly in the second CALL block) that does manual assignments to address
+    # duplicate UBERON organ assignments.
+    # "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' WHEN 'C4083049' THEN 'UBERON 0005090'ELSE
+    # cOrgan.CodeID END AS OrganUBERON "
 
     # The reason for the deprecation is that the CASE statement did not truly work.
-    # A UBKG ingestion can set multiple cross-references between UBERON codes and UMLS CUIs; however, the script also designates a "preferred"
-    # CUI cross-reference for a code.
+    # A UBKG ingestion can set multiple cross-references between UBERON codes and UMLS CUIs; however, the script also
+    # designates a "preferred" CUI cross-reference for a code.
     # The way to pick the preferred UBERON code is to check the CUI property of the relationship
     # between the code and the preferred term (PT).
 
@@ -647,9 +656,10 @@ def query_cypher_dataset_info(sab: str) -> str:
     qry = qry + 'ORDER BY tolower(data_type)'
     return qry
 
+
 def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     """
-    Returns detailed information on a gene, based on an input list of HGNC identifiers in the request body of a POST.
+    Returns detailed information on a gene, based on an HGNC identifer.
     :param neo4j_instance: instance of neo4j connection
     :param gene_id: HGNC identifier for a gene
     """
@@ -671,13 +681,20 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
         for record in recds:
             try:
                 genedetail: GeneDetail = \
-                    GeneDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'),
-                               record.get('previous_symbols'), record.get('previous_names'),
-                               record.get('alias_symbols'),
-                               record.get('alias_names'), record.get('references'), record.get('summaries'),
-                               record.get('cell_types_code'), record.get('cell_types_code_name'),
-                               record.get('cell_types_code_definition'),
-                               record.get('cell_types_codes_organ'),record.get('cell_types_codes_source')).serialize()
+                    GeneDetail(hgnc_id=record.get('hgnc_id'),
+                               approved_symbol=record.get('approved_symbol'),
+                               approved_name=record.get('approved_name'),
+                               previous_symbols=record.get('previous_symbols'),
+                               previous_names=record.get('previous_names'),
+                               alias_symbols=record.get('alias_symbols'),
+                               alias_names=record.get('alias_names'),
+                               references=record.get('references'),
+                               summaries=record.get('summaries'),
+                               cell_types_code=record.get('cell_types_code'),
+                               cell_types_code_name=record.get('cell_types_code_name'),
+                               cell_types_code_definition=record.get('cell_types_code_definition'),
+                               cell_types_codes_organ=record.get('cell_types_codes_organ'),
+                               cell_types_code_source=record.get('cell_types_codes_source')).serialize()
 
                 genedetails.append(genedetail)
 
@@ -686,65 +703,6 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
-def genelist_get_logic(neo4j_instance, page:str, total_pages:str, genes_per_page:str, starts_with:str, gene_count:str) -> List[GeneList]:
-
-    """
-    Returns information on HGNC genes.
-    Intended to support a Data Portal landing page featuring a high-level
-    list with pagination features.
-
-    :param neo4j_instance:  neo4j client
-    :param page: Zero-based number of pages with rows=pagesize to skip in neo4j query
-    :param total_pages: Calculated number of pages of genes
-    :param genes_per_page: number of rows to limit in neo4j query
-    :param starts_with: string for type-ahead (starts with) searches
-    :param gene_count: Calculated total count of genes, optionally filtered with starts_with
-    :return: List[GeneList]
-
-    """
-
-    # response list
-    retlist: [GeneList] = []
-
-    # Load annotated Cypher query from the cypher directory.
-    queryfile = 'geneslist.cypher'
-    query = loadquerystring(queryfile)
-
-    # The query is parameterized with variables $skiprows and $limitrows.
-    # Calculate variable values from parameters.
-
-    # SKIP in the neo4j query is 0-based--i.e., SKIP 0 means the first page.
-    # UI-based pagination, however, is 1-based.
-    # The controller will pass a default value of 1 for cases of no value (default)
-    # or 0.
-    # Convert to 1-based.
-    intpage = int(page)-1
-
-    skiprows = intpage * int(genes_per_page)
-
-    starts_with_clause = ''
-    if starts_with != '':
-        starts_with_clause = f'AND map[\'approved_symbol\'][0] STARTS WITH \'{starts_with}\''
-    query = query.replace('$starts_with_clause',starts_with_clause)
-    query = query.replace('$skiprows', str(skiprows))
-    query = query.replace('$limitrows', str(genes_per_page))
-
-    with neo4j_instance.driver.session() as session:
-        # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
-
-        genes: [GeneListDetail] = []
-        # Build the list of gene details for this page.
-        for record in recds:
-            try:
-                gene: GeneListDetail = \
-                    GeneListDetail(record.get('hgnc_id'), record.get('approved_symbol'), record.get('approved_name'), record.get('description')).serialize()
-                genes.append(gene)
-            except KeyError:
-                pass
-        # Use the list of gene details with the page to build a genelist object.
-        genelist: GeneList = GeneList(page, total_pages, genes_per_page, genes, starts_with, gene_count).serialize()
-    return genelist
 
 def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     """
@@ -776,7 +734,75 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
                 pass
     return gene_count
 
-def proteinlist_get_logic(neo4j_instance, page:str, total_pages:str, proteins_per_page:str, starts_with:str, protein_count:str) -> List[GeneList]:
+
+def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_page: str, starts_with: str,
+                       gene_count: str) -> List[GeneList]:
+
+    """
+    Returns information on HGNC genes.
+    Intended to support a Data Portal landing page featuring a high-level
+    list with pagination features.
+
+    :param neo4j_instance:  neo4j client
+    :param page: Zero-based number of pages with rows=pagesize to skip in neo4j query
+    :param total_pages: Calculated number of pages of genes
+    :param genes_per_page: number of rows to limit in neo4j query
+    :param starts_with: string for type-ahead (starts with) searches
+    :param gene_count: Calculated total count of genes, optionally filtered with starts_with
+    :return: List[GeneList]
+
+    """
+
+    # response list
+    genelist: [GeneList] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'geneslist.cypher'
+    query = loadquerystring(queryfile)
+
+    # The query is parameterized with variables $skiprows and $limitrows.
+    # Calculate variable values from parameters.
+
+    # SKIP in the neo4j query is 0-based--i.e., SKIP 0 means the first page.
+    # UI-based pagination, however, is 1-based.
+    # The controller will pass a default value of 1 for cases of no value (default)
+    # or 0.
+    # Convert to 1-based.
+    intpage = int(page)-1
+
+    skiprows = intpage * int(genes_per_page)
+
+    starts_with_clause = ''
+    if starts_with != '':
+        starts_with_clause = f'AND map[\'approved_symbol\'][0] STARTS WITH \'{starts_with}\''
+    query = query.replace('$starts_with_clause', starts_with_clause)
+    query = query.replace('$skiprows', str(skiprows))
+    query = query.replace('$limitrows', str(genes_per_page))
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        genes: [GeneListDetail] = []
+        # Build the list of gene details for this page.
+        for record in recds:
+            try:
+                gene: GeneListDetail = \
+                    GeneListDetail(hgnc_id=record.get('hgnc_id'),
+                                   approved_symbol=record.get('approved_symbol'),
+                                   approved_name=record.get('approved_name'),
+                                   summary=record.get('description')).serialize()
+                genes.append(gene)
+            except KeyError:
+                pass
+        # Use the list of gene details with the page to build a genelist object.
+        genelist: GeneList = GeneList(page=page, total_pages=total_pages, genes_per_page=genes_per_page, genes=genes,
+                                      starts_with=starts_with, gene_count=gene_count).serialize()
+    return genelist
+
+
+def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_per_page: str, starts_with: str,
+                          protein_count: str) -> List[GeneList]:
 
     """
     Returns information on UNIPROTKB proteins.
@@ -794,7 +820,7 @@ def proteinlist_get_logic(neo4j_instance, page:str, total_pages:str, proteins_pe
     """
 
     # response list
-    # retlist: [ProteinList] = []
+    proteinlist: [ProteinList] = []
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'proteinslist.cypher'
@@ -814,8 +840,10 @@ def proteinlist_get_logic(neo4j_instance, page:str, total_pages:str, proteins_pe
 
     starts_with_clause = ''
     if starts_with != '':
-        starts_with_clause = f'AND map[\'entry_name\'][0] STARTS WITH \'{starts_with}\' OR map[\'recommended_name\'][0] STARTS WITH \'{starts_with}\' OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
-    query = query.replace('$starts_with_clause',starts_with_clause)
+        starts_with_clause = f'AND map[\'entry_name\'][0] STARTS WITH \'{starts_with}\' ' \
+                             f'OR map[\'recommended_name\'][0] STARTS WITH \'{starts_with}\' ' # \
+                             # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
+    query = query.replace('$starts_with_clause', starts_with_clause)
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(proteins_per_page))
 
@@ -834,14 +862,17 @@ def proteinlist_get_logic(neo4j_instance, page:str, total_pages:str, proteins_pe
             except KeyError:
                 pass
         # Use the list of protein details with the page to build a ProteinList object.
-        proteinlist: ProteinList = ProteinList(page, total_pages, proteins_per_page, proteins, starts_with, protein_count).serialize()
+        proteinlist: ProteinList = ProteinList(page=page, total_pages=total_pages, proteins_per_page=proteins_per_page,
+                                               proteins=proteins, starts_with=starts_with,
+                                               protein_count=protein_count).serialize()
     return proteinlist
+
 
 def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     """
         Returns the count of UniProtKB proteins in the UBKG.
-        If starts_with is non-null, returns the count of UniProtKB proteins with approved identifier
-        that starts with the parameter value.
+        If starts_with is non-null, returns the count of UniProtKB proteins with identifier
+        (approved name, entry name, or synonym) that starts with the parameter value.
         :param neo4j_instance:  neo4j client
         :param starts_with: filtering string for STARTS WITH queries
         :return: integer count
@@ -853,8 +884,10 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     query = loadquerystring(queryfile)
     starts_with_clause = ''
     if starts_with != '':
-        # Check for both recommended_name and entry_name
-        starts_with_clause = f'AND map[\'entry_name\'][0] STARTS WITH \'{starts_with}\' OR map[\'recommended_name\'][0] STARTS WITH \'{starts_with}\' OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
+        # Check for recommended_name, entry_name, or one of the list of symbols.
+        starts_with_clause = f'AND map[\'entry_name\'][0] STARTS WITH \'{starts_with}\' ' \
+                             f'OR map[\'recommended_name\'][0] STARTS WITH \'{starts_with}\' ' # \
+                             # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
 
     query = query.replace('$starts_with_clause', starts_with_clause)
 
@@ -868,3 +901,39 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
             except KeyError:
                 pass
     return protein_count
+
+
+def proteindetail_get_logic(neo4j_instance, protein_id: str) -> List[ProteinDetail]:
+    """
+    Returns detailed information on a protein, based a UniProtKB identifier.
+    :param neo4j_instance: instance of neo4j connection
+    :param protein_id: UniProtKB identifier for a protein--either a UniProtKB ID or entry name
+    """
+    # response list
+    proteindetails: [ProteinDetail] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'proteindetail.cypher'
+    query = loadquerystring(queryfile)
+
+    query = query.replace('$ids', f'\'{protein_id}\'')
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                proteindetail: ProteinDetail = \
+                    ProteinDetail(uniprotkb_id=record.get('id'), recommended_name=record.get('recommended_name'),
+                                  entry_name=record.get('entry_name'), synonyms=record.get('synonyms'),
+                                  description=record.get('description')).serialize()
+
+                proteindetails.append(proteindetail)
+
+            except KeyError:
+                pass
+
+    return proteindetails

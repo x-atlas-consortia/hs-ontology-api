@@ -13,7 +13,7 @@ from hs_ontology_api.routes.valueset.valueset_controller import valueset_bluepri
 from hs_ontology_api.routes.genes.genes_controller import genes_blueprint
 from hs_ontology_api.routes.genesinfo.genesinfo_controller import genesinfo_blueprint
 # JAS November 2023
-#from hs_ontology_api.routes.proteins.proteins_controller import proteins_blueprint
+from hs_ontology_api.routes.proteins.proteins_controller import proteins_blueprint
 from hs_ontology_api.routes.proteinsinfo.proteinsinfo_controller import proteinsinfo_blueprint
 
 # Cells API client
@@ -38,7 +38,7 @@ app.register_blueprint(valueset_blueprint)
 app.register_blueprint(genes_blueprint)
 app.register_blueprint(genesinfo_blueprint)
 # JAS Nov 2023
-#app.register_blueprint(genes_blueprint)
+app.register_blueprint(proteins_blueprint)
 app.register_blueprint(proteinsinfo_blueprint)
 
 # Instantiate a Cells API client.

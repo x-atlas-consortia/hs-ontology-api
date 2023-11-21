@@ -16,7 +16,7 @@ from hs_ontology_api.models.proteinlist_detail import ProteinListDetail
 from hs_ontology_api.models.pagination import Pagination
 
 class ProteinList():
-    def __init__(self, page=None, total_pages=None, proteins_per_page=None, proteins=None, starts_with=None, proteins_count=None):
+    def __init__(self, page=None, total_pages=None, proteins_per_page=None, proteins=None, starts_with=None, protein_count=None):
         """ProteinList - a model defined in OpenAPI
 
                     :param page: Requested relative "page" (block of proteins)
@@ -29,8 +29,8 @@ class ProteinList():
                     :type proteins_per_page: str
                     :starts_with: Optional search string for type ahead
                     :type starts_with: str
-                    :proteins_count: Calculated count of proteins that satisfied the search criteria
-                    :type proteins_count: str
+                    :protein_count: Calculated count of proteins that satisfied the search criteria
+                    :type protein_count: str
 
                 """
 
@@ -50,7 +50,8 @@ class ProteinList():
         }
         # Property assignments
         self._proteins = proteins
-        self._pagination = Pagination(page, total_pages, proteins_per_page, starts_with, proteins_count).serialize()
+        self._pagination = Pagination(page=page, total_pages=total_pages, items_per_page=proteins_per_page,
+                                      starts_with=starts_with, item_count=protein_count).serialize()
 
     def serialize(self):
         # Key/value format of response.

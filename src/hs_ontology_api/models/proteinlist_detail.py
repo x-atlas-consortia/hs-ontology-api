@@ -3,12 +3,17 @@
 # JAS November 2023
 # ProteinsListDetail model class
 # Used by the proteins-info endpoint.
-# Provides information on proteins identified by either the UBKG or the Cells API--i.e., that have relevance to HuBMAP/SenNet.
+# Provides information on proteins identified by either the UBKG or the Cells API--i.e., that
+# have relevance to HuBMAP/SenNet.
 
 from __future__ import absolute_import
 from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
+
+# NOV 2023
+# The UNIPROTKB ETL currently does not correctly parse synonyms that include nested parentheses, so the
+# object will not return synonym information.
 
 class ProteinListDetail(Model):
     def __init__(self, uniprotkb_id=None, recommended_name=None, entry_name=None, synonyms=None):
@@ -28,16 +33,16 @@ class ProteinListDetail(Model):
         self.openapi_types = {
             'uniprotkb_id': str,
             'recommended_name': str,
-            'entry_name': str,
-            'synonyms':List[str]
+            'entry_name': str#,
+            #'synonyms': List[str]
         }
 
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
             'uniprotkb_id': 'uniprotkb_id',
             'recommended_name': 'recommended_name',
-            'entry_name': 'entry_name',
-            'synonyms': 'synonyms'
+            'entry_name': 'entry_name'#,
+            #'synonyms': 'synonyms'
         }
 
         # Property assignments
@@ -52,19 +57,18 @@ class ProteinListDetail(Model):
         else:
             self._entry_name = entry_name[0]
 
-        if synonyms is None:
-            self._synonyms = []
-        else:
-            self._synonyms = synonyms
-
+        #if synonyms is None:
+            #self._synonyms = []
+        #else:
+            #self._synonyms = synonyms
 
     def serialize(self):
         # Key/value format of response.
         return {
             "uniprotkb_id": self._uniprotkb_id,
             "recommended_name": self._recommended_name,
-            "entry_name": self._entry_name,
-            "synonyms": self._synonyms
+            "entry_name": self._entry_name#,
+            #"synonyms": self._synonyms
         }
 
     @classmethod
@@ -73,14 +77,14 @@ class ProteinListDetail(Model):
 
         :param dikt: A dict.
         :type: dict
-        :return: The GeneDetail of this GenesFromCells
-        :rtype: GeneDetail
+        :return: The ProteinListDetail of this ProteinListDetail
+        :rtype: ProteinListDetail
         """
         return util.deserialize_model(dikt, cls)
 
     @property
     def uniprotkb_id(self):
-        """Gets the uniprotkb_id of this ProtienListDetail.
+        """Gets the uniprotkb_id of this ProteinListDetail.
 
         uniprotkb_id for the protein.
         :return: The uniprotkb_id of this ProteinListDetail.
@@ -138,21 +142,21 @@ class ProteinListDetail(Model):
 
         self._entry_name = entry_name
 
-    @property
-    def synonyms(self):
+    #@property
+    #def synonyms(self):
         """Gets the synonyms list of this ProteinListDetail.
 
         :return: The synonyms of this ProteinListDetail.
         :rtype: str
         """
-        return self._synonyms
+        #return self._synonyms
 
-    @synonyms.setter
-    def synonyms(self, synonyms):
+    #@synonyms.setter
+    #def synonyms(self, synonyms):
         """Sets the synonyms of this ProteinListDetail.
 
         :param synonyms: The entry_name of this ProteinListDetail
         :type synonyms: str
         """
 
-        self._synonyms = synonyms
+       #self._synonyms = synonyms

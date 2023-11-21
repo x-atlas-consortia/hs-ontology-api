@@ -440,7 +440,7 @@ paths:
         - name: starts_with
           in: query
           required: false
-          description: Optional *case-insensitive* string by which to filter by UniProtKB recommended name, entry name, or synonym
+          description: Optional *case-insensitive* string by which to filter by UniProtKB recommended name or entry name
           schema:
             type: string
             example: M
@@ -467,7 +467,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Case-insensitive UniProtKB identifier
+          description: Case-insensitive UniProtKB identifier. Identifiers are either UniProtKB IDs (e.g., Q13201) or entry names (e.g., MMRN1_HUMAN).
           schema:
             type: string
             example: Q13201
@@ -1020,13 +1020,13 @@ components:
                 type: string
                 description: UniProtKB Recommended Name
                 example: multimerin-1
-              synonyms:
-                type: array
-                description: list of synonyms
-                items:
-                  type: string
-                example:
-                  [p155,p-155,multimerin,Endothelial cell multimerin]
+              #synonyms:
+                #type: array
+                #description: list of synonyms
+                #items:
+                  #type: string
+                #example:
+                  #[p155,p-155,multimerin,Endothelial cell multimerin]
         pagination:
           type: object
           description: pagination statistics
@@ -1067,12 +1067,12 @@ components:
           type: string
           description: UniProtKB Recommended Name
           example: multimerin-1
-        synonyms:
-          type: array
-          description: alternative names
-          items:
-            type: string
-          example: [EMILIN-4,Elastin microfibril interface located protein 4 (Elastin microfibril interfacer 4),Endothelial cell multimerin]
+        #synonyms:
+          #type: array
+          #description: alternative names
+          #items:
+            #type: string
+          #example: [EMILIN-4,Elastin microfibril interface located protein 4 (Elastin microfibril interfacer 4),Endothelial cell multimerin]
         references:
           type: array
           description: Array of links to protein databases

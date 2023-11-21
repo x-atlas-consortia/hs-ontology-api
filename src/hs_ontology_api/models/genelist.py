@@ -3,11 +3,12 @@
 # JAS October 2023
 # GeneList model class
 # Used by the genes-info endpoints.
-# Provides information on genes identified by either the UBKG or the Cells API--i.e., that have relevance to HuBMAP/SenNet.
+# Provides information on genes identified by either the UBKG or the Cells API--i.e.,
+# that have relevance to HuBMAP/SenNet.
 
 from __future__ import absolute_import
 from typing import List
-from ubkg_api.models.base_model_ import Model
+# from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
 # Sub-object models
@@ -15,7 +16,8 @@ from ubkg_api.models import util
 from hs_ontology_api.models.genelist_detail import GeneListDetail
 from hs_ontology_api.models.pagination import Pagination
 
-class GeneList():
+
+class GeneList:
     def __init__(self, page=None, total_pages=None, genes_per_page=None, genes=None, starts_with=None, gene_count=None):
         """GeneList - a model defined in OpenAPI
 
@@ -50,7 +52,8 @@ class GeneList():
         }
         # Property assignments
         self._genes = genes
-        self._pagination = Pagination(page, total_pages, genes_per_page, starts_with, gene_count).serialize()
+        self._pagination = Pagination(page=page, total_pages=total_pages, items_per_page=genes_per_page,
+                                      starts_with=starts_with, item_count=gene_count).serialize()
 
     def serialize(self):
         # Key/value format of response.
@@ -112,4 +115,3 @@ class GeneList():
         """
 
         self._genes = genes
-
