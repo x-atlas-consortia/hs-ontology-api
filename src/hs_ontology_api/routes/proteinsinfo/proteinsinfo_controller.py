@@ -32,7 +32,7 @@ def proteinslist() -> list[str]:
     # Obtain the total count of genes, considering the filter starts_with.
     protein_count = proteinlist_count_get_logic(neo4j_instance, starts_with)
     if protein_count == 0:
-        return make_response(f'There are no proteins with UniProtKB entry names that start with \'{starts_with}\'.', 404)
+        return make_response(f'There are no proteins with UniProtKB identifiers (entry names or recommended names) that start with \'{starts_with}\' (case-insensitive).', 404)
 
     # Default values for page.
     # Case: No parameter specified.

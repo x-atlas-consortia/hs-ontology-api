@@ -126,17 +126,39 @@ curl --request GET \
  --url "${UBKG_URL}/genes-info?page=last&genes_per_page=3" \
  --header "Content-Type: application/json"
 echo
-
 echo "genes-info GET starts_with B"
 curl --request GET \
  --url "${UBKG_URL}/genes-info?genes_per_page=3&starts_with=B" \
  --header "Content-Type: application/json"
 echo
 
-# Test for gene endpoint.
+# Test for genes endpoint.
 echo "genes GET for MMRN1"
 curl --request GET \
  --url "${UBKG_URL}/genes/MMRN1" \
+ --header "Content-Type: application/json"
+echo
+
+# Test for proteins-info endpoint.
+echo "proteins-info GET"
+curl --request GET \
+ --url "${UBKG_URL}/proteins-info?page=1&proteins_per_page=3" \
+ --header "Content-Type: application/json"
+echo
+echo "proteins-info GET last page"
+curl --request GET \
+ --url "${UBKG_URL}/proteins-info?page=last&proteins_per_page=3" \
+ --header "Content-Type: application/json"
+echo
+echo "proteins-info GET starts_with B"
+curl --request GET \
+ --url "${UBKG_URL}/proteins-info?proteins_per_page=3&starts_with=B" \
+ --header "Content-Type: application/json"
+echo
+# Test for proteins endpoint.
+echo "proteins GET for MMRN1_HUMAN"
+curl --request GET \
+ --url "${UBKG_URL}/genes/MMRN1_HUMAN" \
  --header "Content-Type: application/json"
 echo
 

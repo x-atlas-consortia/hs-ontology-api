@@ -840,12 +840,16 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
 
     starts_with_clause = ''
     if starts_with != '':
-        starts_with_clause = f'AND map[\'entry_name\'][0] STARTS WITH \'{starts_with}\' ' \
-                             f'OR map[\'recommended_name\'][0] STARTS WITH \'{starts_with}\' ' # \
+        starts_with_clause = f' AND (toLower(id) STARTS WITH \'{starts_with.lower()}\' ' \
+                             f' OR toLower(map[\'entry_name\'][0]) STARTS WITH \'{starts_with.lower()}\' ' \
+                             f' OR toLower(map[\'recommended_name\'][0]) STARTS WITH \'{starts_with.lower()}\' )' # \
                              # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
     query = query.replace('$starts_with_clause', starts_with_clause)
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(proteins_per_page))
+
+    if starts_with != '':
+        starts_with = f'{starts_with} (case-insensitive)'
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
@@ -885,8 +889,9 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     starts_with_clause = ''
     if starts_with != '':
         # Check for recommended_name, entry_name, or one of the list of symbols.
-        starts_with_clause = f'AND map[\'entry_name\'][0] STARTS WITH \'{starts_with}\' ' \
-                             f'OR map[\'recommended_name\'][0] STARTS WITH \'{starts_with}\' ' # \
+        starts_with_clause = f' AND (toLower(id) STARTS WITH \'{starts_with.lower()}\' ' \
+                             f' OR toLower(map[\'entry_name\'][0]) STARTS WITH \'{starts_with.lower()}\' ' \
+                             f' OR toLower(map[\'recommended_name\'][0]) STARTS WITH \'{starts_with.lower()}\') ' # \
                              # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
 
     query = query.replace('$starts_with_clause', starts_with_clause)
