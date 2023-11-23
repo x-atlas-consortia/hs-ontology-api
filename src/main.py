@@ -16,8 +16,11 @@ from hs_ontology_api.routes.genesinfo.genesinfo_controller import genesinfo_blue
 from hs_ontology_api.routes.proteins.proteins_controller import proteins_blueprint
 from hs_ontology_api.routes.proteinsinfo.proteinsinfo_controller import proteinsinfo_blueprint
 
+from hs_ontology_api.routes.celltypesinfo.celltypesinfo_controller import celltypesinfo_blueprint
+
 # Cells API client
 from hs_ontology_api.utils.cellsclient import OntologyCellsClient
+
 
 def make_flask_config():
     temp_flask_app = Flask(__name__,
@@ -40,10 +43,12 @@ app.register_blueprint(genesinfo_blueprint)
 # JAS Nov 2023
 app.register_blueprint(proteins_blueprint)
 app.register_blueprint(proteinsinfo_blueprint)
+app.register_blueprint(celltypesinfo_blueprint)
 
 # Instantiate a Cells API client.
 cellsurl = make_flask_config().get('CELLSURL')
 app.cells_client = OntologyCellsClient(cellsurl)
+
 
 # Defining the /status endpoint in the ubkg_api package will causes 500 error
 # Because the VERSION and BUILD files are not built into the package
@@ -60,7 +65,6 @@ def api_status():
         status_data['neo4j_connection'] = True
 
     return jsonify(status_data)
-
 
 ####################################################################################################
 ## For local development/testing

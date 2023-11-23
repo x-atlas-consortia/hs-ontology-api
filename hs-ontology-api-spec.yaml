@@ -1105,9 +1105,9 @@ components:
             example: [Homo sapiens]
     CellTypeListResponse:
       type: object
-      description: High-level list of cell types with pagination details, requested by the celltypes endpoint.
+      description: High-level list of cell types with pagination details, requested by the celltypes-info endpoint.
       properties:
-        proteins:
+        cell_types:
           type: array
           description: cell type information
           items:
@@ -1151,7 +1151,7 @@ components:
               example: 500
     CellTypeDetailResponse:
       type: object
-      description: Detailed information on a cell type requested by the celltype endpoint
+      description: Detailed information on a cell type requested by the celltypes endpoint
       properties:
         id:
           type: string
