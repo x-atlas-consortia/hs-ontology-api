@@ -965,7 +965,6 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
     query = query.replace('$starts_with_clause', starts_with_clause)
 
-    print(query)
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
@@ -1021,8 +1020,6 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(cell_types_per_page))
 
-    print(query)
-
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
@@ -1072,13 +1069,12 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
         # Build response object.
         for record in recds:
             try:
-
                 celltypedetail: CelltypeDetail = \
                     CelltypeDetail(cl_id=record.get('CLID'),
                                    name=record.get('cell_types_code_name'),
                                    definition=record.get('cell_types_definition'),
                                    biomarkers=record.get('cell_types_genes'),
-                                   organs=record.get('cell_types_organ')).serialize()
+                                   organs=record.get('cell_types_organs')).serialize()
 
                 celltypedetails.append(celltypedetail)
 

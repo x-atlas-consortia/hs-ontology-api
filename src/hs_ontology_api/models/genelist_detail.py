@@ -14,16 +14,17 @@ from ubkg_api.models import util
 
 class GeneListDetail(Model):
     def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, summary=None):
-        """GenesListDetail - a model defined in OpenAPI
+        """
+        GenesListDetail - a model defined in OpenAPI
 
-            :param hgnc_id: hgnc ID
-            :type hgnc_id: str
-            :param approved_symbol: approved symbol
-            :type approved_symbol: str
-            :param approved_name: approved name
-            :type approved_name: str
-            :param summary: RefSeq description
-            :type summary: str
+        :param hgnc_id: hgnc ID
+        :type hgnc_id: str
+        :param approved_symbol: approved symbol
+        :type approved_symbol: str
+        :param approved_name: approved name
+        :type approved_name: str
+        :param summary: RefSeq description
+        :type summary: str
 
         """
         # Types for JSON objects

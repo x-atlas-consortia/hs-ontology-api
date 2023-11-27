@@ -231,7 +231,7 @@ paths:
   /organs:
     get:
       operationId: get_organ_types
-      summary: Returns 2 letter organ code, rui_code, sab, and term to support the Registration User Interface (RUI)
+      summary: Returns information used to support the Registration User Interface (RUI), including the 2-character RUI code and corresponding details from the UBERON and application (HUBMAP or SENNET) ontologies.
       parameters:
         - name: application_context
           in: query
@@ -529,7 +529,7 @@ paths:
   /celltypes/{id}:
     get:
       operationId: celltypes_get
-      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID, preferred term, or synonym.
+      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID).
       parameters:
         - name: id
           in: path
@@ -548,7 +548,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/CellTypeDetailResponse'
         '404':
-          description: No information for cell type with identifier *id*.
+          description: No information for cell type with Cell Ontology identifier *id*.
         '5XX':
           description: Unexpected error
   /field-descriptions:
@@ -945,7 +945,7 @@ components:
                     id:
                       type: string
                       description: Identifier (code) for the organ in source
-                      example: 0000948
+                      example: '0000948'
                     source:
                       type: string
                       description: Source vocabulary for id for organ
@@ -1153,18 +1153,22 @@ components:
       type: object
       description: Detailed information on a cell type requested by the celltypes endpoint
       properties:
-        id:
-          type: string
-          description: Cell Ontology code
-          example: CL:0002138
-        name:
-          type: string
-          description: Preferred term for the cell type from Cell Ontology
-          example: endothelial cell of lymphatic vessel
-        definition:
-          type: string
-          description: Definition of the cell type from Cell Ontology
-          example: A endothelial cell of a lymphatic vessel. The border of…
+        cell_type:
+          type: object
+          description: cell type identifiers
+          properties:
+            id:
+              type: string
+              description: Cell Ontology code
+              example: CL:0002138
+            name:
+              type: string
+              description: Preferred term for the cell type from Cell Ontology
+              example: endothelial cell of lymphatic vessel
+            definition:
+              type: string
+              description: Definition of the cell type from Cell Ontology
+              example: A endothelial cell of a lymphatic vessel. The border of…
         biomarkers:
           type: array
           description: Array of biomarkers associated with the cell type
@@ -1214,7 +1218,7 @@ components:
               id:
                 type: string
                 description: Identifier (code) for the organ in source
-                example: 0000948
+                example: '0000948'
               source:
                 type: string
                 description: Source vocabulary for id for organ

@@ -10,9 +10,14 @@ from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
+# Sub-object models
+# Array of biomarkers objects
+from hs_ontology_api.models.celltypedetail_biomarker import CelltypeDetailBiomarker
+from hs_ontology_api.models.celltypedetail_organ import CelltypeDetailOrgan
+
 
 class CelltypeDetail(Model):
-    def __init__(self, cl_id=None, name=None, definition=None, biomarkers=None,organs=None):
+    def __init__(self, cl_id=None, name=None, definition=None, biomarkers=None, organs=None):
         """
         CelltypeDetail: a model in OpenAPI
 
@@ -22,67 +27,109 @@ class CelltypeDetail(Model):
         :param biomarkers: array of information on the biomarkers associated with the cell type
         based on the HRA ontology.
         :param organs: array of Cell Ontology:Azimuth:UBERON organ mappings
-        The biomarkers and organs arrays will be used to build a nested object.
 
+        The cl_id, name, and definition will be used to build a nested object.
+        The biomarkers and organs arrays will be used to build arrays of nested objects.
 
         As of November 2023, the only biomarker-cell type associations in HRA are for genes.
         """
 
         # Types for JSON objects
         self.openapi_types = {
-            'cl_id': str,
-            'name': List[str],
-            'definition': List[str],
-            'biomarkers': List[dict],
-            'organs':List[dict]
+            'celltype': dict,
+            'biomarkers': List[CelltypeDetailBiomarker],
+            'organs': List[CelltypeDetailOrgan]
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
-            'cl_id': 'cl_id',
-            'name': 'name',
-            'definition': 'definition',
+            'celltype': 'celltype',
             'biomarkers': 'biomarkers',
             'organs': 'organs'
         }
         # Property assignments
-        self._cl_id = cl_id
+        dict_cell_type = {'cl_id': cl_id}
         if name is None:
-            self._name = ''
+            dict_cell_type['name'] = ''
         else:
-            self._name = name[0]
+            dict_cell_type['name'] = name[0]
         if definition is None:
-            self._definition = ''
+            dict_cell_type['definition'] = ''
         else:
-            self._definition = definition[0]
+            dict_cell_type['definition'] = definition[0]
+        self._cell_type = dict_cell_type
 
+        # Biomarkers object
         if biomarkers is None:
             self._biomarkers = []
         else:
-            listbiomarkers = []
-            # Currently, the only biomarker type is gene.
-            for biomarker in biomarkers:
-                # Each array element describes a gene from HGNC in format
-                # HGNC:ID |approved name | approved symbol
-                dictbiomarker = {'reference': 'Human Reference Atlas',
-                                 'biomarker_type': 'gene'}
-                geneinfo = biomarker.split('|')
-                dictgene = {'vocabulary': 'HGNC',
-                            'id': geneinfo[0].split(':')[1],
-                            'name': geneinfo[1],
-                            'symbol': geneinfo[2]}
-                dictbiomarker['entry'] = dictgene
-                listbiomarkers.append(dictbiomarker)
+            self._biomarkers = self._makebiomarkersdict(biomarkers=biomarkers)
 
-            self._biomarkers = listbiomarkers
+        # Organs object
+        if organs is None:
+            self._organs = []
+        else:
+            self._organs = self._makeorganssdict(organs=organs)
+
+    def _makebiomarkersdict(self, biomarkers=None):
+
+        """
+        Builds a list of dictionaries of biomarkers associated with a cell type.
+        :param biomarkers: optional list of biomarkers associated with a cell type.
+        Each array element describes a biomarker in format
+        SAB:ID |approved name| approved symbol
+        :return: dict
+        """
+
+        if biomarkers is None:
+            return []
+
+        listbiomarkers = []
+        for biomarker in biomarkers:
+            # Currently, the only biomarker associations are from HRA for genes.
+            # Instantiate a biomarker object.
+            celltypedetailbiomarker = CelltypeDetailBiomarker(reference='Human Reference Atlas', biomarker_type='gene',
+                                                              entry=biomarker)
+            # Use the to_dict method of the Model base class to obtain a dict for the list.
+            dictcelltypebiomarker = celltypedetailbiomarker.to_dict()
+
+            listbiomarkers.append(dictcelltypebiomarker)
+
+        return listbiomarkers
+
+    def _makeorganssdict(self, organs=None):
+
+        """
+        Builds a list of dictionaries of organs associated with a cell type.
+        :param organs: optional list of organs associated with a cell type.
+        Each array element describes a biomarker in format
+        [<SAB>:<ID>|name,<SAB2>:<ID2|name2...]
+        :return: dict
+        """
+        if organs is None:
+            return []
+
+        # The query returns the delimited string as a list.
+        organsplit = organs[0].split(',')
+
+        listorgans = []
+
+        for organ in organsplit:
+
+            # Instantiate a organ object.
+            celltypedetailorgan = CelltypeDetailOrgan(organ=organ)
+            # Use the to_dict method of the Model base class to obtain a dict for the list.
+            dictcelltypedetailorgan = celltypedetailorgan.to_dict()
+
+            listorgans.append(dictcelltypedetailorgan)
+
+        return listorgans
 
     def serialize(self):
         # Key/value format of response.
         return {
-            "cl_id": self._cl_id,
-            "name": self._name,
-            "definition": self._definition,
+            "cell_type": self._cell_type,
             "biomarkers": self._biomarkers,
-
+            "organs": self._organs
         }
 
     @classmethod
@@ -97,75 +144,31 @@ class CelltypeDetail(Model):
         return util.deserialize_model(dikt, cls)
 
     @property
-    def cl_id(self):
-        """Gets the cl_id of this CelltypeDetail.
-
-        Cell Ontology ID for this cell type.
-        :return: The Cell Ontology ID of this GeneDetail.
+    def cell_type(self):
+        """Gets the cell_type object of this CelltypeDetail.
+        :return: The cell_type object of this CelltypeDetail.
         :rtype: str
         """
-        return self._cl_id
+        return self._cell_type
 
-    @cl_id.setter
-    def cl_id(self, cl_id):
-        """Sets the Cell Ontology ID of this CelltypeDetail.
+    @cell_type.setter
+    def cell_type(self, cell_type):
+        """Sets the identifier object of this CelltypeDetail.
 
-         Cell Ontology ID for this cell type.
-        :param cl_id: The cl_id of this CelltypeDetail
-        :type cl_id: str
+         Identifier object for this cell type.
+        :param cell_type: The cell_type of this CelltypeDetail
+        :type cell_type: dict
         """
 
-        self._cl_id = cl_id
-
-    @property
-    def name(self):
-        """Gets the name of this CelltypeDetail.
-
-        Cell Ontology preferred term for this cell type.
-        :return: The name of this GeneDetail.
-        :rtype: str
-        """
-        return self._name
-
-    @name.setter
-    def name(self, name):
-        """Sets the Cell Ontology name of this CelltypeDetail.
-
-         Cell Ontology name for this cell type.
-        :param name: The name of this CelltypeDetail
-        :type name: str
-        """
-
-        self._name = name
-
-    @property
-    def definition(self):
-        """Gets the definition of this CelltypeDetail.
-
-        Cell Ontology definition for this cell type.
-        :return: The name of this GeneDetail.
-        :rtype: str
-        """
-        return self._name
-
-    @definition.setter
-    def definition(self, definition):
-        """Sets the Cell Ontology definition of this CelltypeDetail.
-
-         Cell Ontology definition for this cell type.
-        :param definition: The definition of this CelltypeDetail
-        :type definition: str
-        """
-
-        self._definition = definition
+        self._cell_type = cell_type
 
     @property
     def biomarkers(self):
         """Gets the biomarkers array of this CelltypeDetail.
 
         HRA biomarker associations for this cell type.
-        :return: The biomarkers of this GeneDetail.
-        :rtype: List[dict]
+        :return: The biomarkers of this CelltypeDetail.
+        :rtype: List[CelltypeDetailBiomarker]
         """
         return self._biomarkers
 
@@ -175,7 +178,27 @@ class CelltypeDetail(Model):
 
           HRA biomarker associations for this cell type.
         :param biomarkers: The biomarkers array of this CelltypeDetail
-        :type biomarkers: List[dict]
+        :type biomarkers: List[CelltypeDetailBiomarker]
         """
 
         self._biomarkers = biomarkers
+
+    @property
+    def organs(self):
+        """Gets the organs array of this CelltypeDetail.
+
+        :return: The organs array of this GeneDetail.
+        :rtype: List[CelltypeDetailOrgan]
+        """
+        return self._organs
+
+    @organs.setter
+    def organs(self, organs):
+        """Sets the organs array of this CelltypeDetail.
+
+
+        :param organs: The organs array of this CelltypeDetail
+        :type organs: List[CelltypeDetailOrgan]
+        """
+
+        self._organs = organs

@@ -19,22 +19,23 @@ from hs_ontology_api.models.pagination import Pagination
 
 class GeneList:
     def __init__(self, page=None, total_pages=None, genes_per_page=None, genes=None, starts_with=None, gene_count=None):
-        """GeneList - a model defined in OpenAPI
+        """
+        GeneList - a model defined in OpenAPI
 
-                    :param page: Requested relative "page" (block of genes)
-                    :type page: str
-                    :param total_pages: Calculated total number of "pages" (blocks of genes)
-                    :type total_pages: str
-                    :param genes: List of gene objects for an array
-                    :type genes: List[GeneListDetail]
-                    :param genes_per_page: Requested number of genes in each "page" (block)
-                    :type genes_per_page: str
-                    :starts_with: Optional search string for type ahead
-                    :type starts_with: str
-                    :gene_count: Calculated count of genes that satisfied the search criteria
-                    :type gene_count: str
+        :param page: Requested relative "page" (block of genes)
+        :type page: str
+        :param total_pages: Calculated total number of "pages" (blocks of genes)
+        :type total_pages: str
+        :param genes: List of gene objects for an array
+        :type genes: List[GeneListDetail]
+        :param genes_per_page: Requested number of genes in each "page" (block)
+        :type genes_per_page: str
+        :starts_with: Optional search string for type ahead
+        :type starts_with: str
+        :gene_count: Calculated count of genes that satisfied the search criteria
+        :type gene_count: str
 
-                """
+        """
 
         # The page, total_pages, genes_per_page, starts_with, and gene_count parameters will be used to build a
         # Pagination object.
@@ -75,7 +76,8 @@ class GeneList:
 
     @property
     def pagination(self):
-        """Gets the pagination of this GeneList.
+        """
+        Gets the pagination object of this GeneList.
 
         Pagination statistics
         :return: The pagination of this GeneList.
@@ -85,7 +87,8 @@ class GeneList:
 
     @pagination.setter
     def pagination(self, pagination):
-        """Sets the pagination of this GeneList.
+        """
+        Sets the pagination object of this GeneList.
 
         Pagination statistics
         :param pagination: The pagination of this GeneList
@@ -96,7 +99,8 @@ class GeneList:
 
     @property
     def genes(self):
-        """Gets the genes of this GeneList.
+        """
+        Gets the genes object of this GeneList.
 
         Gene list.
         :return: The genes of this GeneList.
@@ -106,12 +110,13 @@ class GeneList:
 
     @genes.setter
     def genes(self, genes):
-        """Sets the genes of this GeneList.
+        """
+        Sets the genes object of this GeneList.
 
         Gene list
 
-        :param genes: The genes of this GeneList
-        :type genes: str
+        :param genes: The genes object of this GeneList
+        :type genes: List[GeneListDetail]
         """
 
         self._genes = genes

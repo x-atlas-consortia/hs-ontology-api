@@ -162,6 +162,29 @@ curl --request GET \
  --header "Content-Type: application/json"
 echo
 
+# Test for celltypes list.
+echo "celltypes-info GET"
+curl --request GET \
+ --url "${UBKG_URL}/celltypes-info?page=1&proteins_per_page=3" \
+ --header "Content-Type: application/json"
+echo
+echo "celltypes-info GET last page"
+curl --request GET \
+ --url "${UBKG_URL}/celltypes-info?page=last&proteins_per_page=3" \
+ --header "Content-Type: application/json"
+echo
+echo "celltypes-info GET starts_with B"
+curl --request GET \
+ --url "${UBKG_URL}/celltypes-info?proteins_per_page=3&starts_with=B" \
+ --header "Content-Type: application/json"
+echo
+# Test for proteins endpoint.
+echo "celltypes GET for 0002138"
+curl --request GET \
+ --url "${UBKG_URL}/celltypes/0002138" \
+ --header "Content-Type: application/json"
+echo
+
 echo "SENNET source types"
 curl --request GET \
  --url "${UBKG_URL}/valueset?parent_sab=SENNET&parent_code=C020076&child_sabs=SENNET" \

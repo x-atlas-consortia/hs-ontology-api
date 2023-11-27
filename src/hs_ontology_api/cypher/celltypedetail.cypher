@@ -1,6 +1,5 @@
 // Return detailed inforomation on cell types, based on a input list of AZ terms.
 
-
 CALL
 // Get CUIs of concepts for cell types that match the criteria.
 
@@ -65,22 +64,38 @@ ORDER BY CLID, cGene.CodeID + '|' + apoc.text.join(COLLECT(tGene.name),'|')
 
 UNION
 
-// Cell types - CL code|Azimuth organ list
+// Cell types - Azimuth/UBERON organ list
 // The Azimuth ontology:
 // 1. Assigns AZ cell codes to AZ organ codes.
 // 2. Assigns CL codes as cross-references to AZ codes.
 // 3. Assigns UBERON codes as cross-references to AZ organ codes.
 //
-// To get organ information, cell type to organ location.
-//First, get Azimuth Codes that are cross-referenced to CL codes. For the case of a CL code being cross-referenced to multiple AZ codes, only one AZ code gets the "preferred" cross-reference to the CL code; however, all AZ codes have a cross-reference to the CL code, so do not check on code:term:concept CUI matching.
+// To get cell type to organ location maps:
+
+// First, get all Azimuth codes that are cross-referenced to CL codes.
+// For the case of a CL code being cross-referenced to multiple AZ codes, only one AZ code gets the "preferred"
+// cross-reference to the CL code (via concept mapping); however, all of the AZ codes still have a cross-reference to the CL code.
+
 WITH CLCUI
 CALL
-{WITH CLCUI
-OPTIONAL MATCH (cCL:Code)<-[:CODE]-(pAZ:Concept)-[rAZUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term) WHERE pAZ.CUI=CLCUI AND cCL.SAB='CL' AND rAZUB.SAB='AZ' AND rUB.CUI=pUB.CUI  AND cUB.SAB='UBERON' RETURN cCL.CodeID AS CLID, cUB.CodeID+'*'+ tUB.name + '' as UBERONID
+{
+	WITH CLCUI
+	OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),
+	(pCL:Concept)-[:CODE]->(cAZ:Code)-[rAZ]->(tAZ:Term)
+	WHERE pCL.CUI=CLCUI AND rCL.CUI=pCL.CUI AND cCL.SAB='CL' AND cAZ.SAB='AZ'
+	RETURN DISTINCT cCL.CodeID as CLID,cAZ.CodeID AS AZID
 }
-WITH CLID, UBERONID
-RETURN DISTINCT CLID,'cell_types_organ' as ret_key, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",")  AS ret_value
-ORDER BY CLID, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",")
+//Use the AZ codes to map to concepts that have located_in relationships with AZ organ codes.
+//The AZ organ codes are cross-referenced to UBERON codes. Limit the located_in relationships to those from AZ.
+CALL
+{   WITH AZID
+    OPTIONAL MATCH (cAZ:Code)<-[:CODE]-(pAZ:Concept)-[rAZUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
+    WHERE rAZUB.SAB='AZ' AND rUB.CUI=pUB.CUI AND cAZ.CodeID=AZID AND cUB.SAB='UBERON'
+    RETURN cUB.CodeID+'|'+ tUB.name + '' as UBERONID
+}
+WITH CLID,UBERONID
+RETURN DISTINCT CLID, 'cell_types_organ' as ret_key, apoc.text.join(COLLECT(DISTINCT UBERONID),",")  AS ret_value
+ORDER BY CLID, apoc.text.join(COLLECT(DISTINCT UBERONID),",")
 
 }
 
