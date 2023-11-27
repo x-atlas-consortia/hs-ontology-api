@@ -22,6 +22,7 @@ from hs_ontology_api.models.proteinlist import ProteinList
 from hs_ontology_api.models.proteindetail import ProteinDetail
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
+from hs_ontology_api.models.celltypedetail import CelltypeDetail
 
 
 # Query utilities
@@ -942,6 +943,7 @@ def proteindetail_get_logic(neo4j_instance, protein_id: str) -> List[ProteinDeta
 
     return proteindetails
 
+
 def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     """
         Returns the count of Cell Ontology codes in the UBKG.
@@ -976,8 +978,9 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
     return celltype_count
 
-def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_types_per_page: str, starts_with: str,
-                       cell_type_count: str) -> List[CelltypeList]:
+
+def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_types_per_page: str,
+                           starts_with: str, cell_type_count: str) -> List[CelltypeList]:
 
     """
     Returns information on HGNC genes.
@@ -997,7 +1000,6 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'celltypeslist.cypher'
     query = loadquerystring(queryfile)
-
 
     # The query is parameterized with variables $skiprows and $limitrows.
     # Calculate variable values from parameters.
@@ -1031,9 +1033,9 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
             try:
                 cell_type: CelltypesListDetail = \
                     CelltypesListDetail(id=record.get('id'),
-                                   term=record.get('term'),
-                                   synonyms=record.get('synonyms'),
-                                   definition=record.get('definition')).serialize()
+                                        term=record.get('term'),
+                                        synonyms=record.get('synonyms'),
+                                        definition=record.get('definition')).serialize()
                 cell_types.append(cell_type)
             except KeyError:
                 pass
@@ -1045,3 +1047,42 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
                                                   starts_with=starts_with,
                                                   cell_type_count=cell_type_count).serialize()
     return celltypelist
+
+
+def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
+    """
+    Returns detailed information on a cell type, based on a Cell Ontology ID.
+    :param neo4j_instance: instance of neo4j connection
+    :param cl_id: Cell Ontology identifier
+    """
+    # response list
+    celltypedetails: [GeneDetail] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'celltypedetail.cypher'
+    query = loadquerystring(queryfile)
+
+    query = query.replace('$ids', f'\'{cl_id}\'')
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+
+                celltypedetail: CelltypeDetail = \
+                    CelltypeDetail(cl_id=record.get('CLID'),
+                                   name=record.get('cell_types_code_name'),
+                                   definition=record.get('cell_types_definition'),
+                                   biomarkers=record.get('cell_types_genes'),
+                                   organs=record.get('cell_types_organ')).serialize()
+
+                celltypedetails.append(celltypedetail)
+
+            except KeyError:
+                pass
+
+    return celltypedetails

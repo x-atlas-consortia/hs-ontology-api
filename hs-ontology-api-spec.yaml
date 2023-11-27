@@ -529,15 +529,15 @@ paths:
   /celltypes/{id}:
     get:
       operationId: celltypes_get
-      summary: Return detailed information on a cell type specified by a name.
+      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID, preferred term, or synonym.
       parameters:
         - name: id
           in: path
           required: true
-          description: case-insensitive Cell Ontology identifier in format CL{id}
+          description: Cell Ontology ID
           schema:
             type: string
-            example: CL0002138
+            example: 0002138
       responses:
         '200':
           description: detailed information on the cell type specified by a Cell Ontology identifier.
