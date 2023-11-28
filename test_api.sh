@@ -158,7 +158,7 @@ echo
 # Test for proteins endpoint.
 echo "proteins GET for MMRN1_HUMAN"
 curl --request GET \
- --url "${UBKG_URL}/genes/MMRN1_HUMAN" \
+ --url "${UBKG_URL}/proteins/MMRN1_HUMAN" \
  --header "Content-Type: application/json"
 echo
 
