@@ -202,37 +202,6 @@ def get_organ_types_logic(neo4j_instance, sab):
     """
     result = []
 
-    """query = \
-        "CALL " \
-        "{ " \
-        "MATCH (cParent:Code)<-[r1]-(pParent:Concept)<-[r2:isa]-(pOrgan:Concept)-[r3:CODE]->(cOrgan:Code)-[r4:PT]->(tOrgan:Term) " \
-        f"WHERE cParent.CodeID IN ['{sab} C000008','{sab}:C000008'] " \
-        f"AND r2.SAB='{sab}' " \
-        f"AND cOrgan.SAB='{sab}' " \
-        "AND r4.CUI=pOrgan.CUI " \
-        "RETURN cOrgan.CODE as OrganCode,cOrgan.SAB as OrganSAB,tOrgan.name as OrganName, pOrgan.CUI as OrganCUI " \
-        "} " \
-        "CALL " \
-        "{ " \
-        "WITH OrganCUI " \
-        "MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term) " \
-        "WHERE pOrgan.CUI=OrganCUI " \
-        "AND cOrgan.SAB='UBERON' " \
-        "AND r2.CUI=pOrgan.CUI " \
-        "RETURN cOrgan.CodeID AS OrganUBERON" \
-        "} " \
-        "CALL " \
-        "{ " \
-        "WITH OrganCUI " \
-        "MATCH (pOrgan:Concept)-[r1:has_two_character_code]->(p2CC:Concept)-[r2:PREF_TERM]->(t2CC:Term) " \
-        "WHERE pOrgan.CUI=OrganCUI " \
-        f"AND r1.SAB='{sab}' " \
-        "RETURN t2CC.name as OrganTwoCharacterCode " \
-        "} " \
-        "WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganCUI " \
-        "RETURN OrganCode,OrganSAB,OrganName,OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName "
-    """
-
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $sab.
     queryfile = 'organs.cypher'
