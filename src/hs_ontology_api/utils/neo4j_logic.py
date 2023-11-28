@@ -191,51 +191,18 @@ def dataset_get_logic(neo4j_instance, data_type: str = '', description: str = ''
 
 def get_organ_types_logic(neo4j_instance, sab):
     """
-    Objectives: Provide crosswalk information between SenNet and RUI for organ types.
-    Replicate the original organ_types.yaml.
-    1.FindSAB, code, and term for all organs.
-    2.Find UBERON codes for organs.The code for Skin maps to UBERON 0002097 and UBERON 002097 cross-references
-        UMLS with CUI C1123023; however, the UMLS CUI also maps to UBERON 0000014. It is necessary to specify the
-        UBERON code explicitly.
-    3.Find two - digit code for organs.
-    Order return
+    Objectives: Provide crosswalk information between organs and RUI.
+    Replicates the call  original organ_types.yaml.
 
     :param sab: SAB for application context
     :param neo4j_instance: pointer to neo4j connection
     :return:
+
+    JAS NOV 2023 - Moved query string to external file and implemented loadquery utility logic.
     """
     result = []
-    # https://github.com/x-atlas-consortia/hs-ontology-api/issues/21#issuecomment-1707149316
-    # first change
-    #  "WHERE cParent.CodeID='SENNET C000008' " \
-    # Change so that it looks like WHERE c.Parent.CodeID IN ['SAB C000008','SAB:C000008']
-    # second change
-    #  "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' ELSE cOrgan.CodeID END AS OrganUBERON " \
-    # Change so that the return is 'UBERON:0002097'. This will cause inconsistent results when the neo4j
-    # is in the old format, but it will not crash the return.
-    #
-    # https://github.com/x-atlas-consortia/ubkg-api/issues/3#issuecomment-1507273473
-    # From included file 'organ_endpoint_13Apr2023.txt'...
-    # //2. Find UBERON codes for organs. Special cases for duplicate cross-references:
-    # //   a. The code for Skin maps to UBERON 0002097 and UBERON 002097 cross-references
-    # //      UMLS with CUI C1123023; however, the UMLS CUI also maps to UBERON 0000014.
-    # //   b. The code for Muscle maps to UBERON 0005090, which cross-references to UMLS C4083049,
-    #         along with 2 other UBERON codes.
-    # //   For these cases, it is necessary to specify the UBERON code explicitly.
 
-    # JAS SEPT 2023
-    # Deprecating the CASE statement (formerly in the second CALL block) that does manual assignments to address
-    # duplicate UBERON organ assignments.
-    # "RETURN DISTINCT CASE pOrgan.CUI WHEN 'C1123023' THEN 'UBERON 0002097' WHEN 'C4083049' THEN 'UBERON 0005090'ELSE
-    # cOrgan.CodeID END AS OrganUBERON "
-
-    # The reason for the deprecation is that the CASE statement did not truly work.
-    # A UBKG ingestion can set multiple cross-references between UBERON codes and UMLS CUIs; however, the script also
-    # designates a "preferred" CUI cross-reference for a code.
-    # The way to pick the preferred UBERON code is to check the CUI property of the relationship
-    # between the code and the preferred term (PT).
-
-    query = \
+    """query = \
         "CALL " \
         "{ " \
         "MATCH (cParent:Code)<-[r1]-(pParent:Concept)<-[r2:isa]-(pOrgan:Concept)-[r3:CODE]->(cOrgan:Code)-[r4:PT]->(tOrgan:Term) " \
@@ -264,6 +231,15 @@ def get_organ_types_logic(neo4j_instance, sab):
         "} " \
         "WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganCUI " \
         "RETURN OrganCode,OrganSAB,OrganName,OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName "
+    """
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $sab.
+    queryfile = 'organs.cypher'
+    query = loadquerystring(queryfile)
+    query = query.replace('$sab', f'\'{sab}\'')
+
+    print(query)
 
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
