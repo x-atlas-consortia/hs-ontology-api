@@ -1,6 +1,6 @@
 // GENES LIST
-// Return information on genes in the UBKG
-// Used by the genes endpoint.
+// Return high-level information on genes in the UBKG
+// Used by the genes-info endpoint.
 
 CALL
 {

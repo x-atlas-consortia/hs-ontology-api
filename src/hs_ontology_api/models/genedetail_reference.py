@@ -5,19 +5,16 @@
 # Information on a reference for a gene identified in HGNC.
 
 from __future__ import absolute_import
-from typing import List
+# from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
+
 class GeneDetailReference(Model):
-    def __init__(self, code=None, source=None, url=None):
+    def __init__(self, code=None):
         """GeneDetailReference - a model defined in OpenAPI
                 :param code: a reference code for a gene, in format SAB:CODE
                 :type code: str
-                :param source: the vocabulary (SAB) for the reference for a gene
-                :type type: str
-                :param url: the url for the reference in the reference vocabulary
-                :type url: str
         """
         # The code argument is a code to which a gene with a particular HGNC ID corresponds.
         # Reference codes are either synonyms from other vocabularies (e.g. Entrez) or from relationships
@@ -49,8 +46,8 @@ class GeneDetailReference(Model):
             url = f'http://useast.ensembl.org/Homo_sapiens/Gene/Summary?g={self._id}'
         elif self._source == 'omim':
             url = f'https://www.omim.org/entry/601456?search={self._id}'
-        elif self._source in ['hugo','hgnc']:
-            url =f'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/{code}'
+        elif self._source in ['hugo', 'hgnc']:
+            url = f'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/{code}'
         else:
             url = ''
         self._url = url
@@ -139,4 +136,4 @@ class GeneDetailReference(Model):
         :type url: str
         """
 
-        self._url= url
+        self._url = url

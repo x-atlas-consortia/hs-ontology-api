@@ -16,6 +16,7 @@ from hs_ontology_api.models.genedetail_reference import GeneDetailReference
 # Array of cell type objects
 from hs_ontology_api.models.genedetail_celltype import GeneDetailCellType
 
+
 class GeneDetail(Model):
     def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, previous_symbols=None,
                  previous_names=None, alias_symbols=None, alias_names=None, references=None,
@@ -41,8 +42,6 @@ class GeneDetail(Model):
                 :type references: List[GeneDetailReference]
                 :param summaries: RefSeq summary for the gene
                 :type summaries: List[str]
-                :param cell_types: list of cell types for the gene
-                :type cell_types: List[GeneDetailCellType]
                 :param cell_types_code_name: list of names for cell types for the gene
                 :type cell_types_code_name: List[str]
                 :param cell_types_code_source: list of sources for cell types associations for the gene
@@ -116,15 +115,15 @@ class GeneDetail(Model):
                                                       cell_types_code_definition, cell_types_codes_organ,
                                                       cell_types_code_source)
 
-    def _makereferencedict(self, references=None) ->List[dict]:
+    def _makereferencedict(self, references=None) -> List[dict]:
 
         # Builds a list of dictionaries of references for a gene.
         # The references parameter is an optional list of delimited reference codes--e.g., [ENTREZ:X, ENSEMBLE:Y].
 
         # Each reference code will be expanded to a "reference" JSON object with additional key/value pairs.
-        listret=[]
+        listret = []
         if references is None:
-            return None
+            return []
 
         for ref in references:
             # Instantiate and populate a "reference" object.
@@ -136,7 +135,8 @@ class GeneDetail(Model):
         return listret
 
     def _makecelltypedict(self, cell_types_code=None, cell_types_code_name=None,
-                         cell_types_code_definition=None, cell_types_code_organ=None, cell_types_code_source=None) ->List[dict]:
+                          cell_types_code_definition=None, cell_types_code_organ=None,
+                          cell_types_code_source=None) -> List[dict]:
 
         # Builds a list of dictionaries of cell types associated with a gene.
         # The cell_types_code parameter is an optional list of optional codes from Cell Ontology--e.g., [CL:X, CL:Y].
@@ -146,9 +146,9 @@ class GeneDetail(Model):
         # This optional information is stored in the cell_types_code_* parameters and passed to an object of type
         # GeneDetailCellType, which will build nested objects.
 
-        listret=[]
+        listret = []
         if cell_types_code is None:
-            return None
+            return []
 
         for cell in cell_types_code:
 
@@ -198,7 +198,7 @@ class GeneDetail(Model):
                         source_list = source.split('|')[1].split(',')
 
             # Instantiate a cell type object.
-            genedetailcelltype = GeneDetailCellType(cell, name, definition, organ_list,source_list)
+            genedetailcelltype = GeneDetailCellType(cell, name, definition, organ_list, source_list)
             # Use the to_dict method of the Model base class to obtain a dict for the list.
             dictcell = genedetailcelltype.to_dict()
             listret.append(dictcell)
@@ -247,8 +247,8 @@ class GeneDetail(Model):
 
         Current HGNC approved id for the gene.
 
-        :param approved_id: The approved_id of this GeneInfo
-        :type approved_id: str
+        :param hgnc_id: The approved_id of this GeneInfo
+        :type hgnc_id: str
         """
 
         self._hgnc_id = hgnc_id
