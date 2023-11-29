@@ -27,12 +27,14 @@ def proteinslist() -> list[str]:
     if not proteins_per_page.isnumeric():
         return make_response(f'The value for parameter proteins_per_page ({proteins_per_page}) must be numeric.', 400)
     if int(proteins_per_page) <= 0:
-        return (make_response(f'The value for parameter proteins_per_page ({proteins_per_page}) must be greater than zero.', 400))
+        return (make_response(f'The value for parameter proteins_per_page ({proteins_per_page}) must be greater '
+                              f'than zero.', 400))
 
     # Obtain the total count of genes, considering the filter starts_with.
     protein_count = proteinlist_count_get_logic(neo4j_instance, starts_with)
     if protein_count == 0:
-        return make_response(f'There are no proteins with UniProtKB identifiers (entry names or recommended names) that start with \'{starts_with}\' (case-insensitive).', 404)
+        return make_response(f"There are no proteins with UniProtKB identifiers (entry names or recommended names) "
+                             f"that start with '{starts_with}' (case-insensitive).", 404)
 
     # Default values for page.
     # Case: No parameter specified.
@@ -55,7 +57,8 @@ def proteinslist() -> list[str]:
 
     # Parameter validation.
     if not page.isnumeric():
-        return make_response(f'The value for parameter page ({page}) must be either a number >=0 or the words \'first\' or \'last\'.', 400)
+        return make_response(f"The value for parameter page ({page}) must be either a number >=0 or the "
+                             f"words 'first' or 'last'.", 400)
     if int(page) < 0:
         return make_response(f'The value for parameter page ({page}) must be >= 0', 400)
 

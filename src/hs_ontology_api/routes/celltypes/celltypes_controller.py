@@ -14,10 +14,6 @@ def celltypes_id_expand_get(id=None):
 
     """
 
-    if id =='' or id is None:
-        # Missing ID parameter in URL
-        return make_response('The /celltypes endpoint must specify a code from the Cell Ontology--e.g., /celltypes/0002138.',400)
-
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = celltypedetail_get_logic(neo4j_instance, id)
     if result is None or result == []:

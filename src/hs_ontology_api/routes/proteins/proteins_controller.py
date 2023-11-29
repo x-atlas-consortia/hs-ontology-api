@@ -18,10 +18,6 @@ def proteins_id_expand_get(id=None):
 
     """
 
-    if id =='' or id is None:
-        # Missing ID parameter in URL
-        return make_response('The /proteins endpoint must specify a UniProtKB protein identifier--e.g., /genes/Q13201.',400)
-
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = proteindetail_get_logic(neo4j_instance, id)
     if result is None or result == []:

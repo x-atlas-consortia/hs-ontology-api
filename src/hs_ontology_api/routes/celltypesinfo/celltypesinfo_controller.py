@@ -37,9 +37,8 @@ def celltypeslist() -> list[str]:
     # Obtain the total count of genes, considering the filter starts_with.
     cell_type_count = celltypelist_count_get_logic(neo4j_instance, starts_with)
     if cell_type_count == 0:
-        return make_response(f'There are no cell types with preferred terms or '
-                             f'synonyms that start with \'{starts_with}\' '
-                             f'(case-insensitive).', 404)
+        return make_response(f"There are no cell types with preferred terms or synonyms that start "
+                             f"with '{starts_with}' (case-insensitive).", 404)
 
     # Default values for page.
     # Case: No parameter specified.
@@ -62,8 +61,7 @@ def celltypeslist() -> list[str]:
 
     # Parameter validation.
     if not page.isnumeric():
-        return make_response(f'The value for parameter page ({page}) must be either a number >=0 or '
-                             f'the words \'first\' or \'last\'.', 400)
+        return make_response(f"The value for parameter page ({page}) must be either a number >=0 or the words 'first' or 'last'.", 400)
     if int(page) < 0:
         return make_response(f'The value for parameter page ({page}) must be >= 0', 400)
 
