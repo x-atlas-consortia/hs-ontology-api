@@ -2,26 +2,29 @@
 
 # JAS October 2023
 # GenesListDetail model class
-# Used by the geneslist endpoint.
-# Provides information on genes identified by either the UBKG or the Cells API--i.e., that have relevance to HuBMAP/SenNet.
+# Used by the genes-info endpoint.
+# Provides information on genes identified by either the UBKG or the Cells API--i.e.,
+# that have relevance to HuBMAP/SenNet.
 
 from __future__ import absolute_import
-from typing import List
+# from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
+
 class GeneListDetail(Model):
     def __init__(self, hgnc_id=None, approved_symbol=None, approved_name=None, summary=None):
-        """GenesListDetail - a model defined in OpenAPI
+        """
+        GenesListDetail - a model defined in OpenAPI
 
-            :param hgnc_id: hgnc ID
-            :type hgnc_id: str
-            :param approved_symbol: approved symbol
-            :type approved_symbol: str
-            :param approved_name: approved name
-            :type approved_name: str
-            :param summary: RefSeq description
-            :type summary: str
+        :param hgnc_id: hgnc ID
+        :type hgnc_id: str
+        :param approved_symbol: approved symbol
+        :type approved_symbol: str
+        :param approved_name: approved name
+        :type approved_name: str
+        :param summary: RefSeq description
+        :type summary: str
 
         """
         # Types for JSON objects
@@ -67,7 +70,7 @@ class GeneListDetail(Model):
         }
 
     @classmethod
-    def from_dict(cls, dikt) -> 'GenesListDetail':
+    def from_dict(cls, dikt) -> 'GeneListDetail':
         """Returns the dict as a model
 
         :param dikt: A dict.
@@ -94,7 +97,6 @@ class GeneListDetail(Model):
         Current HGNC approved id for the gene.
 
         :param hgnc_id: The hgnc_id of this gene
-        :type approved_id: str
         """
 
         self._hgnc_id = hgnc_id

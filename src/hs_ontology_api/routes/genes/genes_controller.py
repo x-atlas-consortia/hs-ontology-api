@@ -23,10 +23,6 @@ def genes_id_expand_get(id=None):
 
     """
 
-    if id =='' or id is None:
-        # Missing ID parameter in URL
-        return make_response('The /genes endpoint must specify a HGNC gene identifier--e.g., /genes/MMRN1.',400)
-
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = genedetail_get_logic(neo4j_instance, id)
     if result is None or result == []:

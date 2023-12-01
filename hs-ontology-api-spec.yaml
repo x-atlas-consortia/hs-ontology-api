@@ -231,7 +231,7 @@ paths:
   /organs:
     get:
       operationId: get_organ_types
-      summary: Returns 2 letter organ code, rui_code, sab, and term to support the Registration User Interface (RUI)
+      summary: Returns information used to support the Registration User Interface (RUI), including the 2-character RUI code and corresponding details from the UBERON and application (HUBMAP or SENNET) ontologies.
       parameters:
         - name: application_context
           in: query
@@ -440,7 +440,7 @@ paths:
         - name: starts_with
           in: query
           required: false
-          description: Optional *case-insensitive* string by which to filter by UniProtKB protein name.
+          description: Optional *case-insensitive* string by which to filter by UniProtKB recommended name or entry name
           schema:
             type: string
             example: M
@@ -456,7 +456,7 @@ paths:
         '400':
           description: Invalid parameter--e.g., *proteins_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
         '404':
-          description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB names that start with the string specified in the *starts_with* parameter.
+          description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB identifiers that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
   /proteins/{id}:
@@ -467,7 +467,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Case-insensitive UniProtKB identifier
+          description: Case-insensitive UniProtKB identifier. Identifiers are either UniProtKB IDs (e.g., Q13201) or entry names (e.g., MMRN1_HUMAN).
           schema:
             type: string
             example: Q13201
@@ -529,15 +529,15 @@ paths:
   /celltypes/{id}:
     get:
       operationId: celltypes_get
-      summary: Return detailed information on a cell type specified by a name.
+      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID).
       parameters:
         - name: id
           in: path
           required: true
-          description: case-insensitive Cell Ontology identifier in format CL{id}
+          description: Cell Ontology ID
           schema:
             type: string
-            example: CL0002138
+            example: 0002138
       responses:
         '200':
           description: detailed information on the cell type specified by a Cell Ontology identifier.
@@ -548,7 +548,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/CellTypeDetailResponse'
         '404':
-          description: No information for cell type with identifier *id*.
+          description: No information for cell type with Cell Ontology identifier *id*.
         '5XX':
           description: Unexpected error
   /field-descriptions:
@@ -945,7 +945,7 @@ components:
                     id:
                       type: string
                       description: Identifier (code) for the organ in source
-                      example: 0000948
+                      example: '0000948'
                     source:
                       type: string
                       description: Source vocabulary for id for organ
@@ -1020,6 +1020,13 @@ components:
                 type: string
                 description: UniProtKB Recommended Name
                 example: multimerin-1
+              #synonyms:
+                #type: array
+                #description: list of synonyms
+                #items:
+                  #type: string
+                #example:
+                  #[p155,p-155,multimerin,Endothelial cell multimerin]
         pagination:
           type: object
           description: pagination statistics
@@ -1060,12 +1067,12 @@ components:
           type: string
           description: UniProtKB Recommended Name
           example: multimerin-1
-        synonyms:
-          type: array
-          description: alternative names
-          items:
-            type: string
-          example: [EMILIN-4,Elastin microfibril interface located protein 4 (Elastin microfibril interfacer 4),Endothelial cell multimerin]
+        #synonyms:
+          #type: array
+          #description: alternative names
+          #items:
+            #type: string
+          #example: [EMILIN-4,Elastin microfibril interface located protein 4 (Elastin microfibril interfacer 4),Endothelial cell multimerin]
         references:
           type: array
           description: Array of links to protein databases
@@ -1098,9 +1105,9 @@ components:
             example: [Homo sapiens]
     CellTypeListResponse:
       type: object
-      description: High-level list of cell types with pagination details, requested by the celltypes endpoint.
+      description: High-level list of cell types with pagination details, requested by the celltypes-info endpoint.
       properties:
-        proteins:
+        cell_types:
           type: array
           description: cell type information
           items:
@@ -1144,20 +1151,24 @@ components:
               example: 500
     CellTypeDetailResponse:
       type: object
-      description: Detailed information on a cell type requested by the celltype endpoint
+      description: Detailed information on a cell type requested by the celltypes endpoint
       properties:
-        id:
-          type: string
-          description: Cell Ontology code
-          example: CL:0002138
-        name:
-          type: string
-          description: Preferred term for the cell type from Cell Ontology
-          example: endothelial cell of lymphatic vessel
-        definition:
-          type: string
-          description: Definition of the cell type from Cell Ontology
-          example: A endothelial cell of a lymphatic vessel. The border of…
+        cell_type:
+          type: object
+          description: cell type identifiers
+          properties:
+            id:
+              type: string
+              description: Cell Ontology code
+              example: CL:0002138
+            name:
+              type: string
+              description: Preferred term for the cell type from Cell Ontology
+              example: endothelial cell of lymphatic vessel
+            definition:
+              type: string
+              description: Definition of the cell type from Cell Ontology
+              example: A endothelial cell of a lymphatic vessel. The border of…
         biomarkers:
           type: array
           description: Array of biomarkers associated with the cell type
@@ -1207,7 +1218,7 @@ components:
               id:
                 type: string
                 description: Identifier (code) for the organ in source
-                example: 0000948
+                example: '0000948'
               source:
                 type: string
                 description: Source vocabulary for id for organ

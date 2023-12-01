@@ -33,7 +33,7 @@ def geneslist() -> list[str]:
     # Obtain the total count of genes, considering the filter starts_with.
     gene_count = genelist_count_get_logic(neo4j_instance, starts_with)
     if gene_count == 0:
-        return make_response(f'There are no genes with HGNC symbols that start with \'{starts_with}\'.', 404)
+        return make_response(f"There are no genes with HGNC symbols that start with '{starts_with}'.", 404)
 
     # Default values for page.
     # Case: No parameter specified.
@@ -56,7 +56,8 @@ def geneslist() -> list[str]:
 
     # Parameter validation.
     if not page.isnumeric():
-        return make_response(f'The value for parameter page ({page}) must be either a number >=0 or the words \'first\' or \'last\'.', 400)
+        return make_response(f"The value for parameter page ({page}) must be either a number >=0 or the "
+                             f"words 'first' or 'last'.", 400)
     if int(page) < 0:
         return make_response(f'The value for parameter page ({page}) must be >= 0', 400)
 

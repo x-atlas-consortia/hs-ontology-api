@@ -5,9 +5,10 @@
 # Information on the organs associated with cell types associated with a gene identified in HGNC.
 
 from __future__ import absolute_import
-from typing import List
+# from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
+
 
 class GeneDetailCellTypeOrgan(Model):
     def __init__(self, source=None, id=None, name=None):
@@ -17,7 +18,6 @@ class GeneDetailCellTypeOrgan(Model):
             :param id: id for organ reference (e.g.,0000948)
             :type source: str
             :param name: name for organ reference (e.g.,heart)
-            :type heart: str
         """
         # The parameter organ_list will be decomposed into key/value pairs.
         # types
@@ -122,3 +122,4 @@ class GeneDetailCellTypeOrgan(Model):
         """
 
         self._name = name
+

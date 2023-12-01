@@ -12,6 +12,7 @@ from ubkg_api.models import util
 # Organ sub-object
 from hs_ontology_api.models.genedetail_celltype_organ import GeneDetailCellTypeOrgan
 
+
 class GeneDetailCellType(Model):
     def __init__(self, id=None, name=None, definition=None, organ_list=None, reference_list=None):
         """GeneDetailCellType - a model defined in OpenAPI
@@ -63,15 +64,15 @@ class GeneDetailCellType(Model):
         else:
             self._references = reference_list
 
-    def _makereorgandict(self, organs=None) ->List[dict]:
+    def _makereorgandict(self, organs=None) -> List[dict]:
 
         # Builds a list of organs associated with a cell type.
         # The organs parameter is an optional list of organ reference codes--e.g., [UBERON:X*organ1, UBERON:Y*organ2].
 
         # Each organ reference code will be expanded to a "reference" JSON object with additional key/value pairs
-        listret=[]
+        listret = []
         if organs is None:
-            return None
+            return []
 
         for organ in organs:
             # Instantiate and populate an organ object.
@@ -82,7 +83,7 @@ class GeneDetailCellType(Model):
             # Instantiate an organ object using source, id, name.
             organdetail = GeneDetailCellTypeOrgan(source, id, name)
             # Use the to_dict method of the Model base class to obtain a dictionary of the organ object for the list.
-            dictref = organdetail.to_dict()
+            # dictref = organdetail.to_dict()
             listret.append(organdetail)
 
         return listret
@@ -94,7 +95,7 @@ class GeneDetailCellType(Model):
             "name": self._name,
             "definition": self._definition,
             "organs": self._organs,
-            "sources": self._sources
+            "references": self._references
         }
 
     @classmethod
