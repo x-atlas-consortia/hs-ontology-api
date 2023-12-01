@@ -37,6 +37,8 @@ def celltypeslist() -> list[str]:
     # Obtain the total count of genes, considering the filter starts_with.
     cell_type_count = celltypelist_count_get_logic(neo4j_instance, starts_with)
     if cell_type_count == 0:
+        # Escape apostrophes and double quotes.
+        starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         return make_response(f"There are no cell types with preferred terms or synonyms that start "
                              f"with '{starts_with}' (case-insensitive).", 404)
 
