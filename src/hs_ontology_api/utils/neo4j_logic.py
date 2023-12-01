@@ -791,8 +791,8 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
         # Escape apostrophes and double quotes.
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f' AND (toLower(id) STARTS WITH "{starts_with.lower()}" ' \
-                             f' OR toLower(map[\'entry_name\'][0]) STARTS WITH "{starts_with.lower()}" ' \
-                             f' OR toLower(map[\'recommended_name\'][0]) STARTS WITH "{starts_with.lower()}" )' # \
+                             f' OR toLower(map["entry_name"][0]) STARTS WITH "{starts_with.lower()}" ' \
+                             f' OR toLower(map["recommended_name"][0]) STARTS WITH "{starts_with.lower()}" )' # \
                              # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
     query = query.replace('$starts_with_clause', starts_with_clause)
     query = query.replace('$skiprows', str(skiprows))
@@ -843,8 +843,8 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
         # Escape apostrophes and double quotes.
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f' AND (toLower(id) STARTS WITH "{starts_with.lower()}" ' \
-                             f' OR toLower(map[\'entry_name\'][0]) STARTS WITH "{starts_with.lower()}" ' \
-                             f' OR toLower(map[\'recommended_name\'][0]) STARTS WITH "{starts_with.lower()}") ' # \
+                             f' OR toLower(map["entry_name"][0]) STARTS WITH "{starts_with.lower()}" ' \
+                             f' OR toLower(map["recommended_name"][0]) STARTS WITH "{starts_with.lower()}") ' # \
                              # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
 
     query = query.replace('$starts_with_clause', starts_with_clause)
