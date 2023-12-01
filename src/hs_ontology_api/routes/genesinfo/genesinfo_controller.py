@@ -32,6 +32,8 @@ def geneslist() -> list[str]:
 
     # Obtain the total count of genes, considering the filter starts_with.
     gene_count = genelist_count_get_logic(neo4j_instance, starts_with)
+    # Escape apostrophes and double quotes.
+    starts_with = starts_with.replace("'", "\'").replace('"', "\'")
     if gene_count == 0:
         return make_response(f"There are no genes with HGNC symbols that start with '{starts_with}'.", 404)
 
