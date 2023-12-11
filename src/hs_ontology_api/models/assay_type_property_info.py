@@ -51,13 +51,15 @@ class AssayTypePropertyInfo(Model):
         self._vis_only = vis_only
 
     def serialize(self):
+
+        # JAS 11 DEC 2023 Replace underscores with dashes in return.
         return {
             "name": self._name,
             "primary": self._primary,
             "description": self._description,
-            "vitessce_hints": self._vitessce_hints,
-            "contains_pii": self._contains_pii,
-            "vis_only": self._vis_only
+            "vitessce-hints": self._vitessce_hints,
+            "contains-pii": self._contains_pii,
+            "vis-only": self._vis_only
         }
 
     @classmethod
