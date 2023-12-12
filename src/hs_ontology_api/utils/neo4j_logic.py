@@ -51,6 +51,10 @@ def loadquerystring(filename: str) -> str:
 
 
 def make_assaytype_property_info(record):
+
+    # JAS 11 December 2023 Although the class AssayTypePropertyInfo uses underscores for
+    # properties such as contains_pii, the serialization converts the underscores to dashes.
+
     return AssayTypePropertyInfo(
         record['data_type'],
         record['primary'],
