@@ -17,6 +17,8 @@ from hs_ontology_api.routes.proteins.proteins_controller import proteins_bluepri
 from hs_ontology_api.routes.proteinsinfo.proteinsinfo_controller import proteinsinfo_blueprint
 from hs_ontology_api.routes.celltypes.celltypes_controller import celltypes_blueprint
 from hs_ontology_api.routes.celltypesinfo.celltypesinfo_controller import celltypesinfo_blueprint
+# JAS December 2023
+from hs_ontology_api.routes.fielddescriptions.fielddescriptions_controller import field_descriptions_blueprint
 
 # Cells API client
 from hs_ontology_api.utils.cellsclient import OntologyCellsClient
@@ -45,6 +47,8 @@ app.register_blueprint(proteins_blueprint)
 app.register_blueprint(proteinsinfo_blueprint)
 app.register_blueprint(celltypesinfo_blueprint)
 app.register_blueprint(celltypes_blueprint)
+# JAS Dec 2023
+app.register_blueprint(field_descriptions_blueprint)
 
 # Instantiate a Cells API client.
 cellsurl = make_flask_config().get('CELLSURL')

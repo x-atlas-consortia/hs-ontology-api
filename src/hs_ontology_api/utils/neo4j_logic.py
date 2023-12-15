@@ -23,7 +23,8 @@ from hs_ontology_api.models.proteindetail import ProteinDetail
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 from hs_ontology_api.models.celltypedetail import CelltypeDetail
-
+# JAS Dec 2023
+from hs_ontology_api.models.fielddescription import FieldDescription
 
 # Query utilities
 # from hs_ontology_api.cypher.util_query import loadquerystring
@@ -1043,3 +1044,35 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
                 pass
 
     return celltypedetails
+
+
+def field_descriptions_get_logic(neo4j_instance) -> List[FieldDescription]:
+    """
+    Returns detailed information on a HMFIELD field description.
+    """
+    # response list
+    fielddescriptions: [FieldDescription] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'fielddescriptions.cypher'
+    query = loadquerystring(queryfile)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fielddescription: FieldDescription = \
+                    FieldDescription(codeID=record.get('codeID'),
+                                     identifier=record.get('identifier'),
+                                     description=record.get('description')).serialize()
+
+                fielddescriptions.append(fielddescription)
+
+            except KeyError:
+                pass
+
+    return fielddescriptions
