@@ -1,29 +1,32 @@
 # coding: utf-8
 
 # JAS December 2023
-# FieldDescription model class
-# Used by the field-descriptions endpoint.
-# Replicates read of legacy field_descriptions.yaml.
+# FieldType model class
+# Used by the field-types endpoint.
+# Replicates read of legacy field_types.yaml.
 
 from __future__ import absolute_import
-from typing import List
+# from typing import List
 # from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
-class FieldDescription:
-    def __init__(self, codeID=None, identifier=None, description=None):
+
+class FieldType:
+    def __init__(self, codeID=None, identifier=None, hm_type=None, xsd_type=None):
         """
-        FieldDescription - a model defined in OpenAPI
+        FieldType - a model defined in OpenAPI
 
         Represents a code from the HMFIELD ontology.
         :param codeID: codeID for the Code node in HMFIELD
         :param identifier: equivalent of the field key in the yaml
-        :param description: description
+        :param hm_type: field type from legacy field_types.yaml
+        :param xsd_type: corresponding field type for field in XSD
 
         example:
         codeID - HMFIELD:1001
         identifier - ablation_distance_between_shots_x_units
-        description - Units of x resolution distance between laser ablation shots.
+        hm_type - string
+        xsd_type: xsd:string
 
         """
 
@@ -31,13 +34,13 @@ class FieldDescription:
         self.openapi_types = {
             'codeID': str,
             'identifier': str,
-            'description:': str
+            'type:': dict
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
             'codeID': 'codeID',
             'identifier': 'identifier',
-            'description': 'description'
+            'type': 'type'
         }
         # Property assignments
         self._codeID = codeID
@@ -45,33 +48,35 @@ class FieldDescription:
             self._identifier = ''
         else:
             self._identifier = identifier
-        if description is None:
-            self._description = ''
-        else:
-            self._description = description
+        dicttype = {}
+        if hm_type is not None:
+            dicttype['name'] = hm_type
+        if xsd_type is not None:
+            dicttype['XSDcode'] = xsd_type
+        self._type = dicttype
 
     def serialize(self):
         # Key/value format of response.
         return {
             "codeID": self._codeID,
             "identifier": self._identifier,
-            "description": self._description
+            "type": self._type
         }
 
     @classmethod
-    def from_dict(cls, dikt) -> 'FieldDescription':
+    def from_dict(cls, dikt) -> 'FieldType':
         """Returns the dict as a model
 
         :param dikt: A dict.
         :type: dict
-        :return: The FieldDescription of this FieldDescription
-        :rtype: FieldDescription
+        :return: The FieldType of this FieldType
+        :rtype: FieldType
         """
         return util.deserialize_model(dikt, cls)
 
     @property
     def codeID(self):
-        """Gets the codeID of this FieldDescription.
+        """Gets the codeID of this FieldType.
         :return: The codeID for the field from HMFIELD
         :rtype: str
         """
@@ -88,7 +93,7 @@ class FieldDescription:
 
     @property
     def identifier(self):
-        """Gets the identifier of this FieldDescription.
+        """Gets the identifier of this FieldType.
         :return: The identifier for the field
         :rtype: str
         """
@@ -104,18 +109,18 @@ class FieldDescription:
         self._identifier = identifier
 
     @property
-    def description(self):
-        """Gets the description of this FieldDescription.
-        :return: The description for the field from HMFIELD
-        :rtype: str
+    def type(self):
+        """Gets the type of this FieldType.
+        :return: The type for the field from HMFIELD
+        :rtype: dict
         """
-        return self._description
+        return self._type
 
-    @description.setter
-    def description(self, description):
+    @type.setter
+    def type(self, type):
         """Sets the description for the field from HMFIELD
 
-        :param description: The description of this field
-        :type description: str
+        :param type: The description of this field
+        :type type: dict
         """
-        self._description = description
+        self._type = type

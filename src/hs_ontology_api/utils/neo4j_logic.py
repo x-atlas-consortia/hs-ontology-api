@@ -25,6 +25,7 @@ from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 from hs_ontology_api.models.celltypedetail import CelltypeDetail
 # JAS Dec 2023
 from hs_ontology_api.models.fielddescription import FieldDescription
+from hs_ontology_api.models.fieldtype import FieldType
 
 # Query utilities
 # from hs_ontology_api.cypher.util_query import loadquerystring
@@ -1076,3 +1077,35 @@ def field_descriptions_get_logic(neo4j_instance) -> List[FieldDescription]:
                 pass
 
     return fielddescriptions
+
+def field_types_get_logic(neo4j_instance) -> List[FieldType]:
+    """
+    Returns detailed information on a HMFIELD field type.
+    """
+    # response list
+    fieldtypes: [FieldType] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'fieldtypes.cypher'
+    query = loadquerystring(queryfile)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fieldtype: FieldType = \
+                    FieldType(codeID=record.get('FieldCodeID'),
+                                     identifier=record.get('FieldName'),
+                                     hm_type=record.get('TypeName'),
+                                     xsd_type=record.get('xrefTypeCodeName')).serialize()
+
+                fieldtypes.append(fieldtype)
+
+            except KeyError:
+                pass
+
+    return fieldtypes
