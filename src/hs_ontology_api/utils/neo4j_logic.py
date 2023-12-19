@@ -214,8 +214,6 @@ def get_organ_types_logic(neo4j_instance, sab):
     query = loadquerystring(queryfile)
     query = query.replace('$sab', f'\'{sab}\'')
 
-    print(query)
-
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
         for record in recds:
