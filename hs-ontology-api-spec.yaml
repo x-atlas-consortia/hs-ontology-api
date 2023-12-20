@@ -642,7 +642,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldAssaysResponse'
         '400':
-          description: missing application context
+          description: no field to assay relationships
         '5XX':
           description: Unexpected error
   /field-schemas:
@@ -1320,42 +1320,35 @@ components:
           items:
             type: object
             properties:
-              codeID:
+              code_ids:
+                type: array
+                description: Codes for the field. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR templates.
+                items:
+                  type: string
+                  example: [HMFIELD:1008,CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3]
+              field_name:
                 type: string
-                description: Code in the HMFIELD ontology
-                example: HMFIELD:1001
-              identifier:
-                type: string
-                description: identifier for metadata field
-                example: ablation_distance_between_shots_x_units
+                description: identifier for the metadata field
+                example: acquisition_instrument_model
               assays:
                 type: array
-                description: array of "assays" (dataset types) associated with the field
+                description: array of assays/datasets associated with the field
                 items:
                   type: object
                   properties:
-                    data_type:
-                      type: object
-                      description: The data_type for the assay/dataset type--i.e., the key for ingest workflows
-                      properties:
-                        code:
-                          type: string
-                          description: Code in application ontology
-                          example: HUBMAP:C006904
-                        name:
-                          type: string
-                          description: the data_type string used in ingest workflows
-                          example: IMC
-                    display_name:
+                    assay_identifier:
                       type: string
-                      description: The display name for the assay/dataset type in the Portal UI
-                      example: Imaging Mass Cytometry (2D)
-                    alt-names:
-                      type: array
-                      description: The set of alt-names (synonyms for data_type) for the assay/dataset type
-                      items:
-                        type: string
-                        example: [Imaging Mass Cytometry,2D-IMC,IMC]
+                      description: The identifier used in the legacy field_assays.yaml. This can be the data_type, an alt-name, or the description of the data type in Portal.
+                      example: scRNAseq-10xGenomics
+                    data_type:
+                      type: string
+                      description: The legacy data_type--i.e., the key for ingest workflows
+                      example: scRNAseq-10xGenomics-v3
+                    dataset_type:
+                      type: string
+                      description: The "soft assay" dataset type
+                      example: RNASeq
+
     FieldSchemasResponse:
       type: object
       description: Associations between fields and metadata schemas for ingest metadata fields from legacy field-schemas.yaml

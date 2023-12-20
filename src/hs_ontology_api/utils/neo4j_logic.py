@@ -26,6 +26,7 @@ from hs_ontology_api.models.celltypedetail import CelltypeDetail
 # JAS Dec 2023
 from hs_ontology_api.models.fielddescription import FieldDescription
 from hs_ontology_api.models.fieldtype import FieldType
+from hs_ontology_api.models.fieldassay import FieldAssay
 
 # Query utilities
 # from hs_ontology_api.cypher.util_query import loadquerystring
@@ -1076,6 +1077,7 @@ def field_descriptions_get_logic(neo4j_instance) -> List[FieldDescription]:
 
     return fielddescriptions
 
+
 def field_types_get_logic(neo4j_instance) -> List[FieldType]:
     """
     Returns detailed information on a HMFIELD field type.
@@ -1097,9 +1099,9 @@ def field_types_get_logic(neo4j_instance) -> List[FieldType]:
             try:
                 fieldtype: FieldType = \
                     FieldType(codeID=record.get('FieldCodeID'),
-                                     identifier=record.get('FieldName'),
-                                     hm_type=record.get('TypeName'),
-                                     xsd_type=record.get('xrefTypeCodeName')).serialize()
+                              identifier=record.get('FieldName'),
+                              hm_type=record.get('TypeName'),
+                              xsd_type=record.get('xrefTypeCodeName')).serialize()
 
                 fieldtypes.append(fieldtype)
 
@@ -1107,3 +1109,35 @@ def field_types_get_logic(neo4j_instance) -> List[FieldType]:
                 pass
 
     return fieldtypes
+
+
+def field_assays_get_logic(neo4j_instance) -> List[FieldAssay]:
+    """
+    Returns detailed information on the associations between a legacy metadata field (from HMFIELD) and assays
+    """
+    # response list
+    fieldassays: [FieldAssay] = []
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'fieldassays.cypher'
+    query = loadquerystring(queryfile)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fieldassay: FieldAssay = \
+                    FieldAssay(code_ids=record.get('code_ids'),
+                               field_name=record.get('field_name'),
+                               assays=record.get('assays')).serialize()
+
+                fieldassays.append(fieldassay)
+
+            except KeyError:
+                pass
+
+    return fieldassays

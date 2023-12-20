@@ -20,6 +20,7 @@ from hs_ontology_api.routes.celltypesinfo.celltypesinfo_controller import cellty
 # JAS December 2023
 from hs_ontology_api.routes.fielddescriptions.fielddescriptions_controller import field_descriptions_blueprint
 from hs_ontology_api.routes.fieldtypes.fieldtypes_controller import field_types_blueprint
+from hs_ontology_api.routes.fieldassays.fieldassays_controller import field_assays_blueprint
 
 # Cells API client
 from hs_ontology_api.utils.cellsclient import OntologyCellsClient
@@ -51,6 +52,8 @@ app.register_blueprint(celltypes_blueprint)
 # JAS Dec 2023
 app.register_blueprint(field_descriptions_blueprint)
 app.register_blueprint(field_types_blueprint)
+app.register_blueprint(field_assays_blueprint)
+
 
 # Instantiate a Cells API client.
 cellsurl = make_flask_config().get('CELLSURL')
