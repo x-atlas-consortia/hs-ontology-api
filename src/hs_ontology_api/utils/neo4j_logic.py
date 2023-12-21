@@ -1046,17 +1046,38 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
     return celltypedetails
 
 
-def field_descriptions_get_logic(neo4j_instance) -> List[FieldDescription]:
+def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[FieldDescription]:
     """
     Returns detailed information on a HMFIELD field description.
     """
     # response list
     fielddescriptions: [FieldDescription] = []
 
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
+
     # Load annotated Cypher query from the cypher directory.
-    # The query is parameterized with variable $ids.
+
     queryfile = 'fielddescriptions.cypher'
     query = loadquerystring(queryfile)
+
+    # Allow for filtering on field name.
+    if field_name is None:
+        field_filter = f' AND {identity_filter}'
+    else:
+        field_filter = f" AND tField.name = '{field_name}'"
+    query = query.replace('$field_filter', field_filter)
+
+    # Allow for filtering on description source
+    print(definition_source)
+    if definition_source is None:
+        source_filter = " AND d.SAB IN ['HMFIELD', 'CEDAR'] "
+    elif definition_source in ['HMFIELD', 'CEDAR']:
+        source_filter = f" AND d.SAB = '{definition_source}'"
+    else:
+        source_filter = " AND d.SAB IN ['HMFIELD', 'CEDAR'] "
+
+    query = query.replace('$source_filter', source_filter)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
@@ -1066,9 +1087,9 @@ def field_descriptions_get_logic(neo4j_instance) -> List[FieldDescription]:
         for record in recds:
             try:
                 fielddescription: FieldDescription = \
-                    FieldDescription(codeID=record.get('codeID'),
+                    FieldDescription(code_ids=record.get('code_ids'),
                                      identifier=record.get('identifier'),
-                                     description=record.get('description')).serialize()
+                                     descriptions=record.get('defs')).serialize()
 
                 fielddescriptions.append(fielddescription)
 

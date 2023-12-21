@@ -11,51 +11,62 @@ from typing import List
 from ubkg_api.models import util
 
 class FieldDescription:
-    def __init__(self, codeID=None, identifier=None, description=None):
+    def __init__(self, code_ids=None, identifier=None, descriptions=None):
         """
         FieldDescription - a model defined in OpenAPI
 
-        Represents a code from the HMFIELD ontology.
-        :param codeID: codeID for the Code node in HMFIELD
+        Represents associations with metadata fields and assay/datasets.
+        Replaces and enhances the legacy field_descriptions.yaml with additional information from
+        CEDAR.
+
+        :param code_ids: delimited list of code_ids for the metadata field. The code_ids can come from both
+                         HMFIELD and CEDAR.
         :param identifier: equivalent of the field key in the yaml
-        :param description: description
+        :param descriptions: delimited list of descriptions for the metadata field. The descriptions can come from both
+                         HMFIELD and CEDAR.
 
         example:
-        codeID - HMFIELD:1001
-        identifier - ablation_distance_between_shots_x_units
-        description - Units of x resolution distance between laser ablation shots.
+        code_ids - [HMFIELD:1008|CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3]
+        field_name - acquisition_instrument_model
+        descriptions - [HMFIELD|<description>,CEDAR|<description>]
 
         """
 
         # Types for JSON objects
         self.openapi_types = {
-            'codeID': str,
+            'code_ids': list[str],
             'identifier': str,
-            'description:': str
+            'descriptions:': list[str]
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
-            'codeID': 'codeID',
+            'code_ids': 'code_ids',
             'identifier': 'identifier',
-            'description': 'description'
+            'descriptions': 'descriptions'
         }
         # Property assignments
-        self._codeID = codeID
+        self._code_ids = code_ids.split('|')
+
         if identifier is None:
             self._identifier = ''
         else:
             self._identifier = identifier
-        if description is None:
-            self._description = ''
-        else:
-            self._description = description
+
+        listdescriptions = []
+        if descriptions is not None:
+            for description in descriptions:
+                dictdescription = {'source': description.split('|')[0],
+                             'description': description.split('|')[1]
+                                   }
+                listdescriptions.append(dictdescription)
+        self._descriptions = listdescriptions
 
     def serialize(self):
         # Key/value format of response.
         return {
-            "codeID": self._codeID,
+            "code_ids": self._code_ids,
             "identifier": self._identifier,
-            "description": self._description
+            "descriptions": self._descriptions
         }
 
     @classmethod
@@ -70,21 +81,21 @@ class FieldDescription:
         return util.deserialize_model(dikt, cls)
 
     @property
-    def codeID(self):
-        """Gets the codeID of this FieldDescription.
-        :return: The codeID for the field from HMFIELD
+    def code_ids(self):
+        """Gets the code_ids of this FieldDescription.
+        :return: The code_ids for the field from HMFIELD
         :rtype: str
         """
-        return self._codeID
+        return self._code_ids
 
-    @codeID.setter
-    def codeID(self, codeID):
-        """Sets the codeID for the field from HMFIELD
+    @code_ids.setter
+    def code_ids(self, code_ids):
+        """Sets the code_ids for the field from HMFIELD
 
-        :param codeID: The codeID of this field
-        :type codeID: str
+        :param code_ids: The code_ids of this field
+        :type code_ids: str
         """
-        self._codeID = codeID
+        self._code_ids = code_ids
 
     @property
     def identifier(self):
@@ -104,18 +115,18 @@ class FieldDescription:
         self._identifier = identifier
 
     @property
-    def description(self):
-        """Gets the description of this FieldDescription.
-        :return: The description for the field from HMFIELD
+    def descriptions(self):
+        """Gets the descriptions of this FieldDescription.
+        :return: The descriptions for the field from HMFIELD
         :rtype: str
         """
-        return self._description
+        return self._descriptions
 
-    @description.setter
-    def description(self, description):
-        """Sets the description for the field from HMFIELD
+    @descriptions.setter
+    def descriptions(self, descriptions):
+        """Sets the descriptions for the field from HMFIELD
 
-        :param description: The description of this field
-        :type description: str
+        :param descriptions: The description of this field
+        :type descriptions: str
         """
-        self._description = description
+        self._descriptions = descriptions

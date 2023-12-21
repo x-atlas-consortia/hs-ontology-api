@@ -3,7 +3,7 @@
 // - current sources (CEDAR tempates, modeled in CEDAR), child codes of CEDAR:TemplateField
 // Fields that are in the intersection of HMFIELD and CEDAR share CUIs.
 
-// Collect the HMFIELD and CEDAR codes for each metadata to flatten to level of field name.
+// Collect the HMFIELD and CEDAR codes for each metadata field to flatten to level of field name.
 
 // The function that calls this query will replace the variable field_filter.
 CALL

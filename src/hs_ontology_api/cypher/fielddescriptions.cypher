@@ -1,11 +1,19 @@
-//GET HMFIELD Field information
-MATCH (cFieldParent:Code)<-[:CODE]-(pFieldParent:Concept)-[:inverse_isa]->(pField:Concept)-[:CODE]->(cField:Code)-[rField:PT]->(tField:Term),
-(pField:Concept)-[:DEF]->(dField:Definition)
+// Identify all metadata fields, from both:
+// - legacy sources (the field_*.yaml files in ingest-validation-tools, and modeled in HMFIELD), child codes of HMFIELD:1000
+// - current sources (CEDAR tempates, modeled in CEDAR), child codes of CEDAR:TemplateField
+// Fields that are in the intersection of HMFIELD and CEDAR share CUIs.
+
+// Collect the HMFIELD and CEDAR codes for each metadata field to flatten to level of field name.
+// Collect the HMFIELD and CEDAR definitions for each metadata field to flatten to level of field name.
+
+// The function that calls this query will replace the variables field_filter and source_filter
+
+OPTIONAL MATCH (cFieldParent:Code)<-[:CODE]-(pFieldParent:Concept)-[:inverse_isa]->(pField:Concept)-[:CODE]->(cField:Code)-[rField:PT]->(tField:Term),
+(pField:Concept)-[:DEF]->(d:Definition)
 WHERE rField.CUI=pField.CUI
-AND cFieldParent.CodeID='HMFIELD:1000'
-AND cField.SAB = 'HMFIELD'
-AND dField.SAB='HMFIELD'
-RETURN DISTINCT cField.CodeID AS codeID,
-tField.name AS identifier,
-dField.DEF AS description
-ORDER BY identifier
+AND cFieldParent.CodeID IN ['HMFIELD:1000','CEDAR:TemplateField']
+$field_filter
+$source_filter
+RETURN tField.name AS field_name, pField.CUI as CUIField,
+COLLECT(DISTINCT d.SAB + '|' + d.DEF) AS defs, tField.name AS identifier, apoc.text.join(COLLECT(DISTINCT cField.CodeID),'|') AS code_ids
+ORDER BY tField.name
