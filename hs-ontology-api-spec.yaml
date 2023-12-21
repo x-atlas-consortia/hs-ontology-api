@@ -554,7 +554,17 @@ paths:
   /field-descriptions:
     get:
       operationId: field_descriptions_get
-      summary: Return descriptions for ingest metadata fields. Replacement for field-descriptions.yaml.
+      summary: Returns descriptions for ingest metadata fields. Replacement for field-descriptions.yaml.
+      parameters:
+        - name: source
+          in: query
+          required: false
+          description: case-insensitive name of the description source
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - CEDAR
       responses:
         '200':
           description: Ingest metadata fields and descriptions
@@ -564,6 +574,46 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldDescriptionsResponse'
+        '400':
+          description: Invalid source parameter
+        '404':
+          description: No descriptions (with list of parameters, if specified)
+        '5XX':
+          description: Unexpected error
+  /field-descriptions/{name}:
+    get:
+      operationId: field_descriptions_name_get
+      summary: Returns descriptions for the specified ingest metadata field. Replacement for field-descriptions.yaml.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: name of the metadata field
+          schema:
+            type: string
+            example: ablation_distance_between_shots_x_units
+        - name: source
+          in: query
+          required: false
+          description: case-insensitive name of the description source
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - CEDAR
+      responses:
+        '200':
+          description: Ingest metadata fields and descriptions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldDescriptionsResponse'
+        '400':
+          description: Invalid source parameter
+        '404':
+          description: No descriptions (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
   /field-types:
@@ -1256,18 +1306,30 @@ components:
           items:
             type: object
             properties:
-              codeID:
-                type: string
-                description: Code in the HMFIELD ontology
-                example: HMFIELD:1001
+              code_ids:
+                type: array
+                description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
+                items:
+                  type: string
+                  example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
               identifier:
                 type: string
                 description: identifier for metadata field
                 example: ablation_distance_between_shots_x_units
-              description:
-                type: string
-                description: description of field
-                example: Units of x resolution distance between laser ablation shots.
+              descriptions:
+                type: array
+                description: descriptions of field, from both HMFIELD and CEDAR
+                items:
+                  type: object
+                  properties:
+                    source:
+                      type: string
+                      description: source of the description
+                      example: CEDAR
+                    description:
+                      type: string
+                      description: description string
+                      example: Units of x resolution distance between laser ablation shots.
     FieldTypesResponse:
       type: object
       description: Associations between metadata field and data type ingest metadata fields from legacy field-types.yaml
