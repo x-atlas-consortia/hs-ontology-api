@@ -585,96 +585,115 @@ paths:
     get:
       operationId: field_entities_get
       summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field-types.yaml.
-      parameters:
-        - name: application_context
-          in: query
-          required: true
-          description: Filter to indicate application context
-          schema:
-            type: string
-            default: HUBMAP
-            enum:
-              - HUBMAP
-              - SENNET
-              - hubmap
-              - sennet
-              - HuBMAP
-              - SenNet
       responses:
         '200':
-          description: Associations between ingest metadata fields and application-specific provenance entities.
+          description: Associations between ingest metadata fields and provenance entities.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldEntitiesResponse'
-        '400':
-          description: missing application context
         '5XX':
           description: Unexpected error
   /field-assays:
     get:
       operationId: field_assays_get
-      summary: Return associations between ingest metadata fields and the "assays" (dataset data types) for an application. Replacement for field-assays.yaml.
+      summary: Return associations between ingest metadata fields and the "assays" (dataset data types). Replacement for field-assays.yaml.
       parameters:
-        - name: application_context
+        - name: assay_identifier
           in: query
-          required: true
-          description: Filter to indicate application context
+          required: false
+          description: the legacy idenetifier for the assay dataset in field_assays.yaml. This may be a data_type, alt-name, or description of the dataset.
           schema:
             type: string
-            default: HUBMAP
-            enum:
-              - HUBMAP
-              - SENNET
-              - hubmap
-              - sennet
-              - HuBMAP
-              - SenNet
+            example: scRNAseq-10xGenomics
+        - name: data_type
+          in: query
+          required: false
+          description: the legacy data_type--i.e., the key for ingest workflows
+          schema:
+            type: string
+            example: scRNAseq-10xGenomics-v3
+        - name: dataset_type
+          in: query
+          required: false
+          description: the "soft assay" dataset type--i.e., the value used by the Rules Engine
+          schema:
+            type: string
+            example: RNASeq
       responses:
         '200':
-          description: Associations between ingest metadata fields and application-specific assays/dataset types.
+          description: Associations between ingest metadata fields and assays/dataset types.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldAssaysResponse'
-        '400':
-          description: no field to assay relationships
+        '404':
+          description: no field to assay relationships found (for the set of parameters, if specified)
+        '5XX':
+          description: Unexpected error
+  /field-assays/{name}:
+    get:
+      operationId: field_assays_name_get
+      summary: Return associations between the specified ingest metadata field and the "assays" (dataset data types). Replacement for field-assays.yaml.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: name of the metadata field
+          schema:
+            type: string
+            example: acquisition_instrument_model
+        - name: assay_identifier
+          in: query
+          required: false
+          description: the legacy idenetifier for the assay dataset in field_assays.yaml. This may be a data_type, alt-name, or description of the dataset.
+          schema:
+            type: string
+            example: scRNAseq-10xGenomics
+        - name: data_type
+          in: query
+          required: false
+          description: the legacy data_type--i.e., the key for ingest workflows
+          schema:
+            type: string
+            example: scRNAseq-10xGenomics-v3
+        - name: dataset_type
+          in: query
+          required: false
+          description: the "soft assay" dataset type--i.e., the value used by the Rules Engine
+          schema:
+            type: string
+            example: RNASeq
+      responses:
+        '200':
+          description: Associations between the ingest metadata field and assays/dataset types.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldAssaysResponse'
+        '404':
+          description: no field to assay relationships found for field {name}
         '5XX':
           description: Unexpected error
   /field-schemas:
     get:
       operationId: field_schemas_get
-      summary: Return associations between ingest metadata fields and metadata schemas for an application. Replacement for field-schemas.yaml.
-      parameters:
-        - name: application_context
-          in: query
-          required: true
-          description: Filter to indicate application context
-          schema:
-            type: string
-            default: HUBMAP
-            enum:
-              - HUBMAP
-              - SENNET
-              - hubmap
-              - sennet
-              - HuBMAP
-              - SenNet
+      summary: Return associations between ingest metadata fields and metadata schemas. Replacement for field-schemas.yaml.
       responses:
         '200':
-          description: Associations between ingest metadata fields and application-specific metadata schemas.
+          description: Associations between ingest metadata fields and metadata schemas.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldSchemasResponse'
-        '400':
-          description: missing application context
         '5XX':
           description: Unexpected error
 components:
@@ -1312,7 +1331,7 @@ components:
                       example: dataset
     FieldAssaysResponse:
       type: object
-      description: Associations between fields and "assays" (dataset types) for ingest metadata fields from legacy field-assays.yaml
+      description: Associations between fields and "assays" (or datasets generated by assays) for ingest metadata fields
       properties:
         fields:
           type: array
@@ -1322,13 +1341,13 @@ components:
             properties:
               code_ids:
                 type: array
-                description: Codes for the field. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR templates.
+                description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
                 items:
                   type: string
-                  example: [HMFIELD:1008,CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3]
+                  example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
               field_name:
                 type: string
-                description: identifier for the metadata field
+                description: name of the metadata field
                 example: acquisition_instrument_model
               assays:
                 type: array
@@ -1338,7 +1357,7 @@ components:
                   properties:
                     assay_identifier:
                       type: string
-                      description: The identifier used in the legacy field_assays.yaml. This can be the data_type, an alt-name, or the description of the data type in Portal.
+                      description: The legacy identifier used in field_assays.yaml. This can be the data_type, an alt-name, or the description of the data_type used in Portal.
                       example: scRNAseq-10xGenomics
                     data_type:
                       type: string
@@ -1346,7 +1365,7 @@ components:
                       example: scRNAseq-10xGenomics-v3
                     dataset_type:
                       type: string
-                      description: The "soft assay" dataset type
+                      description: The "soft assay" dataset type--e.g., used by the Rules Engine
                       example: RNASeq
 
     FieldSchemasResponse:

@@ -1111,17 +1111,63 @@ def field_types_get_logic(neo4j_instance) -> List[FieldType]:
     return fieldtypes
 
 
-def field_assays_get_logic(neo4j_instance) -> List[FieldAssay]:
+def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=None,
+                                    data_type=None, dataset_type=None) -> List[FieldAssay]:
     """
-    Returns detailed information on the associations between a legacy metadata field (from HMFIELD) and assays
+    Returns detailed information on the associations between a  metadata field and assay datasets
+    :param neo4j_instance: connection to UBKG instance
+    :param field_name: optional filter: name of field
+    :param assay_identifier: optional filter: name of assay_identifier used in legacy field_assays.yaml.
+    This corresponds to a data_type; an alt-name, or a description.
+    :param data_type: legacy data_type
+    :param dataset_type: soft assay dataset type
+    :return:
     """
+
     # response list
     fieldassays: [FieldAssay] = []
+
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'fieldassays.cypher'
     query = loadquerystring(queryfile)
+
+    # Allow for filtering on field name.
+    if field_name is None:
+        field_filter = f' AND {identity_filter}'
+    else:
+        field_filter = f" AND tField.name = '{field_name}'"
+    query = query.replace('$field_filter', field_filter)
+
+    # Allow for filtering on assay_identifier.
+    if assay_identifier is None:
+        assay_type_filter = f'AND {identity_filter}'
+    else:
+        assay_type_filter=f" AND tAssay.name='{assay_identifier}'"
+
+    query = query.replace('$assay_type_filter', assay_type_filter)
+
+    # Allow for filtering on data_type and dataset_type
+    list_data_filters = []
+    if data_type is None:
+        list_data_filters.append(identity_filter)
+    else:
+        list_data_filters.append(f"data_type='{data_type}'")
+
+    if dataset_type is None:
+        list_data_filters.append(identity_filter)
+    else:
+        list_data_filters.append(f"dataset_type='{dataset_type}'")
+
+    if len(list_data_filters) == 0:
+        filter = f' WHERE {identity_filter}'
+    else:
+        filter = ' WHERE ' + ' AND '.join(list_data_filters)
+
+    query = query.replace('$data_type_dataset_type_filters', filter)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.

@@ -4,11 +4,14 @@
 // Fields that are in the intersection of HMFIELD and CEDAR share CUIs.
 
 // Collect the HMFIELD and CEDAR codes for each metadata to flatten to level of field name.
+
+// The function that calls this query will replace the variable field_filter.
 CALL
 {
      MATCH (cFieldParent:Code)<-[:CODE]-(pFieldParent:Concept)-[:inverse_isa]->(pField:Concept)-[:CODE]->(cField:Code)-[rField:PT]->(tField:Term)
      WHERE rField.CUI=pField.CUI
      AND cFieldParent.CodeID IN ['HMFIELD:1000','CEDAR:TemplateField']
+     $field_filter
      RETURN tField.name AS field_name, pField.CUI as CUIField, apoc.text.join(COLLECT(DISTINCT cField.CodeID),'|') AS code_ids
      ORDER BY tField.name
 }
@@ -20,11 +23,14 @@ CALL
 // - alt_name
 // These identifiers are cross-referenced to CUIs for codes in the HUBMAP Dataset hierarchy.
 //
+
+// The function that calls this query will replace the variable assay_type_filter.
 CALL
 {
     WITH CUIField
     OPTIONAL MATCH (pField:Concept)-[:used_in_dataset]->(pAssay:Concept)-[:CODE]->(cAssay:Code)-[r:PT]->(tAssay:Term)
     WHERE pField.CUI=CUIField AND cAssay.SAB='HMFIELD'
+    $assay_type_filter
     RETURN DISTINCT cAssay.CodeID AS assay_code_id,
     CASE WHEN tAssay.name IS NULL THEN 'none' ELSE tAssay.name END AS assay_identifier
 }
@@ -75,6 +81,9 @@ CALL
 }
 
 // Collect assay_identifier, data_type, and dataset_type into a delimited list to flatten to level of field name.
+// The function that calls this query will replace the variable data_type_dataset_type_filters.
+
 WITH field_name, code_ids, assay_identifier, data_type, dataset_type
+$data_type_dataset_type_filters
 RETURN field_name, code_ids, COLLECT(DISTINCT assay_identifier + '|' + data_type + '|' + dataset_type) AS assays
 ORDER BY field_name
