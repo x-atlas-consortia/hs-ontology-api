@@ -50,6 +50,10 @@ def field_assays_get(name=None):
     # data_type - legacy data_type, used in ingestion workflows
     # dataset_type - "soft assay" dataset type, used by the Rules Engine
 
+    for req in request.args:
+        if req not in ['assay_identifier','data_type','dataset_type']:
+            return make_response(f"Invalid parameter: '{req}'", 400)
+
     assay_identifier = request.args.get('assay_identifier')
     data_type = request.args.get('data_type')
     dataset_type = request.args.get('dataset_type')

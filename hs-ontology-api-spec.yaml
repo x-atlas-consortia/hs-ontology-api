@@ -575,7 +575,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldDescriptionsResponse'
         '400':
-          description: Invalid source parameter
+          description: Invalid source parameter; invalid parameter name
         '404':
           description: No descriptions (with list of parameters, if specified)
         '5XX':
@@ -611,7 +611,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldDescriptionsResponse'
         '400':
-          description: Invalid source parameter
+          description: Invalid source parameter; invalid parameter name
         '404':
           description: No descriptions (with list of parameters, if specified)
         '5XX':
@@ -620,15 +620,83 @@ paths:
     get:
       operationId: field_types_get
       summary: Return data types for ingest metadata fields. Replacement for field-types.yaml.
+      parameters:
+        - name: mapping_source
+          in: query
+          required: false
+          description: case-insensitive name of the field-to-type mapping source
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - CEDAR
+        - name: type_source
+          in: query
+          required: false
+          description: case-insensitive name of the type source
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - XSD
       responses:
         '200':
-          description: Ingest metadata fields mapped to XSD data types.
+          description: Ingest metadata fields to HMFIELD and/or XSD data types.
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldTypesResponse'
+        '400':
+          description: Invalid source parameter; invalid parameter name
+        '404':
+          description: No field-type associations (with list of parameters, if specified)
+        '5XX':
+          description: Unexpected error
+  /field-types/{name}:
+    get:
+      operationId: field_types_name_get
+      summary: Return data types for a specifie ingest metadata field. Replacement for field-types.yaml.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: name of the metadata field
+          schema:
+            type: string
+            example: area_unit
+        - name: mapping_source
+          in: query
+          required: false
+          description: case-insensitive name of the field-type mapping source
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - CEDAR
+        - name: type_source
+          in: query
+          required: false
+          description: case-insensitive name of the type source
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - XSD
+      responses:
+        '200':
+          description: Ingest metadata fields to HMFIELD and/or XSD data types.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldTypesResponse'
+        '400':
+          description: Invalid source parameter; invalid parameter name
+        '404':
+          description: No field-type associations (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
   /field-entities:
@@ -681,6 +749,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldAssaysResponse'
+        '400':
+          description: Invalid parameter name
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
         '5XX':
@@ -727,6 +797,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldAssaysResponse'
+        '400':
+          description: Invalid parameter name
         '404':
           description: no field to assay relationships found for field {name}
         '5XX':
@@ -1332,7 +1404,7 @@ components:
                       example: Units of x resolution distance between laser ablation shots.
     FieldTypesResponse:
       type: object
-      description: Associations between metadata field and data type ingest metadata fields from legacy field-types.yaml
+      description: Associations between metadata field and data type ingest metadata fields
       properties:
         fields:
           type: array
@@ -1340,25 +1412,34 @@ components:
           items:
             type: object
             properties:
-              codeID:
-                type: string
-                description: Code in the HMFIELD ontology
-                example: HMFIELD:1001
+              code_ids:
+                type: array
+                description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
+                items:
+                  type: string
+                  example: ["HMFIELD:1018","CEDAR:ea6e26f1-30df-4a8c-9f15-63111ea0b68b"]
               identifier:
                 type: string
                 description: identifier for metadata field
-                example: ablation_distance_between_shots_x_units
-              type:
-                type: object
-                properties:
-                  XSDCode:
-                    type: string
-                    description: Code in XSD
-                    example: xsd:string
-                  name:
-                    type: string
-                    description: name for type
-                    example: string
+                example: area_unit
+              types:
+                type: array
+                description: field type associations
+                items:
+                  type: object
+                  properties:
+                    mapping_source:
+                      type: string
+                      description: source of the field-to-type mapping (i.e., the ontology)
+                      example: CEDAR
+                    type_source:
+                      type: string
+                      description: source of the field code (i.e., the type ontology)
+                      example: XSD
+                    type_code:
+                      type: string
+                      description: the code in the type ontology
+                      example: float
     FieldEntitiesResponse:
       type: object
       description: Associations between fields and provenance entities for ingest metadata fields from legacy field-types.yaml

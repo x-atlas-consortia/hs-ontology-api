@@ -12,55 +12,81 @@ from ubkg_api.models import util
 
 
 class FieldType:
-    def __init__(self, codeID=None, identifier=None, hm_type=None, xsd_type=None):
+    def __init__(self, code_ids=None, identifier=None, types=None):
         """
         FieldType - a model defined in OpenAPI
 
         Represents a code from the HMFIELD ontology.
-        :param codeID: codeID for the Code node in HMFIELD
-        :param identifier: equivalent of the field key in the yaml
-        :param hm_type: field type from legacy field_types.yaml
-        :param xsd_type: corresponding field type for field in XSD
+        :param code_ids: delimited list of code_ids for the metadata field. The code_ids can come from both
+                         HMFIELD and CEDAR.
+        :param identifier: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
+        :param types: delimited list of type mappings for the metadata field.
+        Each value in the list has elements:
+         - mapping_source: either HMFIELD or CEDAR
+         - type_source: either HMFIELD or XSD
+         - type
+
+         In general, if a field is common to HMFIELD and CEDAR, the type for the field in HMFIELD will be different
+         than its equivalent in CEDAR. In addition, HMFIELDs are mapped to a custom type in HMFIELD and a type in XSD
+
+         For example,
+         ["HMFIELD|HMFIELD|string", "HMFIELD|XSD|xsd:string", "CEDAR|XSD|xsd:anyURI"]
 
         example:
-        codeID - HMFIELD:1001
-        identifier - ablation_distance_between_shots_x_units
-        hm_type - string
-        xsd_type: xsd:string
+        code_ids - HMFIELD:1008|CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3
+        identifier - acquisition_instrument_model
+        ["HMFIELD|HMFIELD|string", "HMFIELD|XSD|xsd:string", "CEDAR|XSD|xsd:anyURI"]
+
+        The aquisition_instrument_model field is mapped to:
+         - the HMFIELD type for string (in HMFIELD)
+         - the XSD type for string (in HMFIELD)
+         - the XSD type for anyURI in CEDAR
+
+         The anyURI type in CEDAR is used for fields that have valuesets.
 
         """
 
         # Types for JSON objects
         self.openapi_types = {
-            'codeID': str,
+            'code_ids': list[str],
             'identifier': str,
-            'type:': dict
+            'types:': list[str]
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
-            'codeID': 'codeID',
+            'code_ids': 'code_ids',
             'identifier': 'identifier',
-            'type': 'type'
+            'types': 'types'
         }
         # Property assignments
-        self._codeID = codeID
+        self._code_ids = code_ids.split('|')
         if identifier is None:
             self._identifier = ''
         else:
             self._identifier = identifier
+
         dicttype = {}
-        if hm_type is not None:
-            dicttype['name'] = hm_type
-        if xsd_type is not None:
-            dicttype['XSDcode'] = xsd_type
-        self._type = dicttype
+        listtypes = []
+
+        if types is not None:
+            for type in types:
+                # Remove 'xsd:' for XSD type mappings.
+                type_name = type.split('|')[2]
+                if ':' in type_name:
+                    type_name = type_name.split(':')[1]
+                dicttype = {'mapping_source': type.split('|')[0],
+                            'type_source': type.split('|')[1],
+                            'type_name' : type_name
+                            }
+                listtypes.append(dicttype)
+        self._types = listtypes
 
     def serialize(self):
         # Key/value format of response.
         return {
-            "codeID": self._codeID,
+            "code_ids": self._code_ids,
             "identifier": self._identifier,
-            "type": self._type
+            "types": self._types
         }
 
     @classmethod
@@ -75,21 +101,21 @@ class FieldType:
         return util.deserialize_model(dikt, cls)
 
     @property
-    def codeID(self):
-        """Gets the codeID of this FieldType.
-        :return: The codeID for the field from HMFIELD
+    def code_ids(self):
+        """Gets the code_ids of this FieldType.
+        :return: The code_ids for the field from HMFIELD
         :rtype: str
         """
-        return self._codeID
+        return self._code_ids
 
-    @codeID.setter
-    def codeID(self, codeID):
-        """Sets the codeID for the field from HMFIELD
+    @code_ids.setter
+    def code_ids(self, code_ids):
+        """Sets the code_ids for the field from HMFIELD
 
-        :param codeID: The codeID of this field
-        :type codeID: str
+        :param code_ids: The code_ids of this field
+        :type code_ids: str
         """
-        self._codeID = codeID
+        self._code_ids = code_ids
 
     @property
     def identifier(self):
@@ -109,18 +135,18 @@ class FieldType:
         self._identifier = identifier
 
     @property
-    def type(self):
-        """Gets the type of this FieldType.
-        :return: The type for the field from HMFIELD
+    def types(self):
+        """Gets the types of this FieldType.
+        :return: The types for the field from HMFIELD
         :rtype: dict
         """
-        return self._type
+        return self._types
 
-    @type.setter
-    def type(self, type):
-        """Sets the description for the field from HMFIELD
+    @types.setter
+    def types(self, types):
+        """Sets the types for the field from HMFIELD
 
-        :param type: The description of this field
-        :type type: dict
+        :param types: The types of this field
+        :type types: dict
         """
-        self._type = type
+        self._types = types

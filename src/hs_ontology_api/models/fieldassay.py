@@ -22,7 +22,7 @@ class FieldAssay:
 
         :param code_ids: delimited list of code_ids for the metadata field. The code_ids can come from both
                          HMFIELD or CEDAR.
-        :param field_name: equivalent of the field key in the yaml
+        :param field_name: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
         :param assays: delimited list of values in format <assay_identifier>|<data_type>|<dataset_type>.
                Each value in the list has elements:
                 - assay_identifier: the assay identifier for the assay from the yaml.

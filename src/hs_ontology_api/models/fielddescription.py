@@ -21,9 +21,12 @@ class FieldDescription:
 
         :param code_ids: delimited list of code_ids for the metadata field. The code_ids can come from both
                          HMFIELD and CEDAR.
-        :param identifier: equivalent of the field key in the yaml
+        :param identifier: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
         :param descriptions: delimited list of descriptions for the metadata field. The descriptions can come from both
                          HMFIELD and CEDAR.
+        Each value in the list has elements:
+                - source of the description
+                - description text
 
         example:
         code_ids - [HMFIELD:1008|CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3]

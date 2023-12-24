@@ -27,6 +27,11 @@ def field_descriptions_get(name=None):
     :rtype: Union[List[FieldDescription]]
 
     """
+
+    for req in request.args:
+        if req not in ['source']:
+            return make_response(f"Invalid parameter: '{req}'", 400)
+
     source = request.args.get('source')
     if source is not None:
         source = source.upper()

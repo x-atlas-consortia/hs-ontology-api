@@ -1099,17 +1099,45 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
     return fielddescriptions
 
 
-def field_types_get_logic(neo4j_instance) -> List[FieldType]:
+def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, type_source=None) -> List[FieldType]:
     """
     Returns detailed information on a HMFIELD field type.
     """
     # response list
     fieldtypes: [FieldType] = []
 
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
+
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'fieldtypes.cypher'
     query = loadquerystring(queryfile)
+
+    # Allow for filtering on field name.
+    if field_name is None:
+        field_filter = f' AND {identity_filter}'
+    else:
+        field_filter = f" AND tField.name = '{field_name}'"
+    query = query.replace('$field_filter', field_filter)
+
+    # Allow for filtering on mapping source.
+    if mapping_source is None:
+        mapping_source_filter = " AND rdt.SAB IN ['HMFIELD', 'CEDAR'] "
+    elif mapping_source in ['HMFIELD', 'CEDAR']:
+        mapping_source_filter = f" AND rdt.SAB = '{mapping_source}'"
+    else:
+        mapping_source_filter = " AND rdt.SAB IN ['HMFIELD', 'CEDAR'] "
+    query = query.replace('$mapping_source_filter', mapping_source_filter)
+
+    # Allow for filtering on type source.
+    if type_source is None:
+        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
+    elif type_source in ['HMFIELD', 'XSD']:
+        type_source_filter = f" AND cType.SAB = '{type_source}'"
+    else:
+        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
+    query = query.replace('$type_source_filter', type_source_filter)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
@@ -1119,10 +1147,9 @@ def field_types_get_logic(neo4j_instance) -> List[FieldType]:
         for record in recds:
             try:
                 fieldtype: FieldType = \
-                    FieldType(codeID=record.get('FieldCodeID'),
-                              identifier=record.get('FieldName'),
-                              hm_type=record.get('TypeName'),
-                              xsd_type=record.get('xrefTypeCodeName')).serialize()
+                    FieldType(code_ids=record.get('code_ids'),
+                              identifier=record.get('field_name'),
+                              types=record.get('types')).serialize()
 
                 fieldtypes.append(fieldtype)
 
