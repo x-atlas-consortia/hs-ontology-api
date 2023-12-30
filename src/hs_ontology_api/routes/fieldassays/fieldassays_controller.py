@@ -62,7 +62,6 @@ def field_assays_get(name=None):
     result = field_assays_get_logic(neo4j_instance, field_name=name, assay_identifier=assay_identifier,
                                     data_type=data_type, dataset_type=dataset_type)
 
-    print(result)
     iserr = False
     if result is None or result == []:
         iserr = True

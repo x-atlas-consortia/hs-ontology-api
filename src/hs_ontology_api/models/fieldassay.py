@@ -54,9 +54,9 @@ class FieldAssay:
         # Property assignments
 
         if name is None:
-            self.name = ''
+            self._name = ''
         else:
-            self.name = name
+            self._name = name
 
         self._code_ids = code_ids.split('|')
 

@@ -567,7 +567,7 @@ paths:
               - CEDAR
       responses:
         '200':
-          description: Ingest metadata fields and descriptions
+          description: Array of ingest metadata fields with descriptions
           content:
             application/json:
               schema:
@@ -603,7 +603,7 @@ paths:
               - CEDAR
       responses:
         '200':
-          description: Ingest metadata fields and descriptions
+          description: Array of ingest metadata fields with descriptions
           content:
             application/json:
               schema:
@@ -641,7 +641,7 @@ paths:
               - XSD
       responses:
         '200':
-          description: Ingest metadata fields to HMFIELD and/or XSD data types.
+          description: Array of metadata fields with their HMFIELD and/or XSD data types.
           content:
             application/json:
               schema:
@@ -657,7 +657,7 @@ paths:
   /field-types/{name}:
     get:
       operationId: field_types_name_get
-      summary: Return data types for a specifie ingest metadata field. Replacement for field-types.yaml.
+      summary: Return data types for a specified ingest metadata field. Replacement for field-types.yaml.
       parameters:
         - name: name
           in: path
@@ -686,7 +686,7 @@ paths:
               - XSD
       responses:
         '200':
-          description: Ingest metadata fields to HMFIELD and/or XSD data types.
+          description: Array of metadata fields with their HMFIELD and/or XSD data types.
           content:
             application/json:
               schema:
@@ -742,7 +742,7 @@ paths:
             example: RNASeq
       responses:
         '200':
-          description: Associations between ingest metadata fields and assays/dataset types.
+          description: Array of ingest metadata fields; each field with its associations with assays/dataset types.
           content:
             application/json:
               schema:
@@ -790,7 +790,7 @@ paths:
             example: RNASeq
       responses:
         '200':
-          description: Associations between the ingest metadata field and assays/dataset types.
+          description: Array of ingest metadata fields; each field with its associations with assays/dataset types.
           content:
             application/json:
               schema:
