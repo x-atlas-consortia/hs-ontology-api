@@ -19,7 +19,7 @@ def get_error_string(field_name=None, assay_identifier=None, data_type=None, dat
 
     listerr = []
     if field_name is not None:
-        listerr.append(f'name={field_name}')
+        listerr.append(f"name ='{field_name}'")
 
     if assay_identifier is not None:
         listerr.append(f'assay_identifier={assay_identifier}')
@@ -61,11 +61,22 @@ def field_assays_get(name=None):
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = field_assays_get_logic(neo4j_instance, field_name=name, assay_identifier=assay_identifier,
                                     data_type=data_type, dataset_type=dataset_type)
+
+    print(result)
+    iserr = False
     if result is None or result == []:
+        iserr = True
+    else:
+        # Check for no assay associations.
+        assays = result[0].get('assays')
+        iserr = len(assays) == 0
+
+    if iserr:
         # Empty result
         err = get_error_string(field_name=name, assay_identifier=assay_identifier,
                                data_type=data_type, dataset_type=dataset_type)
         return make_response(err, 404)
+
     return jsonify(result)
 
 

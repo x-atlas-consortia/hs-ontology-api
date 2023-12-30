@@ -12,7 +12,7 @@ from ubkg_api.models import util
 
 
 class FieldAssay:
-    def __init__(self, code_ids=None, field_name=None, assays=None):
+    def __init__(self, code_ids=None, name=None, assays=None):
         """
         FieldAssay - a model defined in OpenAPI
 
@@ -22,7 +22,7 @@ class FieldAssay:
 
         :param code_ids: delimited list of code_ids for the metadata field. The code_ids can come from both
                          HMFIELD or CEDAR.
-        :param field_name: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
+        :param name: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
         :param assays: delimited list of values in format <assay_identifier>|<data_type>|<dataset_type>.
                Each value in the list has elements:
                 - assay_identifier: the assay identifier for the assay from the yaml.
@@ -33,7 +33,7 @@ class FieldAssay:
 
         example:
         code_ids - [HMFIELD:1008|CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3]
-        field_name - acquisition_instrument_model
+        name - acquisition_instrument_model
         assays - [scRNAseq-10xGenomics|scRNAseq-10xGenomics-v3|RNASeq,...]
 
         The elements in code_ids and assays will be parsed into arrays.
@@ -42,38 +42,39 @@ class FieldAssay:
         # Types for JSON objects
         self.openapi_types = {
             'code_ids': list[str],
-            'field_name': str,
+            'name': str,
             'assays': list[dict]
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
             'code_ids': 'code_ids',
-            'field_name': 'field_name',
+            'name': 'name',
             'assays': 'assays'
         }
         # Property assignments
 
-        if field_name is None:
-            self.field_name = ''
+        if name is None:
+            self.name = ''
         else:
-            self.field_name = field_name
+            self.name = name
 
         self._code_ids = code_ids.split('|')
 
         listassays = []
         if assays is not None:
+            # If no associated assays were found, the query returns ['none|none|none'].
             for assay in assays:
-                dictassay = {'assay_identifier': assay.split('|')[0],
-                             'data_type': assay.split('|')[1],
-                             'dataset_type': assay.split('|')[2]}
-                listassays.append(dictassay)
+                if assay.split('|')[0] != 'none':
+                    dictassay = {'assay_identifier': assay.split('|')[0], 'data_type': assay.split('|')[1],
+                                 'dataset_type': assay.split('|')[2]}
+                    listassays.append(dictassay)
         self._assays = listassays
 
     def serialize(self):
         # Key/value format of response.
         return {
             "code_ids": self._code_ids,
-            "field_name": self.field_name,
+            "name": self.name,
             "assays": self._assays
         }
 
@@ -106,21 +107,21 @@ class FieldAssay:
         self._code_ids = code_ids
 
     @property
-    def field_name(self):
-        """Gets the field_name of this FieldAssay.
-        :return: The field_name for the field
+    def name(self):
+        """Gets the name of this FieldAssay.
+        :return: The name for the field
         :rtype: str
         """
-        return self._field_name
+        return self._name
 
-    @field_name.setter
-    def field_name(self, field_name):
-        """Sets the field_name for the field from HMFIELD
+    @name.setter
+    def name(self, name):
+        """Sets the name for the field from HMFIELD
 
-        :para field_name: The field_name of this field
-        :type field_name: str
+        :para name: The name of this field
+        :type name: str
         """
-        self._field_name = field_name
+        self._name = name
 
     @property
     def assays(self):

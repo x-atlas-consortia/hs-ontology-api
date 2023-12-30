@@ -6,12 +6,13 @@
 # Replicates read of legacy field_descriptions.yaml.
 
 from __future__ import absolute_import
-from typing import List
+# from typing import List
 # from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
+
 class FieldDescription:
-    def __init__(self, code_ids=None, identifier=None, descriptions=None):
+    def __init__(self, code_ids=None, name=None, descriptions=None):
         """
         FieldDescription - a model defined in OpenAPI
 
@@ -21,7 +22,7 @@ class FieldDescription:
 
         :param code_ids: delimited list of code_ids for the metadata field. The code_ids can come from both
                          HMFIELD and CEDAR.
-        :param identifier: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
+        :param name: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
         :param descriptions: delimited list of descriptions for the metadata field. The descriptions can come from both
                          HMFIELD and CEDAR.
         Each value in the list has elements:
@@ -38,29 +39,27 @@ class FieldDescription:
         # Types for JSON objects
         self.openapi_types = {
             'code_ids': list[str],
-            'identifier': str,
+            'name': str,
             'descriptions:': list[str]
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
             'code_ids': 'code_ids',
-            'identifier': 'identifier',
+            'name': 'name',
             'descriptions': 'descriptions'
         }
         # Property assignments
         self._code_ids = code_ids.split('|')
 
-        if identifier is None:
-            self._identifier = ''
+        if name is None:
+            self._name = ''
         else:
-            self._identifier = identifier
+            self._name = name
 
         listdescriptions = []
         if descriptions is not None:
             for description in descriptions:
-                dictdescription = {'source': description.split('|')[0],
-                             'description': description.split('|')[1]
-                                   }
+                dictdescription = {'source': description.split('|')[0], 'description': description.split('|')[1]}
                 listdescriptions.append(dictdescription)
         self._descriptions = listdescriptions
 
@@ -68,7 +67,7 @@ class FieldDescription:
         # Key/value format of response.
         return {
             "code_ids": self._code_ids,
-            "identifier": self._identifier,
+            "name": self._name,
             "descriptions": self._descriptions
         }
 
@@ -101,21 +100,21 @@ class FieldDescription:
         self._code_ids = code_ids
 
     @property
-    def identifier(self):
-        """Gets the identifier of this FieldDescription.
-        :return: The identifier for the field
+    def name(self):
+        """Gets the name of this FieldDescription.
+        :return: The name for the field
         :rtype: str
         """
-        return self._identifier
+        return self._name
 
-    @identifier.setter
-    def identifier(self, identifier):
-        """Sets the identifier for the field from HMFIELD
+    @name.setter
+    def name(self, name):
+        """Sets the name for the field from HMFIELD
 
-        :para identifier: The identifier of this field
-        :type identifier: str
+        :para name: The name of this field
+        :type name: str
         """
-        self._identifier = identifier
+        self._name = name
 
     @property
     def descriptions(self):

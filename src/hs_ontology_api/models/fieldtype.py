@@ -12,14 +12,14 @@ from ubkg_api.models import util
 
 
 class FieldType:
-    def __init__(self, code_ids=None, identifier=None, types=None):
+    def __init__(self, code_ids=None, name=None, types=None):
         """
         FieldType - a model defined in OpenAPI
 
         Represents a code from the HMFIELD ontology.
         :param code_ids: delimited list of code_ids for the metadata field. The code_ids can come from both
                          HMFIELD and CEDAR.
-        :param identifier: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
+        :param name: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
         :param types: delimited list of type mappings for the metadata field.
         Each value in the list has elements:
          - mapping_source: either HMFIELD or CEDAR
@@ -34,7 +34,7 @@ class FieldType:
 
         example:
         code_ids - HMFIELD:1008|CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3
-        identifier - acquisition_instrument_model
+        name - acquisition_instrument_model
         ["HMFIELD|HMFIELD|string", "HMFIELD|XSD|xsd:string", "CEDAR|XSD|xsd:anyURI"]
 
         The aquisition_instrument_model field is mapped to:
@@ -49,21 +49,21 @@ class FieldType:
         # Types for JSON objects
         self.openapi_types = {
             'code_ids': list[str],
-            'identifier': str,
+            'name': str,
             'types:': list[str]
         }
         # Attribute mappings used by the base Model class to assert key/value pairs.
         self.attribute_map = {
             'code_ids': 'code_ids',
-            'identifier': 'identifier',
+            'name': 'name',
             'types': 'types'
         }
         # Property assignments
         self._code_ids = code_ids.split('|')
-        if identifier is None:
-            self._identifier = ''
+        if name is None:
+            self._name = ''
         else:
-            self._identifier = identifier
+            self._name = name
 
         dicttype = {}
         listtypes = []
@@ -85,7 +85,7 @@ class FieldType:
         # Key/value format of response.
         return {
             "code_ids": self._code_ids,
-            "identifier": self._identifier,
+            "name": self._name,
             "types": self._types
         }
 
@@ -118,21 +118,21 @@ class FieldType:
         self._code_ids = code_ids
 
     @property
-    def identifier(self):
-        """Gets the identifier of this FieldType.
-        :return: The identifier for the field
+    def name(self):
+        """Gets the name of this FieldType.
+        :return: The name for the field
         :rtype: str
         """
-        return self._identifier
+        return self._name
 
-    @identifier.setter
-    def identifier(self, identifier):
-        """Sets the identifier for the field from HMFIELD
+    @name.setter
+    def name(self, name):
+        """Sets the name for the field from HMFIELD
 
-        :para identifier: The identifier of this field
-        :type identifier: str
+        :para name: The name of this field
+        :type name: str
         """
-        self._identifier = identifier
+        self._name = name
 
     @property
     def types(self):

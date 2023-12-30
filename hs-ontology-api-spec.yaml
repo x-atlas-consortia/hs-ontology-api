@@ -559,7 +559,7 @@ paths:
         - name: source
           in: query
           required: false
-          description: case-insensitive name of the description source
+          description: case-insensitive name of the description source (HMFIELD = legacy field-descriptions.yaml; CEDAR = CEDAR)
           schema:
             type: string
             enum:
@@ -575,9 +575,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldDescriptionsResponse'
         '400':
-          description: Invalid source parameter; invalid parameter name
+          description: Invalid *source* parameter (i.e., not CEDAR or HMFIELD); invalid parameter
         '404':
-          description: No descriptions (with list of parameters, if specified)
+          description: No field descriptions (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
   /field-descriptions/{name}:
@@ -595,7 +595,7 @@ paths:
         - name: source
           in: query
           required: false
-          description: case-insensitive name of the description source
+          description: case-insensitive name of the description source (HMFIELD = legacy field-descriptions.yaml; CEDAR = CEDAR)
           schema:
             type: string
             enum:
@@ -611,7 +611,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldDescriptionsResponse'
         '400':
-          description: Invalid source parameter; invalid parameter name
+          description: Invalid *source* parameter (i.e., not CEDAR or HMFIELD); invalid parameter
         '404':
           description: No descriptions (with list of parameters, if specified)
         '5XX':
@@ -624,7 +624,7 @@ paths:
         - name: mapping_source
           in: query
           required: false
-          description: case-insensitive name of the field-to-type mapping source
+          description: case-insensitive name of the field-to-type mapping source (HMFIELD = field-types.yaml; CEDAR = CEDAR)
           schema:
             type: string
             enum:
@@ -633,7 +633,7 @@ paths:
         - name: type_source
           in: query
           required: false
-          description: case-insensitive name of the type source
+          description: case-insensitive name of the type source (HMFIELD = field-types.yaml; XSD = from CEDAR template)
           schema:
             type: string
             enum:
@@ -649,7 +649,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldTypesResponse'
         '400':
-          description: Invalid source parameter; invalid parameter name
+          description: Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
         '404':
           description: No field-type associations (with list of parameters, if specified)
         '5XX':
@@ -669,7 +669,7 @@ paths:
         - name: mapping_source
           in: query
           required: false
-          description: case-insensitive name of the field-type mapping source
+          description: case-insensitive name of the field-to-type mapping source (HMFIELD = field-types.yaml; CEDAR = CEDAR)
           schema:
             type: string
             enum:
@@ -678,7 +678,7 @@ paths:
         - name: type_source
           in: query
           required: false
-          description: case-insensitive name of the type source
+          description: case-insensitive name of the type source (HMFIELD = field-types.yaml; XSD = from CEDAR template)
           schema:
             type: string
             enum:
@@ -694,7 +694,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldTypesResponse'
         '400':
-          description: Invalid source parameter; invalid parameter name
+          description:  Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
         '404':
           description: No field-type associations (with list of parameters, if specified)
         '5XX':
@@ -729,14 +729,14 @@ paths:
         - name: data_type
           in: query
           required: false
-          description: the legacy data_type--i.e., the key for ingest workflows
+          description: the legacy *data_type*--i.e., the key for ingest workflows
           schema:
             type: string
             example: scRNAseq-10xGenomics-v3
         - name: dataset_type
           in: query
           required: false
-          description: the "soft assay" dataset type--i.e., the value used by the Rules Engine
+          description: the *soft assay* dataset type--i.e., the value used by the Rules Engine
           schema:
             type: string
             example: RNASeq
@@ -750,7 +750,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldAssaysResponse'
         '400':
-          description: Invalid parameter name
+          description: Invalid parameter
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
         '5XX':
@@ -777,14 +777,14 @@ paths:
         - name: data_type
           in: query
           required: false
-          description: the legacy data_type--i.e., the key for ingest workflows
+          description: the legacy *data_type*--i.e., the key for ingest workflows
           schema:
             type: string
             example: scRNAseq-10xGenomics-v3
         - name: dataset_type
           in: query
           required: false
-          description: the "soft assay" dataset type--i.e., the value used by the Rules Engine
+          description: the *soft assay* dataset type--i.e., the value used by the Rules Engine
           schema:
             type: string
             example: RNASeq
@@ -798,9 +798,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/FieldAssaysResponse'
         '400':
-          description: Invalid parameter name
+          description: Invalid parameter
         '404':
-          description: no field to assay relationships found for field {name}
+          description: no field to assay relationships found (for the set of parameters, if specified)
         '5XX':
           description: Unexpected error
   /field-schemas:
@@ -1384,7 +1384,7 @@ components:
                 items:
                   type: string
                   example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
-              identifier:
+              name:
                 type: string
                 description: identifier for metadata field
                 example: ablation_distance_between_shots_x_units
@@ -1418,7 +1418,7 @@ components:
                 items:
                   type: string
                   example: ["HMFIELD:1018","CEDAR:ea6e26f1-30df-4a8c-9f15-63111ea0b68b"]
-              identifier:
+              name:
                 type: string
                 description: identifier for metadata field
                 example: area_unit
@@ -1454,7 +1454,7 @@ components:
                 type: string
                 description: Code in the HMFIELD ontology
                 example: HMFIELD:1001
-              identifier:
+              name:
                 type: string
                 description: identifier for metadata field
                 example: ablation_distance_between_shots_x_units
@@ -1488,7 +1488,7 @@ components:
                 items:
                   type: string
                   example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
-              field_name:
+              name:
                 type: string
                 description: name of the metadata field
                 example: acquisition_instrument_model
@@ -1525,7 +1525,7 @@ components:
                 type: string
                 description: Code in the HMFIELD ontology
                 example: HMFIELD:1001
-              identifier:
+              name:
                 type: string
                 description: identifier for metadata field
                 example: ablation_distance_between_shots_x_units

@@ -8,7 +8,7 @@
 
 // The function that calls this query will replace the variables field_filter and source_filter
 
-OPTIONAL MATCH (cFieldParent:Code)<-[:CODE]-(pFieldParent:Concept)-[:inverse_isa]->(pField:Concept)-[:CODE]->(cField:Code)-[rField:PT]->(tField:Term),
+MATCH (cFieldParent:Code)<-[:CODE]-(pFieldParent:Concept)-[:inverse_isa]->(pField:Concept)-[:CODE]->(cField:Code)-[rField:PT]->(tField:Term),
 (pField:Concept)-[:DEF]->(d:Definition)
 WHERE rField.CUI=pField.CUI
 AND cFieldParent.CodeID IN ['HMFIELD:1000','CEDAR:TemplateField']

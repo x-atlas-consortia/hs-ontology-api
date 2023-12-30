@@ -1069,7 +1069,6 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
     query = query.replace('$field_filter', field_filter)
 
     # Allow for filtering on description source
-    print(definition_source)
     if definition_source is None:
         source_filter = " AND d.SAB IN ['HMFIELD', 'CEDAR'] "
     elif definition_source in ['HMFIELD', 'CEDAR']:
@@ -1088,7 +1087,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
             try:
                 fielddescription: FieldDescription = \
                     FieldDescription(code_ids=record.get('code_ids'),
-                                     identifier=record.get('identifier'),
+                                     name=record.get('identifier'),
                                      descriptions=record.get('defs')).serialize()
 
                 fielddescriptions.append(fielddescription)
@@ -1148,7 +1147,7 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
             try:
                 fieldtype: FieldType = \
                     FieldType(code_ids=record.get('code_ids'),
-                              identifier=record.get('field_name'),
+                              name=record.get('field_name'),
                               types=record.get('types')).serialize()
 
                 fieldtypes.append(fieldtype)
@@ -1226,7 +1225,7 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=Non
             try:
                 fieldassay: FieldAssay = \
                     FieldAssay(code_ids=record.get('code_ids'),
-                               field_name=record.get('field_name'),
+                               name=record.get('field_name'),
                                assays=record.get('assays')).serialize()
 
                 fieldassays.append(fieldassay)

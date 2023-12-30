@@ -13,7 +13,7 @@ def get_error_string(field_name=None):
 
     listerr = []
     if field_name is not None:
-        listerr.append(f'name={field_name}')
+        listerr.append(f"name ='{field_name}'")
 
     err = 'No field descriptions'
     if len(listerr) > 0:
