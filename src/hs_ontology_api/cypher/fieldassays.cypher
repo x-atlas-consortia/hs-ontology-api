@@ -1,3 +1,6 @@
+// Obtains associations between ingest metadat fields and assay dataset types, both for legacy (HMFIELD) and CEDAR.
+// Used by the field-assays endpoint.
+
 // Identify all metadata fields, from both:
 // - legacy sources (the field_*.yaml files in ingest-validation-tools, and modeled in HMFIELD), child codes of HMFIELD:1000
 // - current sources (CEDAR tempates, modeled in CEDAR), child codes of CEDAR:TemplateField

@@ -21,6 +21,9 @@ from hs_ontology_api.routes.celltypesinfo.celltypesinfo_controller import cellty
 from hs_ontology_api.routes.fielddescriptions.fielddescriptions_controller import field_descriptions_blueprint
 from hs_ontology_api.routes.fieldtypes.fieldtypes_controller import field_types_blueprint
 from hs_ontology_api.routes.fieldassays.fieldassays_controller import field_assays_blueprint
+# JAS January 2024
+from hs_ontology_api.routes.fieldschemas.fieldschemas_controller import field_schemas_blueprint
+from hs_ontology_api.routes.fieldtypesinfo.fieldtypesinfo_controller import field_types_info_blueprint
 
 # Cells API client
 from hs_ontology_api.utils.cellsclient import OntologyCellsClient
@@ -53,6 +56,9 @@ app.register_blueprint(celltypes_blueprint)
 app.register_blueprint(field_descriptions_blueprint)
 app.register_blueprint(field_types_blueprint)
 app.register_blueprint(field_assays_blueprint)
+# JAS Jan 2024
+app.register_blueprint(field_schemas_blueprint)
+app.register_blueprint(field_types_info_blueprint)
 
 
 # Instantiate a Cells API client.

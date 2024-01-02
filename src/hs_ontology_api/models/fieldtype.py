@@ -6,9 +6,11 @@
 # Replicates read of legacy field_types.yaml.
 
 from __future__ import absolute_import
-# from typing import List
-# from ubkg_api.models.base_model_ import Model
+from typing import List
+from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
+
+from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
 
 
 class FieldType:
@@ -27,7 +29,7 @@ class FieldType:
          - type
 
          In general, if a field is common to HMFIELD and CEDAR, the type for the field in HMFIELD will be different
-         than its equivalent in CEDAR. In addition, HMFIELDs are mapped to a custom type in HMFIELD and a type in XSD
+         from its equivalent in CEDAR. In addition, HMFIELDs are mapped to a custom type in HMFIELD and a type in XSD
 
          For example,
          ["HMFIELD|HMFIELD|string", "HMFIELD|XSD|xsd:string", "CEDAR|XSD|xsd:anyURI"]
@@ -65,21 +67,31 @@ class FieldType:
         else:
             self._name = name
 
-        dicttype = {}
+        self._types = self._maketypedetail(types=types)
+
+    def _maketypedetail(self, types=None):
+        """
+        Builds a list of type objects from the delimited list parameter
+        :param types: delimited list of type information
+        :return: List[dict]
+        """
+
+        if types is None:
+            return []
+
         listtypes = []
 
-        if types is not None:
-            for type in types:
-                # Remove 'xsd:' for XSD type mappings.
-                type_name = type.split('|')[2]
-                if ':' in type_name:
-                    type_name = type_name.split(':')[1]
-                dicttype = {'mapping_source': type.split('|')[0],
-                            'type_source': type.split('|')[1],
-                            'type_name' : type_name
-                            }
-                listtypes.append(dicttype)
-        self._types = listtypes
+        for type in types:
+
+            # Instantiate a FieldTypeDetail object.
+            fieldtypedetail = FieldTypeDetail(type_detail=type, is_mapped=True)
+
+            # Use the to_dict method of the Model base class to obtain a dict for the list.
+            dictfieldtypedetail = fieldtypedetail.to_dict()
+
+            listtypes.append(dictfieldtypedetail)
+
+        return listtypes
 
     def serialize(self):
         # Key/value format of response.
@@ -147,6 +159,6 @@ class FieldType:
         """Sets the types for the field from HMFIELD
 
         :param types: The types of this field
-        :type types: dict
+        :param types: dict
         """
         self._types = types

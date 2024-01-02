@@ -639,6 +639,13 @@ paths:
             enum:
               - HMFIELD
               - XSD
+        - name: type
+          in: query
+          required: false
+          description: name of type in either XSD or HMFIELD ontology
+          schema:
+            type: string
+            example: anyURI
       responses:
         '200':
           description: Array of metadata fields with their HMFIELD and/or XSD data types.
@@ -684,6 +691,13 @@ paths:
             enum:
               - HMFIELD
               - XSD
+        - name: type
+          in: query
+          required: false
+          description: name of type in either XSD or HMFIELD ontology
+          schema:
+            type: string
+            example: float
       responses:
         '200':
           description: Array of metadata fields with their HMFIELD and/or XSD data types.
@@ -697,6 +711,35 @@ paths:
           description:  Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
         '404':
           description: No field-type associations (with list of parameters, if specified)
+        '5XX':
+          description: Unexpected error
+  /field-types-info:
+    get:
+      operationId: field_types_indo_get
+      summary: Returns a list of all available data types for metadata fields.
+      parameters:
+        - name: type_source
+          in: query
+          required: false
+          description: case-insensitive name of the type source (HMFIELD = field-types.yaml; XSD = from CEDAR template)
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - XSD
+      responses:
+        '200':
+          description: Array of HMFIELD and/or XSD data types.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldTypesInfoResponse'
+        '400':
+          description:  Invalid parameter
+        '404':
+          description: No field types (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
   /field-entities:
@@ -807,6 +850,23 @@ paths:
     get:
       operationId: field_schemas_get
       summary: Return associations between ingest metadata fields and metadata schemas. Replacement for field-schemas.yaml.
+      parameters:
+        - name: source
+          in: query
+          required: false
+          description: case-insensitive name of the field-to-type mapping source (HMFIELD = field-types.yaml; CEDAR = CEDAR)
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - CEDAR
+        - name: schema
+          in: query
+          required: false
+          description: case-sensitive name of a metadata schema or CEDAR template
+          schema:
+            type: string
+            example: imc
       responses:
         '200':
           description: Associations between ingest metadata fields and metadata schemas.
@@ -816,6 +876,53 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldSchemasResponse'
+        '400':
+          description: Invalid parameter; invalid value for *source*
+        '404':
+          description: no field to schema relationships found (for the set of parameters, if specified)
+        '5XX':
+          description: Unexpected error
+  /field-schemas/{name}:
+    get:
+      operationId: field_schemas_name_get
+      summary: Return associations between a specified ingest metadata field and metadata schemas. Replacement for field-schemas.yaml.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: name of the metadata field
+          schema:
+            type: string
+            example: acquisition_instrument_model
+        - name: source
+          in: query
+          required: false
+          description: case-insensitive name of the field-to-type mapping source (HMFIELD = field-types.yaml; CEDAR = CEDAR)
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - CEDAR
+        - name: schema
+          in: query
+          required: false
+          description: case-sensitive name of a metadata schema or CEDAR template
+          schema:
+            type: string
+            example: imc
+      responses:
+        '200':
+          description: Associations between ingest metadata fields and metadata schemas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldSchemasResponse'
+        '400':
+          description: Invalid parameter; invalid value for *source*
+        '404':
+          description: no field to schema relationships found (for the set of parameters, if specified)
         '5XX':
           description: Unexpected error
 components:
@@ -1430,16 +1537,34 @@ components:
                   properties:
                     mapping_source:
                       type: string
-                      description: source of the field-to-type mapping (i.e., the ontology)
+                      description: source of the field-to-type mapping (i.e., the ontology).
                       example: CEDAR
                     type_source:
                       type: string
                       description: source of the field code (i.e., the type ontology)
                       example: XSD
-                    type_code:
+                    type:
                       type: string
-                      description: the code in the type ontology
+                      description: the term for the type code in the type ontology
                       example: float
+    FieldTypesInfoResponse:
+      type: object
+      description: Details on ingest metadata field types.
+      properties:
+        types:
+          type: array
+          description: field types
+          items:
+            type: object
+            properties:
+              type_source:
+                type: string
+                description: source of the field code (i.e., the type ontology)
+                example: XSD
+              type:
+                type: string
+                description: the term for the type code in the type ontology
+                example: float
     FieldEntitiesResponse:
       type: object
       description: Associations between fields and provenance entities for ingest metadata fields from legacy field-types.yaml
@@ -1521,25 +1646,27 @@ components:
           items:
             type: object
             properties:
-              codeID:
-                type: string
-                description: Code in the HMFIELD ontology
-                example: HMFIELD:1001
+              code_ids:
+                type: array
+                description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
+                items:
+                  type: string
+                  example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
               name:
                 type: string
                 description: identifier for metadata field
                 example: ablation_distance_between_shots_x_units
               schemas:
                 type: array
-                description: array of metadata schemas associated with the field
+                description: array of metadata schemas/templates associated with the field
                 items:
                   type: object
                   properties:
-                    code:
+                    source:
                       type: string
-                      description: Code in HMFIELD ontology
-                      example: HMFIELD:1001
-                    name:
+                      description: source of schema mapping
+                      example: HMFIELD
+                    schema:
                       type: string
-                      description: name
+                      description: name of schema
                       example: imc3d

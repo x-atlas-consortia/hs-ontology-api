@@ -1,3 +1,6 @@
+// Obtains type associations for field names in legacy (HMFIELD) and CEDAR sources.
+// Used by the field-types endpoint.
+
 // Identify all metadata fields, from both:
 // - legacy sources (the field_*.yaml files in ingest-validation-tools, and modeled in HMFIELD), child codes of HMFIELD:1000
 // - current sources (CEDAR tempates, modeled in CEDAR), child codes of CEDAR:TemplateField
@@ -26,9 +29,9 @@ CALL
 // Collect type descriptions to flatten at the level of the field, in format
 // <Source of mapping> | <Source of type> | type
 
-// The mapping of CEDAR | HMFIELD | type is an artifact of a field being both in HMFIELD and CEDAR.
+// The mapping of CEDAR | HMFIELD | type is an artifact of a field being both in HMFIELD and CEDAR and will not be returned.
 
-// The field_types_get_logic in neo4j_logic will replace the mapping_source_filter and type_source_filter variables.
+// The field_types_get_logic in neo4j_logic will replace the mapping_source_filter, type_source_filter, and type_filter variables.
 
 // e.g., HMFIELD | XSD | xsd:string
 CALL
@@ -39,8 +42,9 @@ CALL
      AND TYPE(r) STARTS WITH 'PT'
      $mapping_source_filter
      $type_source_filter
+     $type_filter
      AND NOT (rdt.SAB='CEDAR' AND cType.SAB='HMFIELD')
-     RETURN COLLECT(DISTINCT rdt.SAB + '|' + cType.SAB + '|' + tType.name) AS types
+     RETURN COLLECT(DISTINCT rdt.SAB + '|' + cType.SAB + '|' + CASE WHEN tType.name CONTAINS ':' THEN split(tType.name,':')[1] ELSE tType.name END) AS types
 }
 
 WITH field_name, code_ids,types
