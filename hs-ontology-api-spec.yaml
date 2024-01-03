@@ -745,7 +745,24 @@ paths:
   /field-entities:
     get:
       operationId: field_entities_get
-      summary: Return associations between ingest metadata fields and the provenance entities of an application. Replacement for field-types.yaml.
+      summary: Return associations between ingest metadata fields and provenance entities. Replacement for field-entities.yaml. NOTE - available only for fields from field-entities.yaml.
+      parameters:
+        - name: source
+          in: query
+          required: false
+          description: case-insensitive name of the ontology source for the provenance entities (HMFIELD = field-types.yaml; HUBMAP = UBKG)
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - HUBMAP
+        - name: entity
+          in: query
+          required: false
+          description: case-sensitive name for entity in either HMFIELD or HUMBMAP ontology
+          schema:
+            type: string
+            example: Sample
       responses:
         '200':
           description: Associations between ingest metadata fields and provenance entities.
@@ -755,6 +772,53 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/FieldEntitiesResponse'
+        '400':
+          description:  Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
+        '404':
+          description: No field entities (with list of parameters, if specified)
+        '5XX':
+          description: Unexpected error
+  /field-entities/{name}:
+    get:
+      operationId: field_entities_name_get
+      summary: Return associations between specified ingest metadata field and provenance entities. Replacement for field-entities.yaml. NOTE - available only for fields from field-entities.yaml.
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: name of the metadata field
+          schema:
+            type: string
+            example: version
+        - name: source
+          in: query
+          required: false
+          description: case-insensitive name of the ontology source for the provenance entities (HMFIELD = field-types.yaml; HUBMAP = UBKG)
+          schema:
+            type: string
+            enum:
+              - HMFIELD
+              - HUBMAP
+        - name: entity
+          in: query
+          required: false
+          description: case-sensitive name for entity in either HMFIELD or HUMBMAP ontology
+          schema:
+            type: string
+            example: Sample
+      responses:
+        '200':
+          description: Associations between ingest metadata fields and provenance entities.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldEntitiesResponse'
+        '400':
+          description:  Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
+        '404':
+          description: No field entities (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
   /field-assays:
@@ -1585,18 +1649,31 @@ components:
                 example: ablation_distance_between_shots_x_units
               entities:
                 type: array
-                description: array of provenance entities associated with the field
+                description: array of provenance entities associated with the field. Each provenance entity can correspond to nodes in both the HMFIELD and HUBMAP ontologies.
                 items:
                   type: object
                   properties:
-                    code:
-                      type: string
-                      description: Code in application ontology
-                      example: HUBMAP:C040001
-                    name:
-                      type: string
-                      description: name
-                      example: dataset
+                    nodes:
+                      type: array
+                      description: array of nodes for the entity in all ontologies.
+                      items:
+                        type: object
+                        properties:
+                          source:
+                            type: string
+                            description: ontology for the provenance entity
+                            example: HUBMAP
+                          code:
+                            type: string
+                            description: code for the provenance entity in the source ontology
+                            example: C040002
+                          name:
+                            type: string
+                            description: preferred term for the provenance entity
+                            example: Sample
+
+
+
     FieldAssaysResponse:
       type: object
       description: Associations between fields and "assays" (or datasets generated by assays) for ingest metadata fields
