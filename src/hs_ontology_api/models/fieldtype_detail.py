@@ -1,7 +1,7 @@
 # coding: utf-8
 
 # JAS January 2024
-# FieldTypeType model class representing a single member of a type ontology (HMFIELD or XSD).
+# FieldTypeDetail model class representing a single member of a type ontology (HMFIELD or XSD).
 # Used by both the field_types and field_types_info endpoints.
 
 from __future__ import absolute_import
