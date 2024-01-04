@@ -824,7 +824,7 @@ paths:
   /field-assays:
     get:
       operationId: field_assays_get
-      summary: Return associations between ingest metadata fields and the "assays" (dataset data types). Replacement for field-assays.yaml.
+      summary: Return associations between ingest metadata fields and the "assays" (dataset data types). Replacement for field-assays.yaml. NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays.
       parameters:
         - name: assay_identifier
           in: query
@@ -865,7 +865,7 @@ paths:
   /field-assays/{name}:
     get:
       operationId: field_assays_name_get
-      summary: Return associations between the specified ingest metadata field and the "assays" (dataset data types). Replacement for field-assays.yaml.
+      summary: Return associations between the specified ingest metadata field and the "assays" (dataset data types). Replacement for field-assays.yaml.NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays.
       parameters:
         - name: name
           in: path
@@ -913,7 +913,7 @@ paths:
   /field-schemas:
     get:
       operationId: field_schemas_get
-      summary: Return associations between ingest metadata fields and metadata schemas. Replacement for field-schemas.yaml.
+      summary: Return associations between ingest metadata fields and metadata schemas/CEDAR templates. Replacement for field-schemas.yaml.
       parameters:
         - name: source
           in: query
@@ -949,7 +949,7 @@ paths:
   /field-schemas/{name}:
     get:
       operationId: field_schemas_name_get
-      summary: Return associations between a specified ingest metadata field and metadata schemas. Replacement for field-schemas.yaml.
+      summary: Return associations between a specified ingest metadata field and metadata schemas/CEDAR templates. Replacement for field-schemas.yaml.
       parameters:
         - name: name
           in: path
