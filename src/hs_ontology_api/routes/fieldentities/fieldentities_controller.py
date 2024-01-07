@@ -2,7 +2,7 @@
 # JAS January 2024
 from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import field_entities_get_logic
-from hs_ontology_api.utils.field_error_string import get_error_string
+from hs_ontology_api.utils.http_error_string import get_404_error_string,validate_query_parameter_names
 
 
 field_entities_blueprint = Blueprint('field-entities', __name__, url_prefix='/field-entities')
@@ -14,10 +14,12 @@ def field_entities_get(name=None):
     :rtype: Union[List[FieldEntity]]
 
     """
-    # Check for invalid parameters
-    for req in request.args:
-        if req not in ['source', 'entity']:
-            return make_response(f"Invalid parameter: '{req}'", 400)
+
+    # Validate parameters
+    err = validate_query_parameter_names(['source', 'entity'])
+    if err != 'ok':
+        return make_response(err, 400)
+
 
     # Validate mapping source.
     source = request.args.get('source')
@@ -34,7 +36,7 @@ def field_entities_get(name=None):
                                    entity=entity)
     if result is None or result == []:
         # Empty result
-        err = get_error_string(field_name=name, prompt_string='No field type associations')
+        err = get_404_error_string(prompt_string='No field type associations')
         if type is not None:
             err = err + ' Call field-types-info for a list of available field data types.'
         return make_response(err, 404)

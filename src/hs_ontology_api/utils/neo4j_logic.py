@@ -1333,7 +1333,7 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
         mapping_source_filter = f" AND SPLIT(schema_name,'|')[0]='{mapping_source}'"
     query = query.replace('$mapping_source_filter', mapping_source_filter)
 
-    print(query)
+
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)

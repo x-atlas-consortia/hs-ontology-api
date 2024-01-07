@@ -2,7 +2,7 @@
 # JAS December 2023
 from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import field_assays_get_logic
-from hs_ontology_api.utils.field_error_string import get_error_string
+from hs_ontology_api.utils.http_error_string import get_404_error_string, validate_query_parameter_names
 
 field_assays_blueprint = Blueprint('field-assays', __name__, url_prefix='/field-assays')
 
@@ -20,9 +20,10 @@ def field_assays_get(name=None):
     # data_type - legacy data_type, used in ingestion workflows
     # dataset_type - "soft assay" dataset type, used by the Rules Engine
 
-    for req in request.args:
-        if req not in ['assay_identifier', 'data_type', 'dataset_type']:
-            return make_response(f"Invalid parameter: '{req}'", 400)
+    # Validate parameters
+    err = validate_query_parameter_names(['assay_identifier', 'data_type', 'dataset_type'])
+    if err != 'ok':
+        return make_response(err, 400)
 
     assay_identifier = request.args.get('assay_identifier')
     data_type = request.args.get('data_type')
@@ -42,7 +43,7 @@ def field_assays_get(name=None):
 
     if iserr:
         # Empty result
-        err = get_error_string(field_name=name, prompt_string='No field to assay associations')
+        err = get_404_error_string(prompt_string='No field assay associations')
         return make_response(err, 404)
 
     return jsonify(result)
