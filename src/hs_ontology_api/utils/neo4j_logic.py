@@ -1282,15 +1282,16 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=Non
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
 
-        # Build response object.
+        # Build response object. Valid responses contain something in the assays element other than
+        # ['none|none|none'].
         for record in recds:
             try:
-                fieldassay: FieldAssay = \
-                    FieldAssay(code_ids=record.get('code_ids'),
-                               name=record.get('field_name'),
-                               assays=record.get('assays')).serialize()
-
-                fieldassays.append(fieldassay)
+                if record.get('assays') != ['none|none|none']:
+                    fieldassay: FieldAssay = \
+                        FieldAssay(code_ids=record.get('code_ids'),
+                                   name=record.get('field_name'),
+                                   assays=record.get('assays')).serialize()
+                    fieldassays.append(fieldassay)
 
             except KeyError:
                 pass

@@ -202,3 +202,311 @@ curl --request GET \
  --url "${UBKG_URL}/valueset?parent_sab=SENNET&parent_code=C000012&child_sabs=SENNET" \
  --header "Content-Type: application/json"
 echo
+
+echo "field-descriptions"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-descriptions" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-descriptions/acquisition_instrument_model"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-descriptions/acquisition_instrument_model" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-descriptions/acquisition_instrument_model?test=X"
+echo "SHOULD RETURN 400; invalid parameter"
+curl --request GET \
+ --url "${UBKG_URL}/field-descriptions/acquisition_instrument_model?test=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-descriptions/acquisition_instrument_model?source=X"
+echo "SHOULD RETURN 400; invalid parameter value"
+curl --request GET \
+ --url "${UBKG_URL}/field-descriptions/acquisition_instrument_model?source=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-descriptions/acquisition_instrument_model?source=HMFIELD"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-descriptions/acquisition_instrument_model?source=HMFIELD" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-types" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types/acquisition_instrument_model"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-types/acquisition_instrument_model" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types/acquisition_instrument_model?test=x"
+echo "SHOULD RETURN 400; invalid parameter"
+curl --request GET \
+ --url "${UBKG_URL}/field-types/acquisition_instrument_model?test=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types/acquisition_instrument_model?mapping_source=X"
+echo "SHOULD RETURN 400; invalid parameter value"
+curl --request GET \
+ --url "${UBKG_URL}/field-types/acquisition_instrument_model?mapping_source=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types/acquisition_instrument_model?mapping_source=HMFIELD"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-types/acquisition_instrument_model?mapping_source=HMFIELD" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types/acquisition_instrument_model?type_source=X"
+echo "SHOULD RETURN 400; invalid parameter value"
+curl --request GET \
+ --url "${UBKG_URL}/field-types/acquisition_instrument_model?type_source=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types/acquisition_instrument_model?type_source=HMFIELD"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-types/acquisition_instrument_model?type_source=HMFIELD" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types/acquisition_instrument_model?type=X"
+echo "SHOULD RETURN 404; no results"
+curl --request GET \
+ --url "${UBKG_URL}/field-types/acquisition_instrument_model?type=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types/acquisition_instrument_model?type=string"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-types/acquisition_instrument_model?type=string" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types-info"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-types-info" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types-info?test=x"
+echo "SHOULD RETURN 400; invalid parameter"
+curl --request GET \
+ --url "${UBKG_URL}/field-types-info?test=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types-info?type_source=x"
+echo "SHOULD RETURN 400; invalid parameter value"
+curl --request GET \
+ --url "${UBKG_URL}/field-types-info?type_source=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-types-info?type_source=HMFIELD"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-types-info?type_source=HMFIELD" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays/"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays/acquisition_instrument_model"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays/acquisition_instrument_model" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays/acquisition_instrument_model?test=X"
+echo "SHOULD RETURN 400; invalid parameter"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays?test=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays?assay_identifier=X"
+echo "SHOULD RETURN 404; no results"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays?assay_identifier=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays?assay_identifier=snRNAseq"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays?assay_identifier=snRNAseq" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays/acquisition_instrument_model?assay_identifier=snRNAseq"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays/acquisition_instrument_model?assay_identifier=snRNAseq" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays?data_type=X"
+echo "SHOULD RETURN 404; no results"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays?data_type=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays?data_type=seqFISH"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays?data_type=seqFISH" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays/acquisition_instrument_model?data_type=seqFISH"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays/acquisition_instrument_model?data_type=seqFISH" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays?dataset_type=X"
+echo "SHOULD RETURN 404; no results"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays?dataset_type=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays?dataset_type=RNAseq"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays?dataset_type=RNAseq" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-assays/acquisition_instrument_model?dataset_type=RNAseq"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-assays/acquisition_instrument_model?dataset_type=RNAseq" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-entities"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-entities" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-entities?test=X"
+echo "SHOULD RETURN 400; invalid parameter"
+curl --request GET \
+ --url "${UBKG_URL}/field-entities?test=X" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-entities/acquisition_instrument_model"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-entities/acquisition_instrument_model" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-entities/acquisition_instrument_model?source=x"
+echo "SHOULD RETURN 400; invalid parameter value"
+curl --request GET \
+ --url "${UBKG_URL}/field-entities/acquisition_instrument_model?source=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-entities/acquisition_instrument_model?source=HMFIELD"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-entities/acquisition_instrument_model?source=HMFIELD" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-entities/acquisition_instrument_model?entity=x"
+echo "SHOULD RETURN 404; no results"
+curl --request GET \
+ --url "${UBKG_URL}/field-entities/acquisition_instrument_model?entity=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-entities/acquisition_instrument_model?entity=dataset"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-entities/acquisition_instrument_model?entity=dataset" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-schemas"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-schemas" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-schemas?test=x"
+echo "SHOULD RETURN 400; invalid parameter"
+curl --request GET \
+ --url "${UBKG_URL}/field-schemas?test=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-schemas/acquisition_instrument_model"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-schemas/acquisition_instrument_model" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-schemas/acquisition_instrument_model?source=x"
+echo "SHOULD RETURN 400; invalid parameter value"
+curl --request GET \
+ --url "${UBKG_URL}/field-schemas?source=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-schemas/acquisition_instrument_model?source=HMFIELD"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-schemas?source=HMFIELD" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-schemas/acquisition_instrument_model?schema=x"
+echo "SHOULD RETURN 404; no results"
+curl --request GET \
+ --url "${UBKG_URL}/field-schemas?schema=x" \
+ --header "Content-Type: application/json"
+echo
+
+echo "field-schemas/acquisition_instrument_model?schema=imc3d"
+echo "SHOULD RETURN 200"
+curl --request GET \
+ --url "${UBKG_URL}/field-schemas?schema=imc3d" \
+ --header "Content-Type: application/json"
+echo
