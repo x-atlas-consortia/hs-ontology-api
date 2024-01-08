@@ -20,10 +20,10 @@ CALL
 // RUI codes are property nodes linked to organ nodes.
 CALL
 {
-	WITH OrganCUI MATCH (pOrgan:Concept)-[r1:has_two_character_code]->(p2CC:Concept)-[r2:PREF_TERM]->(t2CC:Term)
+	WITH OrganCUI OPTIONAL MATCH (pOrgan:Concept)-[r1:has_two_character_code]->(p2CC:Concept)-[r2:PREF_TERM]->(t2CC:Term)
 	WHERE pOrgan.CUI=OrganCUI AND r1.SAB=$sab RETURN t2CC.name as OrganTwoCharacterCode
 }
 // Filter out the "Other" organ node.
 WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganCUI
-WHERE OrganCode <> 'C030071'
+WHERE NOT (OrganCode = 'C030071' AND OrganSAB=$sab)
 RETURN OrganCode,OrganSAB,OrganName,OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName

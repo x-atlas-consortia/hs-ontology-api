@@ -17,6 +17,14 @@ from hs_ontology_api.routes.proteins.proteins_controller import proteins_bluepri
 from hs_ontology_api.routes.proteinsinfo.proteinsinfo_controller import proteinsinfo_blueprint
 from hs_ontology_api.routes.celltypes.celltypes_controller import celltypes_blueprint
 from hs_ontology_api.routes.celltypesinfo.celltypesinfo_controller import celltypesinfo_blueprint
+# JAS December 2023
+from hs_ontology_api.routes.fielddescriptions.fielddescriptions_controller import field_descriptions_blueprint
+from hs_ontology_api.routes.fieldtypes.fieldtypes_controller import field_types_blueprint
+from hs_ontology_api.routes.fieldassays.fieldassays_controller import field_assays_blueprint
+# JAS January 2024
+from hs_ontology_api.routes.fieldschemas.fieldschemas_controller import field_schemas_blueprint
+from hs_ontology_api.routes.fieldtypesinfo.fieldtypesinfo_controller import field_types_info_blueprint
+from hs_ontology_api.routes.fieldentities.fieldentities_controller import field_entities_blueprint
 
 # Cells API client
 from hs_ontology_api.utils.cellsclient import OntologyCellsClient
@@ -45,13 +53,22 @@ app.register_blueprint(proteins_blueprint)
 app.register_blueprint(proteinsinfo_blueprint)
 app.register_blueprint(celltypesinfo_blueprint)
 app.register_blueprint(celltypes_blueprint)
+# JAS Dec 2023
+app.register_blueprint(field_descriptions_blueprint)
+app.register_blueprint(field_types_blueprint)
+app.register_blueprint(field_assays_blueprint)
+# JAS Jan 2024
+app.register_blueprint(field_schemas_blueprint)
+app.register_blueprint(field_types_info_blueprint)
+app.register_blueprint(field_entities_blueprint)
+
 
 # Instantiate a Cells API client.
 cellsurl = make_flask_config().get('CELLSURL')
 app.cells_client = OntologyCellsClient(cellsurl)
 
 
-# Defining the /status endpoint in the ubkg_api package will causes 500 error
+# Defining the /status endpoint in the ubkg_api package will cause 500 error
 # Because the VERSION and BUILD files are not built into the package
 @app.route('/status', methods=['GET'])
 def api_status():

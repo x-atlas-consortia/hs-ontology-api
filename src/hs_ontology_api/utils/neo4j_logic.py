@@ -23,7 +23,14 @@ from hs_ontology_api.models.proteindetail import ProteinDetail
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 from hs_ontology_api.models.celltypedetail import CelltypeDetail
-
+# JAS Dec 2023
+from hs_ontology_api.models.fielddescription import FieldDescription
+from hs_ontology_api.models.fieldtype import FieldType
+from hs_ontology_api.models.fieldassay import FieldAssay
+# JAS Jan 2024
+from hs_ontology_api.models.fieldschema import FieldSchema
+from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
+from hs_ontology_api.models.fieldentity import FieldEntity
 
 # Query utilities
 # from hs_ontology_api.cypher.util_query import loadquerystring
@@ -211,8 +218,6 @@ def get_organ_types_logic(neo4j_instance, sab):
     queryfile = 'organs.cypher'
     query = loadquerystring(queryfile)
     query = query.replace('$sab', f'\'{sab}\'')
-
-    print(query)
 
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
@@ -1043,3 +1048,370 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
                 pass
 
     return celltypedetails
+
+
+def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[FieldDescription]:
+    """
+    Returns detailed information on an ingest metadata field description.
+    """
+    # response list
+    fielddescriptions: [FieldDescription] = []
+
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
+
+    # Load annotated Cypher query from the cypher directory.
+
+    queryfile = 'fielddescriptions.cypher'
+    query = loadquerystring(queryfile)
+
+    # Allow for filtering on field name.
+    if field_name is None:
+        field_filter = f' AND {identity_filter}'
+    else:
+        field_filter = f" AND tField.name = '{field_name}'"
+    query = query.replace('$field_filter', field_filter)
+
+    # Allow for filtering on description source
+    if definition_source is None:
+        source_filter = " AND d.SAB IN ['HMFIELD', 'CEDAR'] "
+    elif definition_source in ['HMFIELD', 'CEDAR']:
+        source_filter = f" AND d.SAB = '{definition_source}'"
+    else:
+        source_filter = " AND d.SAB IN ['HMFIELD', 'CEDAR'] "
+
+    query = query.replace('$source_filter', source_filter)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fielddescription: FieldDescription = \
+                    FieldDescription(code_ids=record.get('code_ids'),
+                                     name=record.get('identifier'),
+                                     descriptions=record.get('defs')).serialize()
+
+                fielddescriptions.append(fielddescription)
+
+            except KeyError:
+                pass
+
+    return fielddescriptions
+
+
+def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, type_source=None, type=None) -> List[FieldType]:
+    """
+    Returns detailed information on an ingest metadata field's associated data types. The types here are not to be confused
+    with the dataset data type--e.g., they are values like "string", "integer", etc.
+
+    :param: field_name - name of the metadata field
+    :param mapping_source - name of the source of field-type mapping--i.e., HMFIELD or CEDAR
+    :param type_source - name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
+    :param type - term for the type--e.g., string
+    """
+    # response list
+    fieldtypes: [FieldType] = []
+
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'fieldtypes.cypher'
+    query = loadquerystring(queryfile)
+
+    # Allow for filtering on field name.
+    if field_name is None:
+        field_filter = f' AND {identity_filter}'
+    else:
+        field_filter = f" AND tField.name = '{field_name}'"
+    query = query.replace('$field_filter', field_filter)
+
+    # Allow for filtering on mapping source.
+    if mapping_source is None:
+        mapping_source_filter = " AND rdt.SAB IN ['HMFIELD', 'CEDAR'] "
+    elif mapping_source in ['HMFIELD', 'CEDAR']:
+        mapping_source_filter = f" AND rdt.SAB = '{mapping_source}'"
+    else:
+        mapping_source_filter = " AND rdt.SAB IN ['HMFIELD', 'CEDAR'] "
+    query = query.replace('$mapping_source_filter', mapping_source_filter)
+
+    # Allow for filtering on type source.
+    if type_source is None:
+        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
+    elif type_source in ['HMFIELD', 'XSD']:
+        type_source_filter = f" AND cType.SAB = '{type_source}'"
+    else:
+        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
+    query = query.replace('$type_source_filter', type_source_filter)
+
+    # Allow for filtering on type.
+    if type is None:
+        type_filter = f"AND {identity_filter}"
+    else:
+        type_filter = f"AND CASE WHEN tType.name CONTAINS ':' THEN split(tType.name,':')[1] ELSE tType.name END='{type}'"
+    query = query.replace('$type_filter', type_filter)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fieldtype: FieldType = \
+                    FieldType(code_ids=record.get('code_ids'),
+                              name=record.get('field_name'),
+                              types=record.get('types')).serialize()
+
+                fieldtypes.append(fieldtype)
+
+            except KeyError:
+                pass
+
+    return fieldtypes
+
+def field_types_info_get_logic(neo4j_instance, type_source=None):
+    """
+    Returns a unique list of available field data types, with optional filtering.
+    Used by the field-types-info endpoint.
+
+    :param type_source - name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
+    :return:
+    """
+    # response list
+    fieldtypes: [FieldTypeDetail] = []
+
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'fieldtypelist.cypher'
+    query = loadquerystring(queryfile)
+
+    # Allow for filtering on type source.
+    if type_source is None:
+        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
+    elif type_source in ['HMFIELD', 'XSD']:
+        type_source_filter = f" AND cType.SAB = '{type_source}'"
+    else:
+        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
+    query = query.replace('$type_source_filter', type_source_filter)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fieldtypedetail: FieldTypeDetail = \
+                    FieldTypeDetail(type_detail=record.get('type'), is_mapped=False).serialize()
+
+                fieldtypes.append(fieldtypedetail)
+
+            except KeyError:
+                pass
+
+    return fieldtypes
+
+
+def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=None,
+                                    data_type=None, dataset_type=None) -> List[FieldAssay]:
+    """
+    Returns detailed information on the associations between a  metadata field and assay datasets.
+    :param neo4j_instance: connection to UBKG instance
+    :param field_name: optional filter: name of field
+    :param assay_identifier: optional filter: name of assay_identifier used in legacy field_assays.yaml.
+    This corresponds to a data_type; an alt-name, or a description.
+    :param data_type: legacy data_type
+    :param dataset_type: soft assay dataset type
+    :return:
+    """
+
+    # response list
+    fieldassays: [FieldAssay] = []
+
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'fieldassays.cypher'
+    query = loadquerystring(queryfile)
+
+    # Allow for filtering on field name.
+    if field_name is None:
+        field_filter = f' AND {identity_filter}'
+    else:
+        field_filter = f" AND tField.name = '{field_name}'"
+    query = query.replace('$field_filter', field_filter)
+
+    # Allow for filtering on assay_identifier.
+    if assay_identifier is None:
+        assay_type_filter = f'AND {identity_filter}'
+    else:
+        assay_type_filter=f" AND tAssay.name='{assay_identifier}'"
+
+    query = query.replace('$assay_type_filter', assay_type_filter)
+
+    # Allow for filtering on data_type and dataset_type
+    list_data_filters = []
+    if data_type is None:
+        list_data_filters.append(identity_filter)
+    else:
+        list_data_filters.append(f"data_type='{data_type}'")
+
+    if dataset_type is None:
+        list_data_filters.append(identity_filter)
+    else:
+        list_data_filters.append(f"dataset_type='{dataset_type}'")
+
+    if len(list_data_filters) == 0:
+        filter = f' WHERE {identity_filter}'
+    else:
+        filter = ' WHERE ' + ' AND '.join(list_data_filters)
+
+    query = query.replace('$data_type_dataset_type_filters', filter)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fieldassay: FieldAssay = \
+                    FieldAssay(code_ids=record.get('code_ids'),
+                               name=record.get('field_name'),
+                               assays=record.get('assays')).serialize()
+
+                fieldassays.append(fieldassay)
+
+            except KeyError:
+                pass
+
+    return fieldassays
+
+def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None, schema=None) -> List[FieldSchema]:
+    """
+    Returns detailed information on an ingest metadata field's associated schemas or CEDAR templates.
+    """
+    # response list
+    fieldschemas: [FieldSchema] = []
+
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'fieldschemas.cypher'
+    query = loadquerystring(queryfile)
+
+    # Allow for filtering on field name.
+    if field_name is None:
+        field_filter = f' AND {identity_filter}'
+    else:
+        field_filter = f" AND tField.name = '{field_name}'"
+    query = query.replace('$field_filter', field_filter)
+
+    # Allow for filtering on schema.
+    if schema is None:
+        schema_filter = " AND " + identity_filter
+    else:
+        schema_filter = f" AND tSchema.name = '{schema}'"
+    query = query.replace('$schema_filter', schema_filter)
+
+    # Allow for filtering on mapping source.
+    if mapping_source is None:
+        mapping_source_filter = " AND " + identity_filter
+    else:
+        mapping_source_filter = f" AND SPLIT(schema_name,'|')[0]='{mapping_source}'"
+    query = query.replace('$mapping_source_filter', mapping_source_filter)
+
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fieldschema: FieldSchema = \
+                    FieldSchema(code_ids=record.get('code_ids'),
+                              name=record.get('field_name'),
+                              schemas=record.get('schemas')).serialize()
+
+                fieldschemas.append(fieldschema)
+
+            except KeyError:
+                pass
+
+    return fieldschemas
+
+def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None) -> List[FieldEntity]:
+    """
+    Returns detailed information on an ingest metadata field's associated data types. The types here are not to be confused
+    with the dataset data type--e.g., they are values like "string", "integer", etc.
+
+    :param: field_name - name of the metadata field
+    :param mapping_source - name of the source of field-type mapping--i.e., HMFIELD or CEDAR
+    :param type_source - name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
+    :param type - term for the type--e.g., string
+    """
+    # response list
+    fieldentities: [FieldEntity] = []
+
+    # Used in WHERE clauses when no filter is needed.
+    identity_filter = '1=1'
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $ids.
+    queryfile = 'fieldentities.cypher'
+    query = loadquerystring(queryfile)
+
+    # Allow for filtering on field name.
+    if field_name is None:
+        field_filter = f' AND {identity_filter}'
+    else:
+        field_filter = f" AND tField.name = '{field_name}'"
+    query = query.replace('$field_filter', field_filter)
+
+    # Allow for filtering on source.
+    if source is None:
+        source_filter = "''"
+    elif source in ['HMFIELD', 'HUBMAP']:
+        source_filter = f"'{source}'"
+    else:
+        source_filter = source_filter = "''"
+    query = query.replace('$source_filter', source_filter)
+
+    # Allow for filtering on entity.
+    if entity is None:
+        entity_filter = f"AND {identity_filter}"
+    else:
+        entity_filter = f"AND (tHMFIELDEntity.name='{entity}' OR tHUBMAPEntity.name='{entity}')"
+    query = query.replace('$entity_filter', entity_filter)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        # Build response object.
+        for record in recds:
+            try:
+                fieldentity: FieldEntity = \
+                    FieldEntity(code_ids=record.get('code_ids'),
+                              name=record.get('field_name'),
+                              entities=record.get('entities')).serialize()
+
+                fieldentities.append(fieldentity)
+
+            except KeyError:
+                pass
+
+    return fieldentities
