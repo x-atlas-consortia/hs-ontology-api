@@ -24,7 +24,7 @@ def field_types_info_get():
     type_source = request.args.get('type_source')
     if type_source is not None:
         type_source = type_source.upper()
-        val_enum = ['HMFIELD', 'CEDAR']
+        val_enum = ['HMFIELD', 'XSD']
         err = validate_parameter_value_in_enum(param_name='type_source', param_value=type_source, enum_list=val_enum)
         if err != 'ok':
             return make_response(err, 400)
