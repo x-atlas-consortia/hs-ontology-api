@@ -571,9 +571,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldDescriptionsResponse'
+                $ref: '#/components/schemas/FieldDescriptionsResponse'
         '400':
           description: Invalid *source* parameter (i.e., not CEDAR or HMFIELD); invalid parameter
         '404':
@@ -603,13 +601,11 @@ paths:
               - CEDAR
       responses:
         '200':
-          description: Array of ingest metadata fields with descriptions
+          description: Descriptions for single ingest metadata field
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldDescriptionsResponse'
+                $ref: '#/components/schemas/FieldDescriptionsResponseSingle'
         '400':
           description: Invalid *source* parameter (i.e., not CEDAR or HMFIELD); invalid parameter
         '404':
@@ -652,9 +648,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldTypesResponse'
+                $ref: '#/components/schemas/FieldTypesResponse'
         '400':
           description: Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
         '404':
@@ -704,9 +698,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldTypesResponse'
+                $ref: '#/components/schemas/FieldTypesResponseSingle'
         '400':
           description:  Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
         '404':
@@ -716,7 +708,7 @@ paths:
   /field-types-info:
     get:
       operationId: field_types_indo_get
-      summary: Returns a list of all available data types for metadata fields.
+      summary: Returns a list of all available data types for specified metadata field.
       parameters:
         - name: type_source
           in: query
@@ -733,9 +725,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldTypesInfoResponse'
+                $ref: '#/components/schemas/FieldTypesInfoResponse'
         '400':
           description:  Invalid parameter
         '404':
@@ -769,9 +759,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldEntitiesResponse'
+                $ref: '#/components/schemas/FieldEntitiesResponse'
         '400':
           description:  Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
         '404':
@@ -808,13 +796,11 @@ paths:
             example: Sample
       responses:
         '200':
-          description: Associations between ingest metadata fields and provenance entities.
+          description: Associations between specified ingest metadata field and provenance entities.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldEntitiesResponse'
+                $ref: '#/components/schemas/FieldEntitiesResponseSingle'
         '400':
           description:  Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
         '404':
@@ -853,9 +839,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldAssaysResponse'
+                $ref: '#/components/schemas/FieldAssaysResponse'
         '400':
           description: Invalid parameter
         '404':
@@ -897,13 +881,11 @@ paths:
             example: RNASeq
       responses:
         '200':
-          description: Array of ingest metadata fields; each field with its associations with assays/dataset types.
+          description: Specified ingest metadata field with its associations with assays/dataset types.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldAssaysResponse'
+                $ref: '#/components/schemas/FieldAssaysResponseSingle'
         '400':
           description: Invalid parameter
         '404':
@@ -937,9 +919,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldSchemasResponse'
+                $ref: '#/components/schemas/FieldSchemasResponse'
         '400':
           description: Invalid parameter; invalid value for *source*
         '404':
@@ -976,13 +956,11 @@ paths:
             example: imc
       responses:
         '200':
-          description: Associations between ingest metadata fields and metadata schemas.
+          description: Associations between specified ingest metadata field and metadata schemas.
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/FieldSchemasResponse'
+                $ref: '#/components/schemas/FieldSchemasResponseSingle'
         '400':
           description: Invalid parameter; invalid value for *source*
         '404':
@@ -1541,7 +1519,7 @@ components:
                 example: heart
     FieldDescriptionsResponse:
       type: object
-      description: Descriptions ingest metadata fields from legacy field-descriptions.yaml
+      description: Descriptions for ingest metadata fields
       properties:
         fields:
           type: array
@@ -1573,9 +1551,37 @@ components:
                       type: string
                       description: description string
                       example: Units of x resolution distance between laser ablation shots.
+    FieldDescriptionsResponseSingle:
+      type: object
+      description: Descriptions for a single ingest metadata field
+      properties:
+        code_ids:
+          type: array
+          description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
+          items:
+            type: string
+            example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+        name:
+          type: string
+          description: identifier for metadata field
+          example: ablation_distance_between_shots_x_units
+        descriptions:
+          type: array
+          description: descriptions of field, from both HMFIELD and CEDAR
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+                description: source of the description
+                example: CEDAR
+              description:
+                type: string
+                description: description string
+                example: Units of x resolution distance between laser ablation shots.
     FieldTypesResponse:
       type: object
-      description: Associations between metadata field and data type ingest metadata fields
+      description: Associations between ingest metadata fields and ingest metadata field data types
       properties:
         fields:
           type: array
@@ -1611,6 +1617,38 @@ components:
                       type: string
                       description: the term for the type code in the type ontology
                       example: float
+    FieldTypesResponseSingle:
+      type: object
+      description: Associations between single ingest metadata field and ingest metadata field data types
+      properties:
+        code_ids:
+          type: array
+          description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
+          items:
+            type: string
+            example: ["HMFIELD:1018","CEDAR:ea6e26f1-30df-4a8c-9f15-63111ea0b68b"]
+        name:
+          type: string
+          description: identifier for metadata field
+          example: area_unit
+        types:
+          type: array
+          description: field type associations
+          items:
+            type: object
+            properties:
+              mapping_source:
+                type: string
+                description: source of the field-to-type mapping (i.e., the ontology).
+                example: CEDAR
+              type_source:
+                type: string
+                description: source of the field code (i.e., the type ontology)
+                example: XSD
+              type:
+                type: string
+                description: the term for the type code in the type ontology
+                example: float
     FieldTypesInfoResponse:
       type: object
       description: Details on ingest metadata field types.
@@ -1631,7 +1669,7 @@ components:
                 example: float
     FieldEntitiesResponse:
       type: object
-      description: Associations between fields and provenance entities for ingest metadata fields from legacy field-types.yaml
+      description: Associations between ingest metadata fields and provenance entities
       properties:
         fields:
           type: array
@@ -1671,12 +1709,45 @@ components:
                             type: string
                             description: preferred term for the provenance entity
                             example: Sample
-
-
-
+    FieldEntitiesResponseSingle:
+      type: object
+      description: Associations between single ingest metadata field and provenance entities
+      properties:
+        codeID:
+          type: string
+          description: Code in the HMFIELD ontology
+          example: HMFIELD:1001
+        name:
+          type: string
+          description: identifier for metadata field
+          example: ablation_distance_between_shots_x_units
+        entities:
+          type: array
+          description: array of provenance entities associated with the field. Each provenance entity can correspond to nodes in both the HMFIELD and HUBMAP ontologies.
+          items:
+            type: object
+            properties:
+              nodes:
+                type: array
+                description: array of nodes for the entity in all ontologies.
+                items:
+                  type: object
+                  properties:
+                    source:
+                      type: string
+                      description: ontology for the provenance entity
+                      example: HUBMAP
+                    code:
+                      type: string
+                      description: code for the provenance entity in the source ontology
+                      example: C040002
+                    name:
+                      type: string
+                      description: preferred term for the provenance entity
+                      example: Sample
     FieldAssaysResponse:
       type: object
-      description: Associations between fields and "assays" (or datasets generated by assays) for ingest metadata fields
+      description: Associations between ingest metadata fields and "assays" (or datasets generated by assays)
       properties:
         fields:
           type: array
@@ -1712,10 +1783,41 @@ components:
                       type: string
                       description: The "soft assay" dataset type--e.g., used by the Rules Engine
                       example: RNASeq
-
+    FieldAssaysResponseSingle:
+      type: object
+      description: Associations between single ingest meatadata field and "assays" (or datasets generated by assays)
+      properties:
+        code_ids:
+          type: array
+          description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
+          items:
+            type: string
+            example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+        name:
+          type: string
+          description: name of the metadata field
+          example: acquisition_instrument_model
+        assays:
+          type: array
+          description: array of assays/datasets associated with the field
+          items:
+            type: object
+            properties:
+              assay_identifier:
+                type: string
+                description: The legacy identifier used in field_assays.yaml. This can be the data_type, an alt-name, or the description of the data_type used in Portal.
+                example: scRNAseq-10xGenomics
+              data_type:
+                type: string
+                description: The legacy data_type--i.e., the key for ingest workflows
+                example: scRNAseq-10xGenomics-v3
+              dataset_type:
+                type: string
+                description: The "soft assay" dataset type--e.g., used by the Rules Engine
+                example: RNASeq
     FieldSchemasResponse:
       type: object
-      description: Associations between fields and metadata schemas for ingest metadata fields from legacy field-schemas.yaml
+      description: Associations between ingest metadata fields and metadata schemas
       properties:
         fields:
           type: array
@@ -1747,3 +1849,31 @@ components:
                       type: string
                       description: name of schema
                       example: imc3d
+    FieldSchemasResponseSingle:
+      type: object
+      description: Associations between a single ingest metata fields and metadata schemas
+      properties:
+        code_ids:
+          type: array
+          description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
+          items:
+            type: string
+            example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+        name:
+          type: string
+          description: identifier for metadata field
+          example: ablation_distance_between_shots_x_units
+        schemas:
+          type: array
+          description: array of metadata schemas/templates associated with the field
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+                description: source of schema mapping
+                example: HMFIELD
+              schema:
+                type: string
+                description: name of schema
+                example: imc3d

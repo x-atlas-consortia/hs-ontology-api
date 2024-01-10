@@ -3,6 +3,44 @@
 
 from flask import request
 
+def format_request_path():
+    """
+    Formats the request path for an error sgring.
+    :return:
+    """
+    # The request path will be one of three types:
+    # 1. The final element will correspond to the endpoint (e.g., /field-descriptions)
+    # 2. The penultimate element will correspond to the endpoint, and the final element will be a filter.
+    pathsplit = request.path.split('/')
+    err = f"{pathsplit[0]} "
+    if len(pathsplit) > 3:
+        err = err + f" for path {request.path}"
+    elif len(pathsplit) == 3:
+        err = err + f" for '{pathsplit[2]}'"
+    else:
+        err = err + f" for '{pathsplit[1]}'"
+
+    return err
+
+def format_request_query_string():
+    """
+    Formats teh request query string for error messages.
+
+    :return:
+    """
+    err = ''
+
+    listerr = []
+    for req in request.args:
+        listerr.append(f"'{req}'='{request.args[req]}'")
+
+    if len(listerr) > 0:
+        err = ' and query parameter'
+        if len(listerr) > 1:
+            err = err + 's'
+        err = err + ' ' + ' ; '.join(listerr) + '.'
+
+    return err
 
 def get_404_error_string(prompt_string=None):
     """
@@ -15,30 +53,9 @@ def get_404_error_string(prompt_string=None):
     else:
         err = prompt_string
 
-    # The request path will be one of three types:
-    # 1. The final element will correspond to the endpoint (e.g., /field-descriptions)
-    # 2. The penultimate element will correspond to the endpoint, and the final element will be a filter.
-    pathsplit = request.path.split('/')
-    err = err + f"{pathsplit[0]} "
-    if len(pathsplit) > 3:
-        err = err + f" for path {request.path}"
-    elif len(pathsplit) == 3:
-        err = err + f" for '{pathsplit[2]}'"
-    else:
-        err = err + f" for '{pathsplit[1]}'"
-
-    listerr = []
-    for req in request.args:
-        listerr.append(f"'{req}'='{request.args[req]}'")
-
-    if len(listerr) > 0:
-        err = err + ' and query parameter'
-        if len(listerr) > 1:
-            err = err + 's'
-        err = err + ' ' + ' ; '.join(listerr) + '.'
+    err = err + format_request_path() + format_request_query_string()
 
     return err
-
 
 def get_number_agreement(list_items=None):
     """
