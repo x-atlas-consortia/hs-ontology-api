@@ -9,7 +9,6 @@ from typing import List
 from ubkg_api.models.base_model_ import Model
 from ubkg_api.models import util
 
-
 class FieldTypeDetail(Model):
 
     def __init__(self, type_detail=None, is_mapped: bool=True):

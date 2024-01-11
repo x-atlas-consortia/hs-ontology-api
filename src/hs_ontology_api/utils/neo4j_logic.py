@@ -31,6 +31,8 @@ from hs_ontology_api.models.fieldassay import FieldAssay
 from hs_ontology_api.models.fieldschema import FieldSchema
 from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
 from hs_ontology_api.models.fieldentity import FieldEntity
+# custom exception classes
+from .hsontologyexception import DuplicateFieldError
 
 # Query utilities
 # from hs_ontology_api.cypher.util_query import loadquerystring
@@ -679,7 +681,7 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     starts_with_clause = ''
     if starts_with != '':
         # Escape apostrophes and double quotes.
-        starts_with = starts_with.replace("'", "\'").replace('"',"\'")
+        starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f'AND tGene.name STARTS WITH "{starts_with}"'
     query = query.replace('$starts_with_clause', starts_with_clause)
 
@@ -1053,6 +1055,9 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
 def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[FieldDescription]:
     """
     Returns detailed information on an ingest metadata field description.
+    :param: neo4j_instance - neo4j connection
+    :param: field_name - field name (for field-description/{name} route)
+    :param: definition_source - source of field description-- HMFIELD or CEDAR
     """
     # response list
     fielddescriptions: [FieldDescription] = []
@@ -1086,6 +1091,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
 
+        record_count = 0
         # Build response object.
         for record in recds:
             try:
@@ -1095,22 +1101,38 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
                                      descriptions=record.get('defs')).serialize()
 
                 fielddescriptions.append(fielddescription)
-
+                record_count = record_count + 1
             except KeyError:
                 pass
 
-    return fielddescriptions
+    # For queries that are filtered by field,
+    # 1. Check for multiple rows returned.
+    # 2. Return the single object instead of an array.
+    # For non-filtered queries, return an array.
+
+    if field_name is None:
+        return fielddescriptions
+    elif record_count > 1:
+        raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
+    elif len(fielddescriptions) == 0:
+        # No values, so return the empty array.
+        return fielddescriptions
+    else:
+        return fielddescriptions[0]
 
 
-def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, type_source=None, type=None) -> List[FieldType]:
+def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, type_source=None, type=None)\
+        -> List[FieldType]:
     """
-    Returns detailed information on an ingest metadata field's associated data types. The types here are not to be confused
+    Returns detailed information on an ingest metadata field's associated data types.
+    The types here are not to be confused
     with the dataset data type--e.g., they are values like "string", "integer", etc.
 
-    :param: field_name - name of the metadata field
-    :param mapping_source - name of the source of field-type mapping--i.e., HMFIELD or CEDAR
-    :param type_source - name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
-    :param type - term for the type--e.g., string
+    :param neo4j_instance: neo4j connection
+    :param field_name: name of the metadata field
+    :param mapping_source: name of the source of field-type mapping--i.e., HMFIELD or CEDAR
+    :param type_source: name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
+    :param type: term for the type--e.g., string
     """
     # response list
     fieldtypes: [FieldType] = []
@@ -1152,13 +1174,15 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
     if type is None:
         type_filter = f"AND {identity_filter}"
     else:
-        type_filter = f"AND CASE WHEN tType.name CONTAINS ':' THEN split(tType.name,':')[1] ELSE tType.name END='{type}'"
+        type_filter = f"AND CASE WHEN tType.name CONTAINS ':' THEN split(tType.name,':')[1] " \
+                      f"ELSE tType.name END='{type}'"
     query = query.replace('$type_filter', type_filter)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
 
+        record_count = 0
         # Build response object.
         for record in recds:
             try:
@@ -1168,18 +1192,33 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
                               types=record.get('types')).serialize()
 
                 fieldtypes.append(fieldtype)
-
+                record_count = record_count + 1
             except KeyError:
                 pass
 
-    return fieldtypes
+        # For queries that are filtered by field,
+        # 1. Check for multiple rows returned.
+        # 2. Return the single object instead of an array.
+        # For non-filtered queries, return an array.
+
+        if field_name is None:
+            return fieldtypes
+        elif record_count > 1:
+            raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
+        elif len(fieldtypes) == 0:
+            # No values, so return the empty array.
+            return fieldtypes
+        else:
+            return fieldtypes[0]
+
 
 def field_types_info_get_logic(neo4j_instance, type_source=None):
     """
     Returns a unique list of available field data types, with optional filtering.
     Used by the field-types-info endpoint.
 
-    :param type_source - name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
+    :param neo4j_instance: neo4j connection
+    :param type_source:  name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
     :return:
     """
     # response list
@@ -1221,7 +1260,7 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
 
 
 def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=None,
-                                    data_type=None, dataset_type=None) -> List[FieldAssay]:
+                           data_type=None, dataset_type=None) -> List[FieldAssay]:
     """
     Returns detailed information on the associations between a  metadata field and assay datasets.
     :param neo4j_instance: connection to UBKG instance
@@ -1255,7 +1294,7 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=Non
     if assay_identifier is None:
         assay_type_filter = f'AND {identity_filter}'
     else:
-        assay_type_filter=f" AND tAssay.name='{assay_identifier}'"
+        assay_type_filter = f" AND tAssay.name='{assay_identifier}'"
 
     query = query.replace('$assay_type_filter', assay_type_filter)
 
@@ -1282,6 +1321,8 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=Non
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
 
+        record_count = 0
+
         # Build response object. Valid responses contain something in the assays element other than
         # ['none|none|none'].
         for record in recds:
@@ -1292,15 +1333,34 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=Non
                                    name=record.get('field_name'),
                                    assays=record.get('assays')).serialize()
                     fieldassays.append(fieldassay)
-
+                    record_count = record_count + 1
             except KeyError:
                 pass
 
-    return fieldassays
+        # For queries that are filtered by field,
+        # 1. Check for multiple rows returned.
+        # 2. Return the single object instead of an array.
+        # For non-filtered queries, return an array.
+        if field_name is None:
+            return fieldassays
+        elif record_count > 1:
+            raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
+        elif len(fieldassays) == 0:
+            # No values, so return the empty array.
+            return fieldassays
+        else:
+            return fieldassays[0]
+
 
 def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None, schema=None) -> List[FieldSchema]:
     """
     Returns detailed information on an ingest metadata field's associated schemas or CEDAR templates.
+
+    :param neo4j_instance: neo4j connection to the UBKG
+    :param field_name: name of field for filtered route
+    :param mapping_source: name of source of field-schema mapping (HMFIELD or CEDAR)
+    :param schema: name of schema from querystring
+
     """
     # response list
     fieldschemas: [FieldSchema] = []
@@ -1334,35 +1394,50 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
         mapping_source_filter = f" AND SPLIT(schema_name,'|')[0]='{mapping_source}'"
     query = query.replace('$mapping_source_filter', mapping_source_filter)
 
-
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
+
+        record_count = 0
 
         # Build response object.
         for record in recds:
             try:
                 fieldschema: FieldSchema = \
                     FieldSchema(code_ids=record.get('code_ids'),
-                              name=record.get('field_name'),
-                              schemas=record.get('schemas')).serialize()
+                                name=record.get('field_name'),
+                                schemas=record.get('schemas')).serialize()
 
                 fieldschemas.append(fieldschema)
-
+                record_count = record_count + 1
             except KeyError:
                 pass
 
-    return fieldschemas
+        # For queries that are filtered by field,
+        # 1. Check for multiple rows returned.
+        # 2. Return the single object instead of an array.
+        # For non-filtered queries, return an array.
+        if field_name is None:
+            return fieldschemas
+        elif record_count > 1:
+            raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
+        elif len(fieldschemas) == 0:
+            # No values, so return the empty array.
+            return fieldschemas
+        else:
+            return fieldschemas[0]
+
 
 def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None) -> List[FieldEntity]:
     """
-    Returns detailed information on an ingest metadata field's associated data types. The types here are not to be confused
-    with the dataset data type--e.g., they are values like "string", "integer", etc.
+    Returns detailed information on an ingest metadata field's associated data types.
+    The types here are not to be confused with the dataset data type--e.g., they are values
+    like "string", "integer", etc.
 
-    :param: field_name - name of the metadata field
-    :param mapping_source - name of the source of field-type mapping--i.e., HMFIELD or CEDAR
-    :param type_source - name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
-    :param type - term for the type--e.g., string
+    :param neo4j_instance: neo4j connection to UBKG
+    :param field_name: name of the metadata field
+    :param source: name of the source of field-entity mapping--i.e., HMFIELD or HUBMAP
+    :param entity: term for the entity--e.g., string
     """
     # response list
     fieldentities: [FieldEntity] = []
@@ -1388,7 +1463,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
     elif source in ['HMFIELD', 'HUBMAP']:
         source_filter = f"'{source}'"
     else:
-        source_filter = source_filter = "''"
+        source_filter = "''"
     query = query.replace('$source_filter', source_filter)
 
     # Allow for filtering on entity.
@@ -1402,17 +1477,32 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
 
+        record_count = 0
+
         # Build response object.
         for record in recds:
             try:
                 fieldentity: FieldEntity = \
                     FieldEntity(code_ids=record.get('code_ids'),
-                              name=record.get('field_name'),
-                              entities=record.get('entities')).serialize()
+                                name=record.get('field_name'),
+                                entities=record.get('entities')).serialize()
 
                 fieldentities.append(fieldentity)
+                record_count = record_count + 1
 
             except KeyError:
                 pass
 
-    return fieldentities
+        # For queries that are filtered by field,
+        # 1. Check for multiple rows returned.
+        # 2. Return the single object instead of an array.
+        # For non-filtered queries, return an array.
+        if field_name is None:
+            return fieldentities
+        elif record_count > 1:
+            raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
+        elif len(fieldentities) == 0:
+            # No values, so return the empty array.
+            return fieldentities
+        else:
+            return fieldentities[0]

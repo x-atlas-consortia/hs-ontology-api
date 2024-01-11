@@ -38,7 +38,12 @@ def field_assays_get(name=None):
         iserr = True
     else:
         # Check for no assay associations.
-        assays = result[0].get('assays')
+        # The result object is an list of dicts if the route is unfiltered (field-associations) and a dict
+        # if filtered (field-associations/{name}).
+        if type(result) == list:
+            assays = result[0].get('assays')
+        else:
+            assays = result.get('assays')
         iserr = len(assays) == 0
 
     if iserr:
