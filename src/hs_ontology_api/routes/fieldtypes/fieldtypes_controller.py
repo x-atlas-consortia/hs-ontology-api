@@ -20,11 +20,10 @@ def field_types_get(name=None):
     if err != 'ok':
         return make_response(err, 400)
 
-    val_enum = ['HMFIELD', 'XSD']
-
     # Validate mapping source.
     mapping_source = request.args.get('mapping_source')
     if mapping_source is not None:
+        val_enum = ['HMFIELD', 'CEDAR']
         mapping_source = mapping_source.upper()
         err = validate_parameter_value_in_enum(param_name='mapping_source', param_value=mapping_source,
                                                enum_list=val_enum)
@@ -34,6 +33,7 @@ def field_types_get(name=None):
     # Validate type source.
     type_source = request.args.get('type_source')
     if type_source is not None:
+        val_enum = ['HMFIELD', 'XSD']
         type_source = type_source.upper()
         err = validate_parameter_value_in_enum(param_name='type_source', param_value=type_source,
                                                enum_list=val_enum)
