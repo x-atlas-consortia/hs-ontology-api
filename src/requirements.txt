@@ -14,3 +14,8 @@ Werkzeug==2.3.7
 
 # Cells API client
 hubmap-api-py-client==0.0.9
+
+# Test and analysis scripts
+argparse==1.4.0
+datatest==0.11.1
+deepdiff==6.7.1
