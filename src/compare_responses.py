@@ -17,7 +17,7 @@ URL_LOCAL = 'http://127.0.0.1:5002'
 
 DIFFERENCES_STATUS_CODE = 0
 DIFFERENCES_RESPONSE = 0
-DIFFERENCES_PROCESSED = 0
+ENDPOINTS_PROCESSED = 0
 STATUS_CODE_500_HOST_A = 0
 STATUS_CODE_500_HOST_B = 0
 
@@ -73,10 +73,10 @@ def endpoint_post_diff(host_a: str, host_b: str, path: str, data: dict) -> None:
 
 
 def resp_diff(host_a: str, host_b: str, path: str, resp_a, resp_b) -> None:
-    global DIFFERENCES_STATUS_CODE, DIFFERENCES_RESPONSE, DIFFERENCES_PROCESSED
+    global DIFFERENCES_STATUS_CODE, DIFFERENCES_RESPONSE, ENDPOINTS_PROCESSED
     global STATUS_CODE_500_HOST_A, STATUS_CODE_500_HOST_B
     print(f"Checking path: {path} ", end='')
-    DIFFERENCES_PROCESSED += 1
+    ENDPOINTS_PROCESSED += 1
     if resp_a.status_code == 500:
         STATUS_CODE_500_HOST_A += 1
     if resp_b.status_code == 500:
@@ -186,7 +186,7 @@ def diff(host_a: str, host_b: str) -> None:
 
 
 diff(args.host_a, args.host_b)
-print(f"\nDifferences processed: {DIFFERENCES_PROCESSED}; "
+print(f"\nEndpoints processed: {ENDPOINTS_PROCESSED}; "
       f"Response Differences: {DIFFERENCES_RESPONSE}"
       f"\nStatus Code Differences: {DIFFERENCES_STATUS_CODE}; "
       f"Status Codes 500 {args.host_a}: {STATUS_CODE_500_HOST_A}; "
