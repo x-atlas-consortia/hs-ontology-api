@@ -59,8 +59,10 @@ UNION
 WITH CLCUI
 OPTIONAL MATCH (cCL:Code)<-[:CODE]-(pCL:Concept)-[:has_marker_component]->(pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term)
 WHERE pCL.CUI=CLCUI AND cGene.SAB='HGNC' AND r.CUI=pGene.CUI AND cCL.SAB='CL' AND type(r) IN ['ACR','PT']
-RETURN distinct cCL.CodeID as CLID, 'cell_types_genes' as ret_key, cGene.CodeID + '|' + apoc.text.join(COLLECT(tGene.name),'|') AS ret_value
-ORDER BY CLID, cGene.CodeID + '|' + apoc.text.join(COLLECT(tGene.name),'|')
+WITH COLLECT(tGene.name) AS tgene_names, cGene.CodeID AS cgene_codeid, cCL.CodeID AS ccl_codeid
+WITH distinct ccl_codeid AS CLID, 'cell_types_genes' AS ret_key, cgene_codeid+'|'+apoc.text.join(tgene_names,'|') AS ret_value
+RETURN CLID, ret_key, ret_value
+ORDER BY CLID, ret_value
 
 UNION
 

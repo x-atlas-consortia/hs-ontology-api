@@ -98,7 +98,8 @@ WITH hgnc_id, CLID, mintype
 OPTIONAL MATCH (cCL:Code)-[rCL]->(tCL:Term)
 where cCL.CodeID = CLID AND type(rCL) STARTS WITH 'PT'
 AND CASE WHEN type(rCL)='PT' THEN 0 ELSE 1 END=mintype
-return  hgnc_id, 'cell_types_name' AS ret_key, CLID +'|'+ CASE WHEN tCL.name IS NULL THEN '' ELSE tCL.name END AS ret_value
+WITH hgnc_id, 'cell_types_name' AS ret_key, CLID +'|'+ CASE WHEN tCL.name IS NULL THEN '' ELSE tCL.name END AS ret_value
+RETURN hgnc_id, ret_key, ret_value
 
 UNION
 
@@ -106,8 +107,10 @@ UNION
 // Definitions link to Concepts and multiple CL codes can match to the same concept; however, each CL code has a "preferred" CUI, identified by the CUI property of the relationship of any of the code's linked terms.
 
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),(pCL:Concept)-[:DEF]->(dCL:Definition) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND dCL.SAB='CL' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,'cell_types_definition' as ret_key, cCL.CodeID + '|'+ dCL.DEF as ret_value
-ORDER BY hgnc_id,cCL.CodeID + '|'+ dCL.DEF
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),(pCL:Concept)-[:DEF]->(dCL:Definition) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND dCL.SAB='CL'
+WITH toInteger(cGene.CODE) AS hgnc_id,'cell_types_definition' as ret_key, cCL.CodeID + '|'+ dCL.DEF as ret_value
+RETURN DISTINCT hgnc_id, ret_key, ret_value
+ORDER BY hgnc_id, ret_value
 
 UNION
 
@@ -129,9 +132,9 @@ CALL
 OPTIONAL MATCH (cAZ:Code)<-[:CODE]-(pAZ:Concept)-[rAZUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term) WHERE rAZUB.SAB='AZ' AND rUB.CUI=pUB.CUI AND cAZ.CodeID=AZID AND cUB.SAB='UBERON' RETURN cUB.CodeID+'*'+ tUB.name + '' as UBERONID
 }
 
-WITH hgnc_id, CLID,UBERONID
-RETURN DISTINCT hgnc_id,'cell_types_organ' as ret_key, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",")  AS ret_value
-ORDER BY hgnc_id, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",")
+WITH hgnc_id, 'cell_types_organ' as ret_key, CLID,UBERONID, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",") AS ret_value
+RETURN DISTINCT hgnc_id, ret_key, ret_value
+ORDER BY hgnc_id, ret_value
 
 // Indicate the source of cell type information.
 UNION
