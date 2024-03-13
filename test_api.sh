@@ -427,38 +427,38 @@ curl --request GET \
  --header "Content-Type: application/json"
 echo
 
-echo "field-entities/acquisition_instrument_model"
+echo "field-entities/umi_offset"
 echo "SHOULD RETURN 200"
 curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model" \
+ --url "${UBKG_URL}/field-entities/umi_offset" \
  --header "Content-Type: application/json"
 echo
 
-echo "field-entities/acquisition_instrument_model?source=x"
+echo "field-entities/umi_offset?source=x"
 echo "SHOULD RETURN 400; invalid parameter value"
 curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model?source=x" \
+ --url "${UBKG_URL}/field-entities/umi_offset?source=x" \
  --header "Content-Type: application/json"
 echo
 
-echo "field-entities/acquisition_instrument_model?source=HMFIELD"
+echo "field-entities/umi_offset?source=HMFIELD"
 echo "SHOULD RETURN 200"
 curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model?source=HMFIELD" \
+ --url "${UBKG_URL}/field-entities/umi_offset?source=HMFIELD" \
  --header "Content-Type: application/json"
 echo
 
-echo "field-entities/acquisition_instrument_model?entity=x"
+echo "field-entities/umi_offset?entity=x"
 echo "SHOULD RETURN 404; no results"
 curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model?entity=x" \
+ --url "${UBKG_URL}/field-entities/umi_offset?entity=x" \
  --header "Content-Type: application/json"
 echo
 
-echo "field-entities/acquisition_instrument_model?entity=dataset"
+echo "field-entities/umi_offset?entity=dataset"
 echo "SHOULD RETURN 200"
 curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model?entity=dataset" \
+ --url "${UBKG_URL}/field-entities/umi_offset?entity=dataset" \
  --header "Content-Type: application/json"
 echo
 
