@@ -166,17 +166,17 @@ echo
 # Test for celltypes list.
 echo "celltypes-info GET"
 curl --request GET \
- --url "${UBKG_URL}/celltypes-info?page=1&celltypes_per_page=3" \
+ --url "${UBKG_URL}/celltypes-info?page=1&cell_types_per_page=3" \
  --header "Content-Type: application/json" |cut -c1-60
 echo
 echo "celltypes-info GET last page"
 curl --request GET \
- --url "${UBKG_URL}/celltypes-info?page=last&celltypes_per_page=3" \
+ --url "${UBKG_URL}/celltypes-info?page=last&cell_types_per_page=3" \
  --header "Content-Type: application/json" |cut -c1-60
 echo
 echo "celltypes-info GET starts_with B"
 curl --request GET \
- --url "${UBKG_URL}/celltypes-info?celltypes_per_page=3&starts_with=B" \
+ --url "${UBKG_URL}/celltypes-info?cell_types_per_page=3&starts_with=B" \
  --header "Content-Type: application/json" |cut -c1-60
 echo
 # Test for proteins endpoint.
