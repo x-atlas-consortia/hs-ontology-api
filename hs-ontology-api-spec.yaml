@@ -753,7 +753,7 @@ paths:
           schema:
             type: string
             example: Sample
-        - name: application
+        - name: application_context
           in: query
           required: false
           description: case-insensitive name of the application context
@@ -803,7 +803,7 @@ paths:
           schema:
             type: string
             example: Sample
-        - name: application
+        - name: application_context
           in: query
           required: false
           description: case-insensitive name of the application context
@@ -828,7 +828,7 @@ paths:
   /field-assays:
     get:
       operationId: field_assays_get
-      summary: Return associations between ingest metadata fields and the "assays" (dataset data types). Replacement for field-assays.yaml. NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays.
+      summary: Return associations between ingest metadata fields and the "assays" (dataset data types). Replacement for field-assays.yaml. NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays. In addition, the response from this endpoint is reliable only for datasets that existed prior to the deployment in 2024 of the assay classifier (aka Rules Engine, aka "soft assay types").
       parameters:
         - name: assay_identifier
           in: query
@@ -867,7 +867,7 @@ paths:
   /field-assays/{name}:
     get:
       operationId: field_assays_name_get
-      summary: Return associations between the specified ingest metadata field and the "assays" (dataset data types). Replacement for field-assays.yaml.NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays.
+      summary: Return associations between the specified ingest metadata field and the "assays" (dataset data types). Replacement for field-assays.yaml. NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays.
       parameters:
         - name: name
           in: path

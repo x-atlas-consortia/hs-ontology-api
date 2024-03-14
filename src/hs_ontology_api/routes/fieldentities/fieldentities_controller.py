@@ -19,7 +19,7 @@ def field_entities_get(name=None):
     """
 
     # Validate parameters
-    err = validate_query_parameter_names(['source', 'entity','application'])
+    err = validate_query_parameter_names(['source', 'entity','application_context'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -33,11 +33,11 @@ def field_entities_get(name=None):
             return make_response(err, 400)
 
     # Validate application context.
-    application = request.args.get('application')
+    application = request.args.get('application_context')
     if application is not None:
         application = application.upper()
         val_enum = ['HUBMAP', 'SENNET']
-        err = validate_parameter_value_in_enum(param_name='application', param_value=application, enum_list=val_enum)
+        err = validate_parameter_value_in_enum(param_name='application_context', param_value=application, enum_list=val_enum)
         if err != 'ok':
             return make_response(err, 400)
 
