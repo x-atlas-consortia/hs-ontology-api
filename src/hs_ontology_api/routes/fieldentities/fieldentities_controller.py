@@ -12,31 +12,40 @@ field_entities_blueprint = Blueprint('field-entities', __name__, url_prefix='/fi
 def field_entities_get(name=None):
     """Returns detailed information on field entities.
 
+    MARCH 2024 - updated for new CEDAR content and CEDAR_ENTITY ontology.
+
     :rtype: Union[List[FieldEntity]]
 
     """
 
     # Validate parameters
-    err = validate_query_parameter_names(['source', 'entity'])
+    err = validate_query_parameter_names(['source', 'entity','application_context'])
     if err != 'ok':
         return make_response(err, 400)
-
 
     # Validate mapping source.
     source = request.args.get('source')
     if source is not None:
         source = source.upper()
-        val_enum = ['HMFIELD', 'HUBMAP']
+        val_enum = ['HMFIELD', 'CEDAR']
         err = validate_parameter_value_in_enum(param_name='source', param_value=source, enum_list=val_enum)
         if err != 'ok':
             return make_response(err, 400)
 
+    # Validate application context.
+    application = request.args.get('application_context')
+    if application is not None:
+        application = application.upper()
+        val_enum = ['HUBMAP', 'SENNET']
+        err = validate_parameter_value_in_enum(param_name='application_context', param_value=application, enum_list=val_enum)
+        if err != 'ok':
+            return make_response(err, 400)
 
     entity = request.args.get('entity')
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = field_entities_get_logic(neo4j_instance, field_name=name, source=source,
-                                   entity=entity)
+                                   entity=entity, application=application)
     if result is None or result == []:
         # Empty result
         err = get_404_error_string(prompt_string='No field type associations')

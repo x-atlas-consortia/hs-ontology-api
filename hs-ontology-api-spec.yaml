@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: HubMAP/SenNet Ontology API (hs-ontology-api)
   description: The HuBMAP/SenNet Ontology API contains endpoints for querying a [UBKG](https://ubkg.docs.xconsortia.org/) instance with content from the [HuBMAP/SenNet context](https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code.
-  version: 1.4.4
+  version: 1.4.11
   contact:
     name: GitHub repository
     url: https://github.com/x-atlas-consortia/hs-ontology-api
@@ -735,24 +735,33 @@ paths:
   /field-entities:
     get:
       operationId: field_entities_get
-      summary: Return associations between ingest metadata fields and provenance entities. Replacement for field-entities.yaml. NOTE - available only for fields from field-entities.yaml.
+      summary: Return associations between ingest metadata fields and provenance entities. Replacement for field-entities.yaml.
       parameters:
         - name: source
           in: query
           required: false
-          description: case-insensitive name of the ontology source for the provenance entities (HMFIELD = field-types.yaml; HUBMAP = UBKG)
+          description: case-insensitive name of the ontology source for the provenance entity mappings. (HMFIELD = from legacy field-entities.yaml)
           schema:
             type: string
             enum:
               - HMFIELD
-              - HUBMAP
+              - CEDAR
         - name: entity
           in: query
           required: false
-          description: case-sensitive name for entity in either HMFIELD or HUMBMAP ontology
+          description: case-sensitive name for an entity in either HMFIELD or HUBMAP/SENNET
           schema:
             type: string
             example: Sample
+        - name: application_context
+          in: query
+          required: false
+          description: case-insensitive name of the application context
+          schema:
+            type: string
+            enum:
+              - HUBMAP
+              - SENNET
       responses:
         '200':
           description: Associations between ingest metadata fields and provenance entities.
@@ -761,7 +770,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FieldEntitiesResponse'
         '400':
-          description:  Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
+          description:  Invalid value for parameter (e.g., *source* not HMFIELD or CEDAR); invalid parameter
         '404':
           description: No field entities (with list of parameters, if specified)
         '5XX':
@@ -769,7 +778,7 @@ paths:
   /field-entities/{name}:
     get:
       operationId: field_entities_name_get
-      summary: Return associations between specified ingest metadata field and provenance entities. Replacement for field-entities.yaml. NOTE - available only for fields from field-entities.yaml.
+      summary: Return associations between specified ingest metadata field and provenance entities. Replacement for field-entities.yaml.
       parameters:
         - name: name
           in: path
@@ -781,7 +790,7 @@ paths:
         - name: source
           in: query
           required: false
-          description: case-insensitive name of the ontology source for the provenance entities (HMFIELD = field-types.yaml; HUBMAP = UBKG)
+          description: case-insensitive name of the ontology source for the provenance entity mappings. (HMFIELD = from legacy field-entities.yaml)
           schema:
             type: string
             enum:
@@ -790,10 +799,19 @@ paths:
         - name: entity
           in: query
           required: false
-          description: case-sensitive name for entity in either HMFIELD or HUMBMAP ontology
+          description: case-sensitive name for entity in either HMFIELD or HUBMAP/SENNET
           schema:
             type: string
             example: Sample
+        - name: application_context
+          in: query
+          required: false
+          description: case-insensitive name of the application context
+          schema:
+            type: string
+            enum:
+              - HUBMAP
+              - SENNET
       responses:
         '200':
           description: Associations between specified ingest metadata field and provenance entities.
@@ -810,7 +828,7 @@ paths:
   /field-assays:
     get:
       operationId: field_assays_get
-      summary: Return associations between ingest metadata fields and the "assays" (dataset data types). Replacement for field-assays.yaml. NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays.
+      summary: Return associations between ingest metadata fields and the "assays" (dataset data types). Replacement for field-assays.yaml. NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays. In addition, the response from this endpoint is reliable only for datasets that existed prior to the deployment in 2024 of the assay classifier (aka Rules Engine, aka "soft assay types").
       parameters:
         - name: assay_identifier
           in: query
@@ -849,7 +867,7 @@ paths:
   /field-assays/{name}:
     get:
       operationId: field_assays_name_get
-      summary: Return associations between the specified ingest metadata field and the "assays" (dataset data types). Replacement for field-assays.yaml.NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays.
+      summary: Return associations between the specified ingest metadata field and the "assays" (dataset data types). Replacement for field-assays.yaml. NOTE only those CEDAR fields that are also in legacy field-assays.yaml can be mapped to assays.
       parameters:
         - name: name
           in: path

@@ -13,11 +13,13 @@
 /// Identify all metadata fields, from both:
 // - legacy sources (the field_*.yaml files in ingest-validation-tools, and modeled in HMFIELD), child codes of HMFIELD:1000
 // - current sources (CEDAR tempates, modeled in CEDAR), child codes of CEDAR:TemplateField
-// Fields that are in the intersection of HMFIELD and CEDAR share CUIs.
 
 // Collect the HMFIELD and CEDAR codes for each metadata field to flatten to level of field name.
 
-// The field_entities_get_logic in neo4j_logic will replace the field_filter and source_filter variables.
+// The field_entities_get_logic in neo4j_logic will replace variables that start with the dollar sign.
+
+// source_filter allows filtering by mapping source (HMFIELD or CEDAR).
+// field_filter allows filtering by field name.
 
 WITH $source_filter AS source_filter
 CALL
@@ -30,24 +32,49 @@ CALL
      apoc.text.join(COLLECT(DISTINCT cField.CodeID),'|') AS code_ids,
      pField.CUI AS CUIField
 }
-// For each field, get associated entities from HMFIELD and HUBMAP ontologies.
-// Each HMFIELD entity node is cross-referenced to a HUBMAP entity node.
-// (CEDAR fields are currently not associated with entities.)
-// The field_entities_get_logic in neo4j_logic will replace the entity_filter and source_filter variables.
+// For each field, get associated provenance entities.
+// entity_filter allows filtering for provenance entity by name--e.g., "dataset", "Dataset".
+// application_filter allows filtering on application context--i.e., "HUBMAP" or "SENNET".
+
 CALL
 {
-     WITH CUIField, source_filter
-     OPTIONAL MATCH (pField:Concept)-[:used_in_entity]->(pEntity:Concept)-[:CODE]->(cHMFIELDEntity:Code)-[rHMFIELD:PT]->(tHMFIELDEntity:Term),
-     (pEntity:Concept)-[:CODE]->(cHUBMAPEntity:Code)-[rHUBMAP:PT]->(tHUBMAPEntity:Term)
-     WHERE pField.CUI=CUIField AND cHMFIELDEntity.SAB ='HMFIELD' AND rHMFIELD.CUI=pEntity.CUI
-     AND cHUBMAPEntity.SAB='HUBMAP' AND rHUBMAP.CUI=pEntity.CUI
-     $entity_filter
-     RETURN apoc.text.join([CASE WHEN source_filter in ['HMFIELD',''] THEN REPLACE(cHMFIELDEntity.CodeID,':','|') + '|' + tHMFIELDEntity.name ELSE '' END,
-     CASE WHEN source_filter in ['HUBMAP',''] THEN REPLACE(cHUBMAPEntity.CodeID,':','|') + '|' + tHUBMAPEntity.name ELSE '' END],';') AS entity
+    // Each HMFIELD field node is linked to a HMFIELD entity node.
+    WITH CUIField,source_filter
+    OPTIONAL MATCH (pField:Concept)-[:used_in_entity]->(pEntity:Concept)-[:CODE]->(cEntity:Code)-[r:PT]->(tEntity:Term)
+    WHERE pField.CUI=CUIField
+    AND cEntity.SAB ='HMFIELD'
+    AND r.CUI=pEntity.CUI
+    $entity_filter
+    RETURN DISTINCT CASE WHEN source_filter IN ['HMFIELD',''] THEN REPLACE(cEntity.CodeID,':','|') + '|' + tEntity.name ELSE '' END AS entity
 
+    UNION
+
+    // Each HMFIELD entity node is cross-referenced to HUBMAP and SENNET provenance entity nodes.
+    WITH CUIField,source_filter
+    OPTIONAL MATCH (pField:Concept)-[:used_in_entity]->(pEntity:Concept)-[:CODE]->(cEntity:Code)-[r:PT]->(tEntity:Term)
+    WHERE pField.CUI=CUIField
+    $application_filter
+    AND r.CUI=pEntity.CUI
+    $entity_filter
+    RETURN DISTINCT CASE WHEN source_filter IN ['HMFIELD',''] THEN REPLACE(cEntity.CodeID,':','|') + '|' + tEntity.name ELSE '' END AS entity
+
+    UNION
+
+    //CEDAR template nodes are mapped to provenance entity nodes in both HUBMAP and SENNET.
+    //CEDAR field nodes relate to CEDAR template nodes.
+
+    WITH CUIField,source_filter
+    OPTIONAL MATCH (pField:Concept)-[:inverse_has_field]->(pTemplate:Concept)-[:used_in_entity]->(pEntity:Concept)-[:CODE]->(cEntity:Code)-[r:PT]->(tEntity:Term)
+    WHERE pField.CUI = CUIField
+    AND r.CUI=pEntity.CUI
+    //AND c.Entity.SAB in ['HUBMAP','SENNET']
+    $application_filter
+    $entity_filter
+    RETURN DISTINCT CASE WHEN source_filter IN ['CEDAR',''] THEN REPLACE(cEntity.CodeID,':','|') + '|' + tEntity.name ELSE '' END AS entity
 }
 
+WITH field_name, code_ids, entity
+WHERE entity <>""
 WITH field_name, code_ids, COLLECT(entity) AS entities
-WHERE entities <>['null;null']
 RETURN field_name, code_ids, entities
 ORDER BY field_name

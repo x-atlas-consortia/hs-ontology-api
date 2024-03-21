@@ -1,5 +1,8 @@
-// Obtains associations between ingest metadat fields and assay dataset types, both for legacy (HMFIELD) and CEDAR.
+// Obtains associations between ingest metadata fields and assay dataset types, both for legacy (HMFIELD) and CEDAR.
 // Used by the field-assays endpoint.
+
+// NOTE: With the deployment of the assay classifier (Rules Engine, or "soft assay types"), the UBKG is no longer the
+// source of truth for assay type. This endpoint is primarily for legacy datasets.
 
 // Identify all metadata fields, from both:
 // - legacy sources (the field_*.yaml files in ingest-validation-tools, and modeled in HMFIELD), child codes of HMFIELD:1000
@@ -64,13 +67,14 @@ CALL
     WITH CUIHMDataset
     OPTIONAL MATCH (pAssay:Concept)-[:has_data_type]->(pDataType:Concept)-[:CODE]->(cDataType:Code)-[r:PT]->(tDataType:Term)
     WHERE pAssay.CUI=CUIHMDataset
-    AND cDataType.SAB='HUBMAP'
+    AND cDataType.SAB ='HUBMAP'
     AND r.CUI=pDataType.CUI
     RETURN CASE WHEN tDataType.name IS NULL THEN 'none' ELSE tDataType.name END AS data_type
 }
 
 // For each HuBMAP Dataset, obtain the "soft assay" dataset type.
-// The "soft assay" dataset type is a member of the Soft Assay Dataset Type hierarchy in HUBMAP, with parent code HUBMAP:C003041.
+// The "soft assay" dataset type is a member of the Soft Assay Dataset Type hierarchy in HUBMAP, with parent code
+// HUBMAP:C003041
 CALL
 {
     WITH CUIHMDataset
