@@ -55,13 +55,17 @@ If you are modifying code only in hs-ontology-api, you will only need
 to use the PyPy package version of ubkg-api. The package is included in the requirements.txt file of this repo.
 
 If you need to modify both the hs-ontology-api and ubkg-api in concert, you will
-need to work with a local instance of the ubkg-api. This is possible by doing the following:
-1. Check out a branch of ubkg-api.
-2. Configure the local branch of ubkg-api, similarly to the local instance of hs-ontology-api.
-3. Start the local instance of ubkg-api.
-4. In the virtual environment for hs-ontology-api, install the local instance of ubkg-api using pip with the **-e** flag. This will override the pointer to the ubkg-api package. 
-
-``pip install -e path/to/local/ubkg/repo``
+need to work with a local or branch instance of the ubkg-api. This is possible by doing the following:
+1. If your working ubkg-api instance has been committed to a branch, you can point to the branch instance in requirements.txt with a command such as ``git+https://github.com/x-atlas-consortia/ubkg-api.git@<YOUR BRANCH>``
+2. Check out a branch of ubkg-api.
+2. Configure the app.cfg file of the local branch of ubkg-api to connect to the appropriate UBKG instance. 
+3. In the virtual environment for hs-ontology-api, install an editable local instance of ubkg-api. Two ways to do this:
+   a. ``pip install -e path/to/local/ubkg-api/repo``
+   b. If using PyCharm, in the **Python Packages** tab,
+      1) Click **Add Package**.
+      2) Navigate to the root of the ubkg-api repo.
+      3) Indicate that the package is editable.
+4. Because ubkg-api has a PyPI TOML file, any of the aforementioned commands will compile a local package and override the pointer to the ubkg-api package.
 
 ## Connecting to the local instance of hs-ontology-api
 For URLs that execute endpoints in your local instance, use the values indicated in the **main.py** script, in the section prefaced with the comment `For local development/testing`:

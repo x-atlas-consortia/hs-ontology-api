@@ -38,3 +38,5 @@ docker/ubkg-api/BUILD
 BUILD
 
 **/__pycache__
+
+/tests/*/*.out

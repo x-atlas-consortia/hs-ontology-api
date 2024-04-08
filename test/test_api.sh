@@ -55,18 +55,28 @@ case "$env" in
 esac
 
 echo "Using UBKG at: ${UBKG_URL}"
+echo "Only the first 60 characters of output from HTTP 200 returns displayed."
+
 # $ ./test_api.sh
 # Using UBKG at: https://ontology-api.dev.hubmapconsortium.org
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
 
-echo "assayname_POST..."
-echo "SHOULD RETURN 200"
+#--------------------------------------------
+echo "TESTS FOR: assayname POST" | tee -a test.out
+echo "SIGNATURE: /assayname" | tee -a test.out
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/assayname_POST: should return 200" | tee -a test.out
 curl --request POST \
  --url "${UBKG_URL}/assayname" \
  --header "Content-Type: application/json" \
- --data '{"name": "bulk-RNA"}'
+ --data '{"name": "bulk-RNA"}' | cut -c1-60 | tee -a test.out
 echo
+echo | tee -a test.out
+echo | tee -a test.out
+exit;
 
 echo "assaytype GET"
 echo "SHOULD RETURN 200"
