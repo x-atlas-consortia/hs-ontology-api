@@ -40,3 +40,5 @@ BUILD
 **/__pycache__
 
 /tests/*/*.out
+/src/cells_index/*.csv
+/src/cells_index/*.tsv
