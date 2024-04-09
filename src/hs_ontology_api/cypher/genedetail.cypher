@@ -74,8 +74,9 @@ ORDER BY hgnc_id,ret_key
 UNION
 
 //Cell types - CL Codes
+// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND rCL.CUI=pCL.CUI  RETURN toInteger(cGene.CODE) AS hgnc_id, 'cell_types_code' AS  ret_key, cCL.CodeID AS ret_value
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND rCL.CUI=pCL.CUI  RETURN toInteger(cGene.CODE) AS hgnc_id, 'cell_types_code' AS  ret_key, cCL.CodeID AS ret_value
 ORDER BY  hgnc_id,ret_key,ret_value
 
 UNION
@@ -87,13 +88,15 @@ UNION
 // The preferred term will be the term of type PT; if there is no PT, then any of the others of type PT_SAB will do.
 
 // First, order the preferred terms by whether they are the PT or a PT_SAB.
+// APRIL 2024 - HRA changed the label from "has_marker_component" to "characterized_by"
 WITH GeneCUI
 CALL{
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND rCL.CUI=pCL.CUI AND type(rCL) STARTS WITH 'PT' RETURN toInteger(cGene.CODE) AS hgnc_id, cCL.CodeID AS CLID, MIN(CASE WHEN type(rCL)='PT' THEN 0 ELSE 1 END) AS mintype order by hgnc_id,CLID,mintype
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND rCL.CUI=pCL.CUI AND type(rCL) STARTS WITH 'PT' RETURN toInteger(cGene.CODE) AS hgnc_id, cCL.CodeID AS CLID, MIN(CASE WHEN type(rCL)='PT' THEN 0 ELSE 1 END) AS mintype order by hgnc_id,CLID,mintype
 }
 
 // Next, filter to either the PT or one of the PT_SABs.
+// MARCH 2024 - WITH used in return to upgrade to v5 Cypher.
 WITH hgnc_id, CLID, mintype
 OPTIONAL MATCH (cCL:Code)-[rCL]->(tCL:Term)
 where cCL.CodeID = CLID AND type(rCL) STARTS WITH 'PT'
@@ -106,8 +109,10 @@ UNION
 // Cell types - CL code|definition
 // Definitions link to Concepts and multiple CL codes can match to the same concept; however, each CL code has a "preferred" CUI, identified by the CUI property of the relationship of any of the code's linked terms.
 
+// MARCH 2024 - final WITH added to work with v5 Cypher
+// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),(pCL:Concept)-[:DEF]->(dCL:Definition) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND dCL.SAB='CL'
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),(pCL:Concept)-[:DEF]->(dCL:Definition) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND dCL.SAB='CL'
 WITH toInteger(cGene.CODE) AS hgnc_id,'cell_types_definition' as ret_key, cCL.CodeID + '|'+ dCL.DEF as ret_value
 RETURN DISTINCT hgnc_id, ret_key, ret_value
 ORDER BY hgnc_id, ret_value
@@ -121,11 +126,12 @@ UNION
 // 3. Assigns UBERON codes as cross-references to AZ organ codes.
 //
 // To get organ information, map gene to cell type to organ location.
+// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
 WITH GeneCUI
 //First, get Azimuth Codes that are cross-referenced to CL codes. For the case of a CL code being cross-referenced to multiple AZ codes, only one AZ code gets the "preferred" cross-reference to the CL code; however, all AZ codes have a cross-reference to the CL code, so do not check on rAZ.CUI=pCL.CUI.
 CALL
 {WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term), (pCL:Concept)-[:CODE]->(cAZ:Code)-[rAZ]->(tAZ:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND cAZ.SAB='AZ' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,cCL.CodeID as CLID,cAZ.CodeID AS AZID}
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term), (pCL:Concept)-[:CODE]->(cAZ:Code)-[rAZ]->(tAZ:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND cAZ.SAB='AZ' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,cCL.CodeID as CLID,cAZ.CodeID AS AZID}
 //Use the AZ codes to map to concepts that have located_in relationships with AZ organ codes. The AZ organ codes are cross-referenced to UBERON codes. Limit the located_in relationships to those from AZ.
 CALL
 {WITH AZID
@@ -137,16 +143,19 @@ RETURN DISTINCT hgnc_id, ret_key, ret_value
 ORDER BY hgnc_id, ret_value
 
 // Indicate the source of cell type information.
+// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
 UNION
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_has_marker_component]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,'cell_types_source' as ret_key, cCL.CodeID + '|Human Reference Atlas' as ret_value
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,'cell_types_source' as ret_key, cCL.CodeID + '|Human Reference Atlas' as ret_value
 ORDER BY hgnc_id,cCL.CodeID + '|Human Reference Atlas'
 
 }
 
+// APRIL 2024 bug fix check for null gene before calling fromlists
+
 WITH hgnc_id, ret_key, COLLECT(ret_value) AS values
-WITH hgnc_id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 WHERE hgnc_id IS NOT NULL
+WITH hgnc_id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 RETURN hgnc_id,
 map['approved_symbol'] AS approved_symbol,
 map['approved_name'] AS approved_name,
