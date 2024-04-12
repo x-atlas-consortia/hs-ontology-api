@@ -1,5 +1,4 @@
-# ubkg-api==2.0.0
-git+https://github.com/x-atlas-consortia/ubkg-api.git@neo4jv5
+ubkg-api==2.1.0
 Flask==2.1.3
 neo4j==5.15.0
 
