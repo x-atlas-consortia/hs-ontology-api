@@ -12,8 +12,9 @@ CALL
 // The calling function in neo4j_logic.py will replace $ids.
 WITH [$ids] AS ids
 
-OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code) WHERE cCL.SAB='CL' AND CASE WHEN ids[0]<>'' THEN ANY(id in ids WHERE cCL.CODE=id) ELSE 1=1 END RETURN DISTINCT pCL.CUI AS CLCUI
-}
+// APRIL 2024 Bug fix to use CodeID instead of CODE for cases of leading zeroes in strings.
+OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code)
+WHERE CASE WHEN ids[0]<>'' THEN ANY(id in ids WHERE cCL.CodeID='CL:'+id) ELSE 1=1 END RETURN DISTINCT pCL.CUI AS CLCUI}
 
 CALL
 {
@@ -54,10 +55,11 @@ ORDER BY CLID
 UNION
 
 //CL-HGNC mappings via HRA
+// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
 
 //HGNC ID
 WITH CLCUI
-OPTIONAL MATCH (cCL:Code)<-[:CODE]-(pCL:Concept)-[:has_marker_component]->(pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term)
+OPTIONAL MATCH (cCL:Code)<-[:CODE]-(pCL:Concept)-[:characterized_by]->(pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term)
 WHERE pCL.CUI=CLCUI AND cGene.SAB='HGNC' AND r.CUI=pGene.CUI AND cCL.SAB='CL' AND type(r) IN ['ACR','PT']
 WITH COLLECT(tGene.name) AS tgene_names, cGene.CodeID AS cgene_codeid, cCL.CodeID AS ccl_codeid
 WITH distinct ccl_codeid AS CLID, 'cell_types_genes' AS ret_key, cgene_codeid+'|'+apoc.text.join(tgene_names,'|') AS ret_value
