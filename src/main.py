@@ -39,6 +39,7 @@ def make_flask_config():
 
 
 app = UbkgAPI(make_flask_config(), Path(__file__).absolute().parent.parent).app
+
 app.register_blueprint(assaytype_blueprint)
 app.register_blueprint(assayname_blueprint)
 app.register_blueprint(datasets_blueprint)
