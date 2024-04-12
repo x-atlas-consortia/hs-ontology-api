@@ -1105,21 +1105,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
             except KeyError:
                 pass
 
-    # For queries that are filtered by field,
-    # 1. Check for multiple rows returned.
-    # 2. Return the single object instead of an array.
-    # For non-filtered queries, return an array.
-
-    if field_name is None:
-        return fielddescriptions
-    elif record_count > 1:
-        raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
-    elif len(fielddescriptions) == 0:
-        # No values, so return the empty array.
-        return fielddescriptions
-    else:
-        return fielddescriptions[0]
-
+    return fielddescriptions
 
 def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, type_source=None, type=None)\
         -> List[FieldType]:
@@ -1196,21 +1182,7 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
             except KeyError:
                 pass
 
-        # For queries that are filtered by field,
-        # 1. Check for multiple rows returned.
-        # 2. Return the single object instead of an array.
-        # For non-filtered queries, return an array.
-
-        if field_name is None:
-            return fieldtypes
-        elif record_count > 1:
-            raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
-        elif len(fieldtypes) == 0:
-            # No values, so return the empty array.
-            return fieldtypes
-        else:
-            return fieldtypes[0]
-
+    return fieldtypes
 
 def field_types_info_get_logic(neo4j_instance, type_source=None):
     """
@@ -1337,20 +1309,7 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=Non
             except KeyError:
                 pass
 
-        # For queries that are filtered by field,
-        # 1. Check for multiple rows returned.
-        # 2. Return the single object instead of an array.
-        # For non-filtered queries, return an array.
-        if field_name is None:
-            return fieldassays
-        elif record_count > 1:
-            raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
-        elif len(fieldassays) == 0:
-            # No values, so return the empty array.
-            return fieldassays
-        else:
-            return fieldassays[0]
-
+        return fieldassays
 
 def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None, schema=None) -> List[FieldSchema]:
     """
@@ -1413,31 +1372,20 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
             except KeyError:
                 pass
 
-        # For queries that are filtered by field,
-        # 1. Check for multiple rows returned.
-        # 2. Return the single object instead of an array.
-        # For non-filtered queries, return an array.
-        if field_name is None:
-            return fieldschemas
-        elif record_count > 1:
-            raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
-        elif len(fieldschemas) == 0:
-            # No values, so return the empty array.
-            return fieldschemas
-        else:
-            return fieldschemas[0]
+        return fieldschemas
 
 
-def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None) -> List[FieldEntity]:
+def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None, application=None) -> List[FieldEntity]:
     """
-    Returns detailed information on an ingest metadata field's associated data types.
-    The types here are not to be confused with the dataset data type--e.g., they are values
-    like "string", "integer", etc.
+    Returns detailed information on an ingest metadata field's associated entities.
+
+    March 2024 - updated to reflect new CEDAR template data and CEDAR_ENTITY ontology.
 
     :param neo4j_instance: neo4j connection to UBKG
     :param field_name: name of the metadata field
-    :param source: name of the source of field-entity mapping--i.e., HMFIELD or HUBMAP
-    :param entity: term for the entity--e.g., string
+    :param source: name of the source of field-entity mapping--i.e., HMFIELD or CEDAR
+    :param entity: term for the entity--e.g., "umi_offset"
+    :param application: application context--i.e., HUBMAP or SENNET
     """
     # response list
     fieldentities: [FieldEntity] = []
@@ -1460,7 +1408,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
     # Allow for filtering on source.
     if source is None:
         source_filter = "''"
-    elif source in ['HMFIELD', 'HUBMAP']:
+    elif source in ['HMFIELD', 'CEDAR']:
         source_filter = f"'{source}'"
     else:
         source_filter = "''"
@@ -1470,8 +1418,15 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
     if entity is None:
         entity_filter = f"AND {identity_filter}"
     else:
-        entity_filter = f"AND (tHMFIELDEntity.name='{entity}' OR tHUBMAPEntity.name='{entity}')"
+        entity_filter = f"AND (tEntity.name='{entity}' OR tEntity.name='{entity}')"
     query = query.replace('$entity_filter', entity_filter)
+
+    # Allow for filtering on application context.
+    if application is None:
+        application_filter = f"AND cEntity.SAB IN ['HUBMAP','SENNET']"
+    else:
+        application_filter = f"AND cEntity.SAB='{application}'"
+    query = query.replace('$application_filter', application_filter)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
@@ -1493,16 +1448,4 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
             except KeyError:
                 pass
 
-        # For queries that are filtered by field,
-        # 1. Check for multiple rows returned.
-        # 2. Return the single object instead of an array.
-        # For non-filtered queries, return an array.
-        if field_name is None:
-            return fieldentities
-        elif record_count > 1:
-            raise DuplicateFieldError(f"Multiple fields named '{field_name}'.")
-        elif len(fieldentities) == 0:
-            # No values, so return the empty array.
-            return fieldentities
-        else:
-            return fieldentities[0]
+        return fieldentities
