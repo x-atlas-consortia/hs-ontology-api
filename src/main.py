@@ -38,7 +38,8 @@ def make_flask_config():
     return temp_flask_app.config
 
 
-app = UbkgAPI(make_flask_config()).app
+app = UbkgAPI(make_flask_config(), Path(__file__).absolute().parent.parent).app
+
 app.register_blueprint(assaytype_blueprint)
 app.register_blueprint(assayname_blueprint)
 app.register_blueprint(datasets_blueprint)
@@ -67,22 +68,6 @@ app.register_blueprint(field_entities_blueprint)
 cellsurl = make_flask_config().get('CELLSURL')
 app.cells_client = OntologyCellsClient(cellsurl)
 
-
-# Defining the /status endpoint in the ubkg_api package will cause 500 error
-# Because the VERSION and BUILD files are not built into the package
-@app.route('/status', methods=['GET'])
-def api_status():
-    status_data = {
-        # Use strip() to remove leading and trailing spaces, newlines, and tabs
-        'version': (Path(__file__).absolute().parent.parent / 'VERSION').read_text().strip(),
-        'build': (Path(__file__).absolute().parent.parent / 'BUILD').read_text().strip(),
-        'neo4j_connection': False
-    }
-    is_connected = current_app.neo4jConnectionHelper.check_connection()
-    if is_connected:
-        status_data['neo4j_connection'] = True
-
-    return jsonify(status_data)
 
 ####################################################################################################
 ## For local development/testing
