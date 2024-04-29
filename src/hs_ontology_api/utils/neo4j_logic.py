@@ -740,6 +740,7 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(genes_per_page))
 
+    print(query)
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)

@@ -9,6 +9,9 @@ ORDER BY id, ret_key
 }
 //Pivot results
 WITH id, ret_key, COLLECT(ret_value) AS values
+// Pagination parameters to be added by calling function.
+SKIP $skiprows
+LIMIT $limitrows
 WITH id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 WHERE id IS NOT NULL
 // Allow for typeahead searches. neo4j_logic will replace $starts_with_clause with a parameterized STARTS WITH clause.
@@ -18,6 +21,3 @@ map['recommended_name'] AS recommended_name,
 map['entry_name'] AS entry_name,
 map['synonym'] AS synonyms
 ORDER BY id
-// Pagination parameters to be added by calling function.
-SKIP $skiprows
-LIMIT $limitrows

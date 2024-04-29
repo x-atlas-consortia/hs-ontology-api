@@ -41,8 +41,9 @@ CALL
         RETURN DISTINCT d.DEF AS definition
 }
 WITH id, term,synonyms,definition
-RETURN DISTINCT id, term,synonyms,definition
-ORDER BY id
 // Pagination parameters to be added by calling function.
 SKIP $skiprows
 LIMIT $limitrows
+RETURN DISTINCT id, term,synonyms,definition
+ORDER BY id
+
