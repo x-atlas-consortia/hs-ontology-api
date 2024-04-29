@@ -682,7 +682,7 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     if starts_with != '':
         # Escape apostrophes and double quotes.
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-        starts_with_clause = f'AND tGene.name STARTS WITH "{starts_with}"'
+        starts_with_clause = f'AND toUpper(tGene.name) STARTS WITH "{starts_with.upper()}"'
     query = query.replace('$starts_with_clause', starts_with_clause)
 
     with neo4j_instance.driver.session() as session:
@@ -734,13 +734,15 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
     starts_with_clause = ''
     if starts_with != '':
         # Escape apostrophes and double quotes.
+        # Apr 2024 - expanded to case-insensitive search on symbol or name.
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-        starts_with_clause = f'AND map["approved_symbol"][0] STARTS WITH "{starts_with}"'
+        starts_with_clause = f'AND toUpper(map["approved_symbol"][0]) STARTS WITH "{starts_with.upper()}"'
+
     query = query.replace('$starts_with_clause', starts_with_clause)
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(genes_per_page))
 
-    print(query)
+
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
@@ -856,8 +858,8 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f' AND (toLower(id) STARTS WITH "{starts_with.lower()}" ' \
                              f' OR toLower(map["entry_name"][0]) STARTS WITH "{starts_with.lower()}" ' \
-                             f' OR toLower(map["recommended_name"][0]) STARTS WITH "{starts_with.lower()}") ' # \
-                             # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
+                             f' OR toLower(map["recommended_name"][0]) STARTS WITH "{starts_with.lower()}") ' \
+                             f' OR ANY (n in map["synonyms"] WHERE n[0].name STARTS WITH "{starts_with.lower()}")'
 
     query = query.replace('$starts_with_clause', starts_with_clause)
 
