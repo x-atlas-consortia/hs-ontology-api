@@ -27,7 +27,8 @@ from hs_ontology_api.routes.fieldtypesinfo.fieldtypesinfo_controller import fiel
 from hs_ontology_api.routes.fieldentities.fieldentities_controller import field_entities_blueprint
 
 # Cells API client
-from hs_ontology_api.utils.cellsclient import OntologyCellsClient
+# May 2024 deprecated
+# from hs_ontology_api.utils.cellsclient import OntologyCellsClient
 
 
 def make_flask_config():
@@ -65,8 +66,9 @@ app.register_blueprint(field_entities_blueprint)
 
 
 # Instantiate a Cells API client.
-cellsurl = make_flask_config().get('CELLSURL')
-app.cells_client = OntologyCellsClient(cellsurl)
+# May 2024 Deprecated
+# cellsurl = make_flask_config().get('CELLSURL')
+# app.cells_client = OntologyCellsClient(cellsurl)
 
 
 ####################################################################################################
