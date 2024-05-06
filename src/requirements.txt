@@ -1,4 +1,5 @@
 ubkg-api==2.1.1
+#ubkg-api==git+https://github.com/x-atlas-consortia/ubkg-api.git@jas_hmfields_test
 Flask==2.1.3
 neo4j==5.15.0
 
@@ -12,7 +13,7 @@ numpy==1.23.5
 Werkzeug==2.3.7
 
 # Cells API client
-hubmap-api-py-client==0.0.9
+# hubmap-api-py-client==0.0.9
 
 # Test and analysis scripts
 argparse==1.4.0

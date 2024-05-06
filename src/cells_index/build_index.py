@@ -1,3 +1,4 @@
+"""
 # coding: utf-8
 
 # Prototype utility that builds a CSV file of information extracted from the Cells API.
@@ -92,3 +93,4 @@ for gene in genes:
         # The genes list contains elements that are not actually genes, and that
         # result in errors from the client that are meaningless in this context.
         pass
+"""
