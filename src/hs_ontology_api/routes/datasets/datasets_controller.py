@@ -1,14 +1,133 @@
-from flask import Blueprint, jsonify, current_app, request
+from flask import Blueprint, jsonify, current_app, request,  make_response
 
-from ubkg_api.common_routes.validate import validate_application_context
+# MAY 2024 Deprecated
+# from ubkg_api.common_routes.validate import validate_application_context
 
-from hs_ontology_api.utils.neo4j_logic import dataset_get_logic
+from ubkg_api.utils.http_error_string import validate_required_parameters,validate_query_parameter_names,\
+    get_404_error_string,validate_parameter_value_in_enum
+
+# MAY 2024 Use common utilities from ubkg-api.
+from hs_ontology_api.utils.neo4j_logic import dataset_get_logic # ,validate_query_parameter_names,\
+    # validate_parameter_value_in_enum,get_404_error_string
+# from hs_ontology_api.utils.http_error_string import get_404_error_string, validate_query_parameter_names, \
+    #validate_parameter_value_in_enum
 
 datasets_blueprint = Blueprint('datasets_hs', __name__, url_prefix='/datasets')
 
 
 @datasets_blueprint.route('', methods=['GET'])
 def dataset_get():
+
+    """
+    MAY 2024 - Refactored to use standard methodology for ubkg-api/hs-ontology-api endpoints.
+
+    Returns information on a set of HuBMAP or SenNet dataset types, with options to filter the list to those with
+    specific property values. Filters are additive (i.e., boolean AND).
+    """
+
+    # Validate parameter names.
+    err = validate_query_parameter_names(['application_context','data_type','description','alt_name','primary',
+                                          'contains_pii','vis-only','vitessce_hint','dataset_provider',
+                                          'dataset_type', 'dataset_active', 'dataset_type_active'])
+    if err != 'ok':
+        return make_response(err, 400)
+
+    # Validate required application_context.
+        err = validate_required_parameters(required_parameter_list=['application_context'])
+        if err != 'ok':
+            return make_response(err, 400)
+    # case-insensitive
+    application_context = request.args.get('application_context').upper()
+    val_enum = ['HUBMAP', 'SENNET']
+    err = validate_parameter_value_in_enum(param_name='application_context', param_value=application_context,
+                                           enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+
+    data_type = request.args.get('data_type')
+    description = request.args.get('description')
+    alt_name = request.args.get('alt_name')
+
+    # Parameters with true/false option.
+    val_enum = ['true', 'false']
+    primary = request.args.get('primary')
+    if primary is not None:
+        primary = primary.lower()
+    err = validate_parameter_value_in_enum(param_name='primary', param_value=primary, enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+
+    contains_pii = request.args.get('contains_pii')
+    if contains_pii is not None:
+        contains_pii = contains_pii.lower()
+    err = validate_parameter_value_in_enum(param_name='contains_pii', param_value=contains_pii, enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+
+    vis_only = request.args.get('vis-only')
+    if vis_only is not None:
+        vis_only = vis_only.lower()
+    err = validate_parameter_value_in_enum(param_name='vis-only', param_value=vis_only, enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+
+    vitessce_hint = request.args.get('vitessce_hint')
+
+    val_enum = ['iec', 'external', 'lab']
+    dataset_provider = request.args.get('dataset_provider')
+    if dataset_provider is not None:
+        dataset_provider = dataset_provider.lower()
+    err = validate_parameter_value_in_enum(param_name='dataset_provider', param_value=dataset_provider, enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+
+    dataset_type = request.args.get('dataset_type')
+
+    # dataset_active and dataset_type_active are both set to 'Active' unless one of them is
+    # explicitly specified.
+    val_enum = ['active', 'inactive']
+
+    dataset_active = request.args.get('dataset_active')
+    dataset_type_active = request.args.get('dataset_type_active')
+
+    if dataset_active is None and dataset_type_active is None:
+        dataset_active = 'Active'
+        dataset_type_active = 'Active'
+
+    if dataset_active is not None:
+        dataset_active = dataset_active.lower()
+    err = validate_parameter_value_in_enum(param_name='dataset_active', param_value=dataset_active,
+                                           enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+
+    if dataset_type_active is not None:
+        dataset_type_active = dataset_type_active.lower()
+    err = validate_parameter_value_in_enum(param_name='dataset_type_active', param_value=dataset_type_active,
+                                           enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+
+    neo4j_instance = current_app.neo4jConnectionHelper.instance()
+    result = dataset_get_logic(neo4j_instance, data_type=data_type, description=description,
+                               alt_name=alt_name, primary=primary, contains_pii=contains_pii, vis_only=vis_only,
+                               vitessce_hint=vitessce_hint, dataset_provider=dataset_provider,
+                               dataset_type=dataset_type, dataset_active=dataset_active,
+                               dataset_type_active=dataset_type_active, application_context=application_context)
+
+    if result is None or result == {}:
+        # Empty result
+        err = get_404_error_string(prompt_string='No datasets')
+        if type is not None:
+
+            err = err + 'Refer to the SmartAPI documentation for this endpoint for more information.'
+        return make_response(err, 404)
+
+    return jsonify(result)
+
+def dataset_get_old():
+    # May 2024 replaced with new standard methodology.
+
     """Returns information on a set of HuBMAP or SenNet dataset types, with options to filter the list to those with specific property values. Filters are additive (i.e., boolean AND)
 
 
@@ -33,12 +152,13 @@ def dataset_get():
 
     :rtype: Union[List[DatasetPropertyInfo], Tuple[List[DatasetPropertyInfo], int], Tuple[List[DatasetPropertyInfo], int, Dict[str, str]]
     """
+
     application_context = validate_application_context()
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(
-        dataset_get_logic(
-            neo4j_instance, request.args.get('data_type'), request.args.get('description'),
-            request.args.get('alt_name'), request.args.get('primary'), request.args.get('contains_pii'),
-            request.args.get('vis_only'), request.args.get('vitessce_hint'), request.args.get('dataset_provider'),
-            application_context)
-    )
+    return jsonify(dataset_get_logic(neo4j_instance, request.args.get('data_type'),
+                                     request.args.get('description'),request.args.get('alt_name'),
+                                     request.args.get('primary'), request.args.get('contains_pii'),
+                                     request.args.get('vis_only'), request.args.get('vitessce_hint'),
+                                     request.args.get('dataset_provider'),application_context))
+
+

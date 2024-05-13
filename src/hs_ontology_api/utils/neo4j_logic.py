@@ -113,8 +113,110 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
                 return make_assaytype_property_info(record).serialize()
     return None
 
+def dataset_get_logic(neo4j_instance, data_type=None, description=None,
+                      alt_name=None, primary=None, contains_pii=None, vis_only=None,
+                      vitessce_hint=None, dataset_provider=None, dataset_type=None,
+                      dataset_active=None, dataset_type_active=None,
+                      application_context: str = 'HUBMAP') -> dict:
 
-def dataset_get_logic(neo4j_instance, data_type: str = '', description: str = '',
+    """
+    MAY 2024 - Refactored to match new standard methodology for hs-ontology-api endpoints.
+
+    Returns an array of objects that correspond to the types of datasets.
+    A dataset consists of the set of files associated with a particular run of an assay modality,
+    processed as necessary by pipelines.
+
+    Datasets can be categorized. The terms "assay" and "dataset" are both used interchangeably and separately.
+
+    All parameters except neorj_instance are in the query.
+    All query parameters except application_context are optional.
+
+    :param neo4j_instance: connection to UBKG database
+    :param application_context: identifies the application context--i.e., HUBMAP or SENNET
+    :param data_type: key to processing workflow. The Rules Engine (introduced in 2023) now refers to data_type as
+                      "assay type".
+    :param description: text description for dataset, corresponding to how the UI refers to the assay type
+    :param alt_name: alternate version of data_type. For example, the assay type with data_type="IMC"
+                     has alt_name of "Imaging Mass Cytometry".
+    :param primary: true/false - whether the dataset type/assay type is "primary" (direct output of assay) or "derived"
+                    (or  processed) --i.e., the product of a processing pipeline.
+    :param contains_pii: true/false - whether the dataset type/assay type contains Patient Identifying Information.
+    :param vis_only: true/false - whether the dataset type/assay type is for visualization only
+    :param vitessce_hint: a Vitessce hint
+    :param dataset_provider: enum - the provider of the dataset. Either "iec" or "external"/"lab"
+    :param dataset_type: the "Dataset type" or "soft assay dataset type" introduced with the Rules Engine
+    :param dataset_active: whether the assay type is active
+    :param dataset_type_active: whether the dataset type is active
+
+    :return:
+    """
+
+    respdict = {}
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'datasets.cypher'
+    querytxt = loadquerystring(queryfile)
+
+    # Supply parameter values.
+
+    # Required application context.
+    querytxt = querytxt.replace('$context', f"'{application_context}'")
+
+    # Prepare optional parameters.
+    if dataset_provider in ['lab', 'external']:
+        dataset_provider = 'external'
+
+    optionalfilters = []
+    if data_type is not None:
+        optionalfilters.append(f"data_type = '{data_type}'")
+    if description is not None:
+        optionalfilters.append(f"description = '{description}'")
+    if alt_name is not None:
+        optionalfilters.append(f"'{alt_name}' IN alt_names")
+    if primary is not None:
+        optionalfilters.append(f"primary = {primary}")
+    if contains_pii is not None:
+        optionalfilters.append(f"contains_pii = {contains_pii}")
+    if vis_only is not None:
+        optionalfilters.append(f"vis_only = {vis_only}")
+    if vitessce_hint is not None:
+        optionalfilters.append(f"'{vitessce_hint}' IN vitessce_hints")
+    if dataset_provider is not None:
+        optionalfilters.append(f"toUpper(dataset_provider) =~ '.*{dataset_provider.upper()}.*")
+    if dataset_type is not None:
+        optionalfilters.append(f"dataset_type = '{dataset_type}'")
+    if dataset_active == 'active':
+        optionalfilters.append(f"toLower(dataset_active) = 'active'")
+    else:
+        if dataset_active == 'inactive':
+            optionalfilters.append(f"(toLower(dataset_active) = 'inactive' OR dataset_active IS NULL)")
+    if dataset_type_active == 'active':
+        optionalfilters.append(f"toLower(dataset_type_active) = 'active'")
+    else:
+        if dataset_type_active == 'inactive':
+            optionalfilters.append(f"(toLower(dataset_type_active) = 'inactive' OR dataset_type_active IS NULL)")
+
+    if len(optionalfilters) == 0:
+        querytxt = querytxt.replace('$optional_filters', '')
+    else:
+        querytxt = querytxt.replace('$optional_filters', 'WHERE ' + ' AND '.join(optionalfilters))
+
+    print(querytxt)
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        resplist = []
+        for record in recds:
+            assay_classifications = record.get('assay_classifications')
+            resplist.append(assay_classifications)
+
+    return {"assaytypes":assay_classifications}
+
+def dataset_old_get_logic(neo4j_instance, data_type: str = '', description: str = '',
                       alt_name: str = '', primary: str = '', contains_pii: str = '', vis_only: str = '',
                       vitessce_hint: str = '', dataset_provider: str = '', application_context: str = 'HUBMAP') \
         -> List[DatasetPropertyInfo]:
@@ -140,6 +242,7 @@ def dataset_get_logic(neo4j_instance, data_type: str = '', description: str = ''
 
     # Build the Cypher query that will return the table of data.
     query = query_cypher_dataset_info(application_context)
+
 
     # Execute Cypher query and return result.
     with neo4j_instance.driver.session() as session:
