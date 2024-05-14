@@ -115,7 +115,7 @@ CALL
 	OPTIONAL MATCH (pDataset:Concept)-[:isa]->(p2:Concept)-[:CODE]->(c2:Code)-[:PT]->(t2:Term)
 	WHERE pDataset.CUI = DatasetCUI
 	AND c2.SAB=context
-	AND c2.CODE IN ['C004030','C004031']
+	AND CASE WHEN context='HUBMAP' THEN c2.CODE IN ['C004030','C004031'] ELSE c2.CODE IN ['C004022','C0040023'] END
 	RETURN DISTINCT t2.name AS dataset_active
 }
 // For each Dataset type, determine whether active or inactive.
