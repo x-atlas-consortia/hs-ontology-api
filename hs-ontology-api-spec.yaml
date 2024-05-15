@@ -34,7 +34,7 @@ paths:
                 name: bulk-RNA
                 primary: true
                 description: Bulk RNA-seq
-                vitessce-hints: ["pyramid","anndata"]
+                vitessce-hints: [ "pyramid","anndata" ]
                 contains-pii: true
                 vis-only: true
         '400':
@@ -80,7 +80,7 @@ paths:
                 name: bulk-RNA
                 primary: true
                 description: Bulk RNA-seq
-                vitessce-hints: ["pyramid","anndata"]
+                vitessce-hints: [ "pyramid","anndata" ]
                 contains-pii: true
                 vis-only: true
   /assaytype/{name}: # CPK MAR 2023 - replacement for search-src endpoint of the same name
@@ -120,13 +120,13 @@ paths:
                 name: bulk-RNA
                 primary: true
                 description: Bulk RNA-seq
-                vitessce-hints: ["pyramid","anndata"]
+                vitessce-hints: [ "pyramid","anndata" ]
                 contains-pii: true
                 vis-only: true
   /datasets: # JAS FEB 2023 - note that parameters use underscores, even when the corresponding key in the response uses dashes--e.g., alt_names, alt-names
     get:
       operationId: dataset_get
-      summary: Returns information on a set of HuBMAP or SenNet dataset types, with options to filter the list to those with specific property values. Filters are additive (i.e., boolean AND)
+      summary: Returns information on a set of HuBMAP or SenNet assay classifications (formerly known as "data types" or "dataset types") with options to filter the list to those with specific property values. Filters are additive (i.e., boolean AND)
       parameters:
         - name: application_context
           in: query
@@ -144,28 +144,53 @@ paths:
         - name: data_type
           in: query
           required: false
-          description: Optional filter for data_type
+          description: Optional filter for the data_type associated with the assay classification (now called assaytype in the Rules Engine)
           schema:
             type: string
             example: AF
+        - name: dataset_type
+          in: query
+          required: false
+          description: Optional filter for a "Dataset type". The Dataset type is a category of assay classifications, maintained by the Rules Engine.
+          schema:
+            type: string
+            example: Auto-fluorescence
+        - name: dataset_active
+          in: query
+          required: false
+          description: Optional filter for whether the assay classification is active (can be displayed in the UI) or inactive. If both dataset_active and dataset_type_active are not specified in the query string, only those assay types with dataset_active=active and dataset_type_active=active will be returned.
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+        - name: dataset_type_active
+          in: query
+          required: false
+          description: Optional filter for whether the dataset type is active (can be displayed in the UI) or inactive. If both dataset_active and dataset_type_active are not specified in the query string, only those assay classifications  with dataset_active=active and dataset_type_active=active will be returned. If dataset_type=inactive, assay classifications that share the dataset type will not be returned.
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
         - name: description
           in: query
           required: false
-          description: Optional filter for display name. Use URL-encoding (space = %20).
+          description: Optional filter for display name--i.e., how the assay classification is described in the Data Portal.
           schema:
             type: string
             example: Autofluorescence%20Microscopy
         - name: alt_name
           in: query
           required: false
-          description: Optional filter for a single element in the alt-names list--i.e., return datasets for which alt-names includes a value that matches the parameter. Although the field is named 'alt-names', the parameter uses 'alt_name'. Use URL-encoding (space = %20)
+          description: Optional filter for a single element in an assay classification's alt-names array of alternatives to data_type. Although the field is named 'alt-names', the parameter uses 'alt_name'.
           schema:
             type: string
-            example: Light%20Sheet
+            example: Light Sheet
         - name: primary
           in: query
           required: false
-          description: Optional filter to filter to primary (true) or derived (false) assay.
+          description: Optional filter to limit to assay classifications from primary (true) or derived/processed (false) assays.
           schema:
             type: string
             enum:
@@ -174,7 +199,7 @@ paths:
         - name: contains_pii
           in: query
           required: false
-          description: Optional filter for whether the dataset contains Patient Identifying Information (PII). Although the field is named 'contains-pii', use 'contains_pii' as an argument.
+          description: Optional filter for whether the assay classification contains Patient Identifying Information (PII). Although the field is named 'contains-pii', use 'contains_pii' as an argument.
           schema:
             type: string
             enum:
@@ -183,7 +208,7 @@ paths:
         - name: vis_only
           in: query
           required: false
-          description: Optional filter for whether datasets are visualization only (true). Although the field is named 'vis-only', use 'vis_only' as an argument.
+          description: Optional filter for whether the assay classification is for visualization only (true). Although the field is named 'vis-only', use 'vis_only' as an argument.
           schema:
             type: string
             enum:
@@ -192,7 +217,7 @@ paths:
         - name: vitessce_hint
           in: query
           required: false
-          description: Optional filter for a single element in the vitessce_hint list--i.e., return datasets for which vitessce_hints includes a value that matches the parameter. Although the field is named 'vitessce-hints', use 'vitessce_hint' as an argument.
+          description: Optional filter for a single element in the vitessce_hint array of an assay classification. Although the field is named 'vitessce-hints', use 'vitessce_hint' as an argument.
           schema:
             type: string
             enum:
@@ -209,7 +234,7 @@ paths:
         - name: dataset_provider
           in: query
           required: false
-          description: Optional filter to identify the dataset provider - IEC (iec)  or external (lab)
+          description: Optional filter to identify the provider of datasets association with the assay classifier. Possible values include IEC (iec)  or external (lab).
           schema:
             type: string
             enum:
@@ -221,13 +246,106 @@ paths:
               - Lab
       responses:
         '200':
-          description: A JSON array of dataset types with properties, optionally filtered by parameters
+          description: A JSON array of assay classifications with properties, optionally filtered by parameters
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DatasetPropertyInfo'
+        '400':
+          description: invalid parameter name; invalid parameter value
+        '404':
+          description: no assay classifications
+        '5XX':
+          description: unknown error
+  /dataset-types:
+    get:
+      operationId: get_dataset_types
+      summary: Returns information on dataset types--categories of assay classifications
+      parameters:
+        - name: application_context
+          in: query
+          required: true
+          description: Required filter to indicate application context.
+          schema:
+            type: string
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+        - name: dataset_type_active
+          in: query
+          required: false
+          description: Optional filter for whether the dataset type is active (can be displayed in the UI) or inactive. If dataset_type_active is not specified in the query string, only those assay classifications with  dataset_type_active=active will be returned.
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+      responses:
+        '200':
+          description: A JSON array of assay classifications with properties, optionally filtered by parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetTypes'
+        '400':
+          description: invalid parameter name; invalid parameter value
+        '404':
+          description: no assay classifications
+        '5XX':
+          description: unknown error
+  /dataset-types/{dataset_type}:
+    get:
+      operationId: get_dataset_types_name
+      summary: Returns information on a specific dataset type
+      parameters:
+        - name: dataset_type
+          in: path
+          required: true
+          description: Optional filter for a dataset type.
+          schema:
+            type: string
+            example: Auto-fluorescence
+        - name: application_context
+          in: query
+          required: true
+          description: Required filter to indicate application context.
+          schema:
+            type: string
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+        - name: dataset_type_active
+          in: query
+          required: false
+          description: Optional filter for whether the dataset type is active (can be displayed in the UI) or inactive. If dataset_type_active is not specified in the query string, only those assay classifications with  dataset_type_active=active will be returned.
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+      responses:
+        '200':
+          description: A JSON array of assay classifications with properties, optionally filtered by parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetTypes'
+        '400':
+          description: invalid parameter name; invalid parameter value
+        '404':
+          description: no assay classifications
+        '5XX':
+          description: unknown error
   /organs:
     get:
       operationId: get_organ_types
@@ -253,9 +371,13 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SabCodeTermRuiCode'
+                $ref: '#/components/schemas/DatasetTypes'
+        '400':
+          description: invalid parameter name; invalid parameter value
+        '404':
+          description: no assay classifications
+        '5XX':
+          description: unknown error
   /organs/by-code:
     get:
       operationId: get_organ_by_code
@@ -304,9 +426,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/HGNCIdRelationships'
               example:
-                symbol-approved: ["MMRN1"]
-                symbol-previous: ["MMRN"]
-                symbol-alias: ["EMILIN4", "GPIa*", "ECM"]
+                symbol-approved: [ "MMRN1" ]
+                symbol-previous: [ "MMRN" ]
+                symbol-alias: [ "EMILIN4", "GPIa*", "ECM" ]
         '404':
           description: Nothing found for gene target symbol *target_symbol*.
         '5XX':
@@ -700,7 +822,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FieldTypesResponseSingle'
         '400':
-          description:  Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
+          description: Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
         '404':
           description: No field-type associations (with list of parameters, if specified)
         '5XX':
@@ -727,7 +849,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FieldTypesInfoResponse'
         '400':
-          description:  Invalid parameter
+          description: Invalid parameter
         '404':
           description: No field types (with list of parameters, if specified)
         '5XX':
@@ -770,7 +892,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FieldEntitiesResponse'
         '400':
-          description:  Invalid value for parameter (e.g., *source* not HMFIELD or CEDAR); invalid parameter
+          description: Invalid value for parameter (e.g., *source* not HMFIELD or CEDAR); invalid parameter
         '404':
           description: No field entities (with list of parameters, if specified)
         '5XX':
@@ -820,7 +942,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FieldEntitiesResponseSingle'
         '400':
-          description:  Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
+          description: Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
         '404':
           description: No field entities (with list of parameters, if specified)
         '5XX':
@@ -997,7 +1119,7 @@ components:
           example: bulk-RNA
         primary:
           type: boolean
-          description: Indicates whether the assay is primary (true) or derived (false)
+          description: Indicates whether the assay is primary (true) or derived/processed (false)
           example: true
         description:
           type: string
@@ -1008,7 +1130,7 @@ components:
           description: Flags for Vitessce visualization
           items:
             type: string
-            example: ["pyramid","anndata","is_image","is_tiled","is_sc","rna","atac","sprm","codex","maldi"]
+            example: [ "pyramid","anndata","is_image","is_tiled","is_sc","rna","atac","sprm","codex","maldi" ]
         contains-pii:
           type: boolean
           description: Whether the dataset contains Patient Identifying Information (PII) (true or false)
@@ -1021,50 +1143,62 @@ components:
             example: true
     DatasetPropertyInfo: # Schema name JAS FEB 2023. Note that GET parameters use underscores, even when the corresponding key in the response uses dashes--e.g., alt_names, alt-names.
       type: object
-      description: Properties of a HuBMAP/SenNet Dataset. Where applicable, key names match those found in the original assay_types.yaml.
+      description: Properties of a HuBMAP/SenNet assay classification. Where applicable, key names match those found in the original assay_types.yaml.
       properties:
         alt-names:
           type: array
-          description: Alternative/deprecated synonyms of data_type that may still be associated with dataset entities
+          description: Alternative/deprecated synonyms of data_type that may still be associated with assay classifications.
           items:
             type: string
           example: [ "MALDI-IMS-pos", "MALDI-IMS-neg" ]
         contains-pii:
           type: string
-          description: Whether the dataset contains Patient Identifying Information (PII)
+          description: Whether the assay classification contains Patient Identifying Information (PII)
           example: true
         data_type:
           type: string
-          description: Data type for the dataset; used to characterize dataset entities in provenance hierarchy
+          description: data_type for the assay classifiction, corresponding to a key in the processing workflows.
           example: bulk-RNA
+        dataset_type:
+          type: string
+          description: Dataset type for the assay classification.
+          example: RNAseq
+        dataset_active:
+          type: boolean
+          description: whether the assay classification is "active" (should be displayed in the Data Portal)
+          example: true
+        dataset_type_active:
+          type: boolean
+          description: whether any assay classifications that share the same dataset type are "active" (should be displayed in the Data Portal)
+          example: true
         dataset_provider:
           type: string
-          description: Identifies the provider of the dataset. 'External Provider' also referred to as 'lab-processed'.
+          description: Identifies the provider of datasets associated with the assay classification. 'External Provider' also referred to as 'lab-processed'.
           example: HuBMAP IEC
         description:
           type: string
-          description: How datasets of the data type are named in the Data Portal.
+          description: How datasets associated with the assay classification described in the Data Portal.
           example: Bulk RNA-seq
         primary:
           type: string
-          description: Indicates whether the assay is primary (true) or derived (false)
+          description: Indicates whether the assay classification is primary (true) or derived/processed (false)
           example: true
         vis-only:
           type: string
-          description: Indicates whether for visualization only
+          description: Indicates whether the assay classification  is for visualization only
           items:
             type: string
             example: true
         vitessce-hints:
           type: array
-          description: Flags for Vitessce visualization
+          description: Flags for Vitessce visualization of datasets that associate with the assay classification.
           items:
             type: string
-            example: ["pyramid","anndata","is_image","is_tiled","is_sc","rna","atac","sprm","codex","maldi"]
+            example: [ "pyramid","anndata","is_image","is_tiled","is_sc","rna","atac","sprm","codex","maldi" ]
           example: Microscopy
     RuiCodeTerm:
       type: object
-      description: Respoonse body for organs/by-code GET request
+      description: Response body for organs/by-code GET request
       properties:
         rui_code:
           type: string
@@ -1109,19 +1243,19 @@ components:
           type: array
           items:
             type: string
-            example: ["MMRN1"]
+            example: [ "MMRN1" ]
         symbol-previous:
           description: HGNC data Previous Symbols
           type: array
           items:
             type: string
-            example: ["MMRN"]
+            example: [ "MMRN" ]
         symbol-alias:
           description: HGNC data Alias Symbols
           type: array
           items:
             type: string
-            example: ["EMILIN4", "GPIa*", "ECM"]
+            example: [ "EMILIN4", "GPIa*", "ECM" ]
     SabCodeTerm: # Schema name
       type: object
       properties:
@@ -1211,13 +1345,13 @@ components:
           description: HGNC alias names
           items:
             type: string
-          example: [glycoprotein Ia*]
+          example: [ glycoprotein Ia* ]
         alias_symbols:
           type: array
           description: HGNC alias symbols
           items:
             type: string
-          example: [GPIa*,EMILIN4,ECM]
+          example: [ GPIa*,EMILIN4,ECM ]
         approved_name:
           type: string
           description: HGNC approved name
@@ -1277,13 +1411,13 @@ components:
           description: previous names for the gene in HGNC
           items:
             type: string
-          example: [multimerin]
+          example: [ multimerin ]
         previous_symbols:
           type: array
           description: previous symbols for the gene in HGNC
           items:
             type: string
-            example: [MMRN]
+            example: [ MMRN ]
         references:
           type: array
           description: Reference for the gene between HGNC and other vocabularies. References can be either a cross-reference (e.g., between HGNC ID and NCBI Entrez ID) or from a known relationship (e.g., gene-protein relationships between a gene in HGNC and a protein in UniProtKB).
@@ -1328,13 +1462,13 @@ components:
                 type: string
                 description: UniProtKB Recommended Name
                 example: multimerin-1
-              #synonyms:
-                #type: array
-                #description: list of synonyms
-                #items:
+                  #synonyms:
+                  #type: array
+                  #description: list of synonyms
+                  #items:
                   #type: string
                 #example:
-                  #[p155,p-155,multimerin,Endothelial cell multimerin]
+                #[p155,p-155,multimerin,Endothelial cell multimerin]
         pagination:
           type: object
           description: pagination statistics
@@ -1375,11 +1509,11 @@ components:
           type: string
           description: UniProtKB Recommended Name
           example: multimerin-1
-        #synonyms:
-          #type: array
-          #description: alternative names
+            #synonyms:
+            #type: array
+            #description: alternative names
           #items:
-            #type: string
+          #type: string
           #example: [EMILIN-4,Elastin microfibril interface located protein 4 (Elastin microfibril interfacer 4),Endothelial cell multimerin]
         references:
           type: array
@@ -1410,7 +1544,7 @@ components:
           description: array of relevant organism, named in binomial nomenclature
           items:
             type: string
-            example: [Homo sapiens]
+            example: [ Homo sapiens ]
     CellTypeListResponse:
       type: object
       description: High-level list of cell types with pagination details, requested by the celltypes-info endpoint.
@@ -1550,7 +1684,7 @@ components:
                 description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
                 items:
                   type: string
-                  example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+                  example: [ "HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3" ]
               name:
                 type: string
                 description: identifier for metadata field
@@ -1578,7 +1712,7 @@ components:
           description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
           items:
             type: string
-            example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+            example: [ "HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3" ]
         name:
           type: string
           description: identifier for metadata field
@@ -1612,7 +1746,7 @@ components:
                 description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
                 items:
                   type: string
-                  example: ["HMFIELD:1018","CEDAR:ea6e26f1-30df-4a8c-9f15-63111ea0b68b"]
+                  example: [ "HMFIELD:1018","CEDAR:ea6e26f1-30df-4a8c-9f15-63111ea0b68b" ]
               name:
                 type: string
                 description: identifier for metadata field
@@ -1644,7 +1778,7 @@ components:
           description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
           items:
             type: string
-            example: ["HMFIELD:1018","CEDAR:ea6e26f1-30df-4a8c-9f15-63111ea0b68b"]
+            example: [ "HMFIELD:1018","CEDAR:ea6e26f1-30df-4a8c-9f15-63111ea0b68b" ]
         name:
           type: string
           description: identifier for metadata field
@@ -1778,7 +1912,7 @@ components:
                 description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
                 items:
                   type: string
-                  example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+                  example: [ "HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3" ]
               name:
                 type: string
                 description: name of the metadata field
@@ -1810,7 +1944,7 @@ components:
           description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
           items:
             type: string
-            example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+            example: [ "HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3" ]
         name:
           type: string
           description: name of the metadata field
@@ -1848,7 +1982,7 @@ components:
                 description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
                 items:
                   type: string
-                  example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+                  example: [ "HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3" ]
               name:
                 type: string
                 description: identifier for metadata field
@@ -1876,7 +2010,7 @@ components:
           description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
           items:
             type: string
-            example: ["HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3"]
+            example: [ "HMFIELD:1008","CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3" ]
         name:
           type: string
           description: identifier for metadata field
@@ -1895,3 +2029,25 @@ components:
                 type: string
                 description: name of schema
                 example: imc3d
+    DatasetTypes:
+      type: object
+      description: Information on dataset types
+      properties:
+        dataset_types:
+          type: array
+          description: array of dataset types
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the dataset type
+                example: HUBMAP:C003077
+              name:
+                type: string
+                description: name for the dataset type
+                example: Visium (with probes)
+              dataset_type_active:
+                type: string
+                description: whether the dataset type is active (displayed in the UI)
+                example: Active

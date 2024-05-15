@@ -32,7 +32,7 @@ from hs_ontology_api.models.fieldschema import FieldSchema
 from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
 from hs_ontology_api.models.fieldentity import FieldEntity
 # custom exception classes
-from .hsontologyexception import DuplicateFieldError
+# from .hsontologyexception import DuplicateFieldError
 
 # Query utilities
 # from hs_ontology_api.cypher.util_query import loadquerystring
@@ -59,99 +59,44 @@ def loadquerystring(filename: str) -> str:
     return query
 
 
-def make_assaytype_property_info(record):
-
-    # JAS 11 December 2023 Although the class AssayTypePropertyInfo uses underscores for
-    # properties such as contains_pii, the serialization converts the underscores to dashes.
-
-    return AssayTypePropertyInfo(
-        record['data_type'],
-        record['primary'],
-        record['description'],
-        record['vitessce_hints'],
-        record['contains_pii'],
-        record['vis_only'])
-
-
-def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str = 'HUBMAP') \
-        -> AssayTypePropertyInfo:
-    # Build the Cypher query that will return the table of data.
-    query = query_cypher_dataset_info(application_context)
-
-    assaytypes: List[dict] = []
-    # Execute Cypher query and return result.
-    with neo4j_instance.driver.session() as session:
-        recds: neo4j.Result = session.run(query)
-        for record in recds:
-            if primary is None:
-                assaytypes.append(make_assaytype_property_info(record).serialize())
-            elif primary is True and record['primary'] is True:
-                assaytypes.append(make_assaytype_property_info(record).serialize())
-            elif primary is False and record['primary'] is False:
-                assaytypes.append(make_assaytype_property_info(record).serialize())
-    result: dict = {"result": assaytypes}
-    return result
-
-
-def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, application_context: str = 'HUBMAP') \
-        -> AssayTypePropertyInfo:
-    """
-    This is intended to be a drop in replacement for the same endpoint in search-src.
-
-    The only difference is the optional application_contect to make it consistent with a HUBMAP or SENNET
-    environment.
-    """
-    # Build the Cypher query that will return the table of data.
-    query = query_cypher_dataset_info(application_context)
-
-    # Execute Cypher query and return result.
-    with neo4j_instance.driver.session() as session:
-        recds: neo4j.Result = session.run(query)
-        for record in recds:
-            if record.get('data_type') == name and (alt_names is None or record.get('alt_names') == alt_names):
-                # Accessing the record by .get('str') does not appear to work?! :-(
-                return make_assaytype_property_info(record).serialize()
-    return None
-
-def dataset_get_logic(neo4j_instance, data_type=None, description=None,
-                      alt_name=None, primary=None, contains_pii=None, vis_only=None,
-                      vitessce_hint=None, dataset_provider=None, dataset_type=None,
-                      dataset_active=None, dataset_type_active=None,
-                      application_context: str = 'HUBMAP') -> dict:
+def build_dataset_query(data_type=None, description=None, alt_name=None, primary=None, contains_pii=None,
+                        vis_only=None, vitessce_hint=None, dataset_provider=None, dataset_type=None,
+                        dataset_active=None, dataset_type_active=None, application_context: str = 'HUBMAP') -> str:
 
     """
-    MAY 2024 - Refactored to match new standard methodology for hs-ontology-api endpoints.
+    MAY 2024
+    Builds a parameterized query of assay classification information.
+    Common to the following endpoints:
+    datasets
+    assaynames
+    assaytype
 
-    Returns an array of objects that correspond to the types of datasets.
-    A dataset consists of the set of files associated with a particular run of an assay modality,
-    processed as necessary by pipelines.
-
-    Datasets can be categorized. The terms "assay" and "dataset" are both used interchangeably and separately.
-
-    All parameters except neorj_instance are in the query.
-    All query parameters except application_context are optional.
-
-    :param neo4j_instance: connection to UBKG database
     :param application_context: identifies the application context--i.e., HUBMAP or SENNET
-    :param data_type: key to processing workflow. The Rules Engine (introduced in 2023) now refers to data_type as
-                      "assay type".
-    :param description: text description for dataset, corresponding to how the UI refers to the assay type
+    :param data_type: key to processing workflow--i.e., the set of pipelines that will be executed on the files
+                      associated with the dataset. The Rules Engine (introduced in 2023) now refers to data_type as
+                      "assay type", as a property of an assay classification.
+    :param description: text description for an assay classification, corresponding to how the UI refers to datasets
+                        of the assay classification.
     :param alt_name: alternate version of data_type. For example, the assay type with data_type="IMC"
-                     has alt_name of "Imaging Mass Cytometry".
-    :param primary: true/false - whether the dataset type/assay type is "primary" (direct output of assay) or "derived"
-                    (or  processed) --i.e., the product of a processing pipeline.
-    :param contains_pii: true/false - whether the dataset type/assay type contains Patient Identifying Information.
-    :param vis_only: true/false - whether the dataset type/assay type is for visualization only
-    :param vitessce_hint: a Vitessce hint
-    :param dataset_provider: enum - the provider of the dataset. Either "iec" or "external"/"lab"
-    :param dataset_type: the "Dataset type" or "soft assay dataset type" introduced with the Rules Engine
-    :param dataset_active: whether the assay type is active
-    :param dataset_type_active: whether the dataset type is active
+                     has alt_name of "Imaging Mass Cytometry". The new Rules Engine flattens the relationship
+                     between alt_name and data_type; however, datasets built per pre-Rules Engine paradigm distinguish
+                     between alt_names and data_type.
+    :param primary: true/false - whether the assay classification is for a "primary" (direct output of assay) dataset
+                    or for a "derived" (or processed) dataset
+    :param contains_pii: true/false - whether datasets of the assay classification include
+                         Patient Identifying Information.
+    :param vis_only: true/false - whether datasets of the assay classification is for visualization only
+    :param vitessce_hint: a Vitessce hint for datasets of the assay classification
+    :param dataset_provider: enum - the provider of datasets of the assay classification:
+                             "iec" - provided by either HuBMAP or SenNet IEC--i.e., processed via IEC pipelines
+                             "external"/"lab" - all files provided by an external source
+    :param dataset_type: the "Dataset type" or "soft assay dataset type" for the assoy classification
+                         introduced with the Rules Engine
+    :param dataset_active: whether datasets for the assay classification are active (e.g., to be displayed in the UI)
+    :param dataset_type_active: whether datasets for the dataset type are active.
 
-    :return:
+    :return: str
     """
-
-    respdict = {}
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'datasets.cypher'
@@ -201,7 +146,128 @@ def dataset_get_logic(neo4j_instance, data_type=None, description=None,
     else:
         querytxt = querytxt.replace('$optional_filters', 'WHERE ' + ' AND '.join(optionalfilters))
 
-    print(querytxt)
+    return querytxt
+
+
+def make_assaytype_property_info(record):
+
+    # JAS 11 December 2023 Although the class AssayTypePropertyInfo uses underscores for
+    # properties such as contains_pii, the serialization converts the underscores to dashes.
+
+    return AssayTypePropertyInfo(
+        record['data_type'],
+        record['primary'],
+        record['description'],
+        record['vitessce_hints'],
+        record['contains_pii'],
+        record['vis_only'])
+
+
+def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str = 'HUBMAP') \
+        -> AssayTypePropertyInfo:
+    # Build the Cypher query that will return the table of data.
+    query = query_cypher_dataset_info(application_context)
+
+    assaytypes: List[dict] = []
+    # Execute Cypher query and return result.
+    with neo4j_instance.driver.session() as session:
+        recds: neo4j.Result = session.run(query)
+        for record in recds:
+            if primary is None:
+                assaytypes.append(make_assaytype_property_info(record).serialize())
+            elif primary is True and record['primary'] is True:
+                assaytypes.append(make_assaytype_property_info(record).serialize())
+            elif primary is False and record['primary'] is False:
+                assaytypes.append(make_assaytype_property_info(record).serialize())
+    result: dict = {"result": assaytypes}
+    return result
+
+
+def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, application_context: str = 'HUBMAP') \
+        -> AssayTypePropertyInfo:
+    """
+    This is intended to be a drop in replacement for the same endpoint in search-api.
+
+    The only difference is the optional application_context to make it consistent with a HUBMAP or SENNET
+    environment.
+
+    MAY 2024 - Refactored:
+    1. to filter to active assay classifications and dataset types
+    2. to map directly from the JSON returned from the common neo4j query instead of using classes.
+
+    """
+    # Build the Cypher query that will return the table of data.
+    # MAY 2024 deprecated
+    # query = query_cypher_dataset_info(application_context)
+
+    # Note: This function no longer assumes compound alt-names--e.g., ['AF','image-pyramid'].
+
+    query = build_dataset_query(data_type=name, alt_name=alt_names,
+                                   application_context=application_context)
+
+    # Execute Cypher query and return result.
+    with neo4j_instance.driver.session() as session:
+        recds: neo4j.Result = session.run(query)
+        #for record in recds:
+            # if record.get('data_type') == name and (alt_names is None or record.get('alt_names') == alt_names):
+            # Accessing the record by .get('str') does not appear to work?! :-(
+            #return make_assaytype_property_info(record).serialize()
+
+        resplist = []
+        for record in recds:
+            assay_classifications = record.get('assay_classifications')
+            # assay_classifications is a list of assay classification objects.
+            # Map each assay classification to a legacy "assay type" object.
+            for ac in assay_classifications:
+                print(ac)
+                assaytype = {}
+                assaytype['name'] = ac['data_type']
+                assaytype['description'] = ac['description']
+                assaytype['contains-pii'] = ac['contains_pii']
+                assaytype['primary'] = ac['primary']
+                assaytype['vis-only'] = ac['vis-only']
+                assaytype['vitessce-hints'] = ac['vitessce_hints']
+
+                resplist.append(assaytype)
+
+        # Return based on whether only one value returned (the case for /assaytypes/<name>) or multiple values
+        if len(resplist) == 1:
+            return resplist[0]
+        else:
+            return {"result":resplist}
+
+
+def dataset_get_logic(neo4j_instance, data_type=None, description=None,
+                      alt_name=None, primary=None, contains_pii=None, vis_only=None,
+                      vitessce_hint=None, dataset_provider=None, dataset_type=None,
+                      dataset_active=None, dataset_type_active=None,
+                      application_context: str = 'HUBMAP') -> dict:
+
+    """
+    MAY 2024 - Refactored:
+    1. to match new standard methodology for hs-ontology-api endpoints
+    2. to filter for whether assay classifications and dataset types are active or inactive
+
+    Returns an array of assay classifications.
+    The dataset that associates with an assay classification consists of the set of files associated with a
+    particular run of an assay modality, processed as necessary by pipelines.
+
+    Datasets can be categorized in various ways.
+    The terms "assay", "assay classification", and "dataset" are used interchangeably, but also separately.
+
+    All parameters except neo4j_instance are in the query.
+    All query parameters except application_context are optional.
+
+    Refer to the comments in the build_dataset_query function for explanations of the parameters.
+
+    """
+
+    querytxt = build_dataset_query(data_type=data_type, description=description, alt_name=alt_name,
+                                   primary=primary, contains_pii=contains_pii, vis_only=vis_only,
+                                   vitessce_hint=vitessce_hint, dataset_provider=dataset_provider,
+                                   dataset_type=dataset_type, dataset_active=dataset_active,
+                                   dataset_type_active=dataset_type_active, application_context=application_context)
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -214,12 +280,17 @@ def dataset_get_logic(neo4j_instance, data_type=None, description=None,
             assay_classifications = record.get('assay_classifications')
             resplist.append(assay_classifications)
 
-    return {"assaytypes":assay_classifications}
+    # The query should return a single record with a JSON object.
+    return {"assay classifications": assay_classifications}
 
-def dataset_old_get_logic(neo4j_instance, data_type: str = '', description: str = '',
-                      alt_name: str = '', primary: str = '', contains_pii: str = '', vis_only: str = '',
-                      vitessce_hint: str = '', dataset_provider: str = '', application_context: str = 'HUBMAP') \
+
+def dataset_old_get_logic(neo4j_instance, data_type: str = '', description: str = '', alt_name: str = '',
+                          primary: str = '', contains_pii: str = '', vis_only: str = '', vitessce_hint: str = '',
+                          dataset_provider: str = '', application_context: str = 'HUBMAP') \
         -> List[DatasetPropertyInfo]:
+
+    # MAY 2024 DEPRECATED - REPLACED WITH  dataset_get_logic
+
     # JAS FEB 2023
     # Returns an array of objects corresponding to Dataset (type) nodes in the HubMAP
     # or SenNet application ontology.
@@ -242,7 +313,6 @@ def dataset_old_get_logic(neo4j_instance, data_type: str = '', description: str 
 
     # Build the Cypher query that will return the table of data.
     query = query_cypher_dataset_info(application_context)
-
 
     # Execute Cypher query and return result.
     with neo4j_instance.driver.session() as session:
@@ -482,6 +552,8 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
 
 
 def __subquery_dataset_synonym_property(sab: str, cuialias: str, returnalias: str, collectvalues: bool) -> str:
+    # MAY 2024 DEPRECATED
+
     # JAS FEB 2023
     # Returns a subquery to obtain a "synonym" relationship property. See __query_dataset_info for an explanation.
 
@@ -515,6 +587,8 @@ def __subquery_dataset_synonym_property(sab: str, cuialias: str, returnalias: st
 def __subquery_dataset_relationship_property(sab: str, cuialias: str, rel_string: str, returnalias: str,
                                              isboolean: bool = False, collectvalues: bool = False,
                                              codelist: List[str] = []) -> str:
+    # MAY 2024 DEPRECATED
+
     # JAS FEB 2023
     # Returns a subquery to obtain a "relationship property". See __query_dataset_info for an explanation.
 
@@ -580,6 +654,8 @@ def __subquery_dataset_relationship_property(sab: str, cuialias: str, rel_string
 
 
 def __subquery_data_type_info(sab: str) -> str:
+    # MAY 2024 DEPRECATED
+
     # JAS FEB 2023
     # Returns a Cypher subquery that obtains concept CUI and preferred term strings for the Dataset Data Type
     # codes in an application context. Dataset Data Type codes are in a hierarchy with a root entity with code
@@ -605,6 +681,9 @@ def __subquery_data_type_info(sab: str) -> str:
 
 
 def __subquery_dataset_cuis(sab: str, cuialias: str, returnalias: str) -> str:
+
+    # MAY 2024 DEPRECATED
+
     # JAS FEB 2023
     # Returns a Cypher subquery that obtains concept CUIs for Dataset concepts in the application context.
     # The use case is that the concepts are related to the data_set CUIs passed in the cuialias parameter.
@@ -628,6 +707,8 @@ def __subquery_dataset_cuis(sab: str, cuialias: str, returnalias: str) -> str:
 
 
 def query_cypher_dataset_info(sab: str) -> str:
+    # MAY 2024 DEPRECATED
+
     # JAS FEB 2023
     # Returns a Cypher query string that will return property information on the datasets in an application
     # context (SAB in the KG), keyed by the data_type.
@@ -844,7 +925,6 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
     query = query.replace('$starts_with_clause', starts_with_clause)
     query = query.replace('$skiprows', str(skiprows))
     query = query.replace('$limitrows', str(genes_per_page))
-
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
@@ -1213,6 +1293,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
 
     return fielddescriptions
 
+
 def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, type_source=None, type=None)\
         -> List[FieldType]:
     """
@@ -1290,6 +1371,7 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
 
     return fieldtypes
 
+
 def field_types_info_get_logic(neo4j_instance, type_source=None):
     """
     Returns a unique list of available field data types, with optional filtering.
@@ -1303,7 +1385,7 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
     fieldtypes: [FieldTypeDetail] = []
 
     # Used in WHERE clauses when no filter is needed.
-    identity_filter = '1=1'
+    # identity_filter = '1=1'
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
@@ -1417,6 +1499,7 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=Non
 
         return fieldassays
 
+
 def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None, schema=None) -> List[FieldSchema]:
     """
     Returns detailed information on an ingest metadata field's associated schemas or CEDAR templates.
@@ -1481,7 +1564,8 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
         return fieldschemas
 
 
-def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None, application=None) -> List[FieldEntity]:
+def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None, application=None) \
+        -> List[FieldEntity]:
     """
     Returns detailed information on an ingest metadata field's associated entities.
 
@@ -1555,3 +1639,44 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
                 pass
 
         return fieldentities
+
+
+def dataset_types_get_logic(neo4j_instance, dataset_type=None, dataset_type_active=None,
+                            application_context: str = 'HUBMAP') -> dict:
+
+    """
+    Returns information on a set of dataset types. A dataset type is a property of an assay classification.
+
+    :param neo4j_instance: UBKG connection
+    :param dataset_type: the "Dataset type" or "soft assay dataset type" for an assoy classification
+                         introduced with the Rules Engine
+    :param dataset_type_active: whether the dataset type is active.
+    :param application_context: HUBMAP or SENNET
+    """
+
+    # Load annotated Cypher query from the cypher directory.
+    queryfile = 'datasettypes.cypher'
+    querytxt = loadquerystring(queryfile)
+
+    querytxt = querytxt.replace('$context', f"'{application_context}'")
+    filters = f"WHERE DatasetTypeActive = '{dataset_type_active.capitalize()}'"
+    if dataset_type is not None:
+        filters = filters + f" AND DatasetTypeTerm = '{dataset_type}'"
+    querytxt = querytxt.replace('$filters', filters)
+
+    print(querytxt)
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        # Execute Cypher query.
+        recds: neo4j.Result = session.run(query)
+
+        resplist = []
+        for record in recds:
+            response = record.get('response')
+            dataset_types = response.get('dataset_types')
+            resplist.append(dataset_types)
+
+    # The query should return a single record with a JSON object.
+    return {"dataset_types": dataset_types}
