@@ -158,7 +158,7 @@ paths:
         - name: dataset_active
           in: query
           required: false
-          description: Optional filter for whether the assay classification is active (can be displayed in the UI) or inactive. If both dataset_active and dataset_type_active are not specified in the query string, only those assay types with dataset_active=active and dataset_type_active=active will be returned.
+          description: Optional filter for whether the assay classification is active (can be displayed in the UI) or inactive.
           schema:
             type: string
             enum:
@@ -167,7 +167,7 @@ paths:
         - name: dataset_type_active
           in: query
           required: false
-          description: Optional filter for whether the dataset type is active (can be displayed in the UI) or inactive. If both dataset_active and dataset_type_active are not specified in the query string, only those assay classifications  with dataset_active=active and dataset_type_active=active will be returned. If dataset_type=inactive, assay classifications that share the dataset type will not be returned.
+          description: Optional filter for whether the dataset type is active (can be displayed in the UI) or inactive. If dataset_type=inactive, assay classifications that share the dataset type will not be returned.
           schema:
             type: string
             enum:

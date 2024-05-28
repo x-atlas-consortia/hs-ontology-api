@@ -132,7 +132,7 @@ CALL
 CALL
 {
   WITH DatasetCUI, context
-  OPTIONAL MATCH (pDataset:Concept)<-[:has_dataset]-(pAssay_classification:Concept)-[:has_measurement_assay]->(pMeas:Concept)-[:CODE]->(cMeas:Code)-[rMeas:PT]->(tMeas:Term)
+  MATCH (pDataset:Concept)<-[:has_dataset]-(pAssay_classification:Concept)-[:has_measurement_assay]->(pMeas:Concept)-[:CODE]->(cMeas:Code)-[rMeas:PT]->(tMeas:Term)
   WHERE pDataset.CUI=DatasetCUI
   AND CASE WHEN context = 'HUBMAP' THEN NOT cMeas.SAB = 'SENNET'  WHEN context = 'SENNET' THEN NOT cMeas.SAB = 'HUBMAP' END
   RETURN COLLECT(DISTINCT{code:cMeas.CodeID,term:tMeas.name}) AS measurement_assay
@@ -154,6 +154,13 @@ WITH data_type,description,alt_names,primary,dataset_provider,vis_only,contains_
 $optional_filters
 
 // Note the use of back-ticking for the vis-only key.
-WITH COLLECT({data_type:data_type,description:description,alt_names:alt_names,primary:primary,dataset_provider:dataset_provider,`vis-only`:vis_only,contains_pii:contains_pii,vitessce_hints:vitessce_hints,dataset_type:dataset_type,dataset_active:dataset_active,dataset_type_active:dataset_type_active,measurement_assay:measurement_assay}) AS assay_classifications
+WITH COLLECT({data_type:data_type,description:description,alt_names:alt_names,primary:primary,
+dataset_provider:dataset_provider,`vis-only`:vis_only,
+contains_pii:contains_pii,vitessce_hints:vitessce_hints,
+dataset_type:dataset_type,
+dataset_active:dataset_active,
+dataset_type_active:dataset_type_active,
+measurement_assay:measurement_assay})
+AS assay_classifications
 RETURN assay_classifications
 

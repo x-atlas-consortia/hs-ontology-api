@@ -61,7 +61,8 @@ def loadquerystring(filename: str) -> str:
 
 def build_dataset_query(data_type=None, description=None, alt_name=None, primary=None, contains_pii=None,
                         vis_only=None, vitessce_hint=None, dataset_provider=None, dataset_type=None,
-                        dataset_active=None, dataset_type_active=None, application_context: str = 'HUBMAP') -> str:
+                        dataset_active=None, dataset_type_active=None,
+                        application_context: str = 'HUBMAP') -> str:
 
     """
     MAY 2024
@@ -79,8 +80,8 @@ def build_dataset_query(data_type=None, description=None, alt_name=None, primary
                         of the assay classification.
     :param alt_name: alternate version of data_type. For example, the assay type with data_type="IMC"
                      has alt_name of "Imaging Mass Cytometry". The new Rules Engine flattens the relationship
-                     between alt_name and data_type; however, datasets built per pre-Rules Engine paradigm distinguish
-                     between alt_names and data_type.
+                     between alt_name and data_type; however, datasets built per the pre-Rules Engine paradigm
+                     distinguish between alt_names and data_type.
     :param primary: true/false - whether the assay classification is for a "primary" (direct output of assay) dataset
                     or for a "derived" (or processed) dataset
     :param contains_pii: true/false - whether datasets of the assay classification include
@@ -148,7 +149,6 @@ def build_dataset_query(data_type=None, description=None, alt_name=None, primary
 
     return querytxt
 
-
 def make_assaytype_property_info(record):
 
     # JAS 11 December 2023 Although the class AssayTypePropertyInfo uses underscores for
@@ -202,16 +202,15 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
 
     # Note: This function no longer assumes compound alt-names--e.g., ['AF','image-pyramid'].
 
-    query = build_dataset_query(data_type=name, alt_name=alt_names,
-                                   application_context=application_context)
+    query = build_dataset_query(data_type=name, alt_name=alt_names, application_context=application_context)
 
     # Execute Cypher query and return result.
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
-        #for record in recds:
+        # for record in recds:
             # if record.get('data_type') == name and (alt_names is None or record.get('alt_names') == alt_names):
             # Accessing the record by .get('str') does not appear to work?! :-(
-            #return make_assaytype_property_info(record).serialize()
+            # return make_assaytype_property_info(record).serialize()
 
         resplist = []
         for record in recds:
@@ -234,19 +233,21 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
         if len(resplist) == 1:
             return resplist[0]
         else:
-            return {"result":resplist}
+            return {"result": resplist}
 
 
 def dataset_get_logic(neo4j_instance, data_type=None, description=None,
                       alt_name=None, primary=None, contains_pii=None, vis_only=None,
                       vitessce_hint=None, dataset_provider=None, dataset_type=None,
                       dataset_active=None, dataset_type_active=None,
+                      measurement_assay_sab=None,
                       application_context: str = 'HUBMAP') -> dict:
 
     """
     MAY 2024 - Refactored:
     1. to match new standard methodology for hs-ontology-api endpoints
     2. to filter for whether assay classifications and dataset types are active or inactive
+    3. to filter for measurement assay
 
     Returns an array of assay classifications.
     The dataset that associates with an assay classification consists of the set of files associated with a
@@ -266,7 +267,8 @@ def dataset_get_logic(neo4j_instance, data_type=None, description=None,
                                    primary=primary, contains_pii=contains_pii, vis_only=vis_only,
                                    vitessce_hint=vitessce_hint, dataset_provider=dataset_provider,
                                    dataset_type=dataset_type, dataset_active=dataset_active,
-                                   dataset_type_active=dataset_type_active, application_context=application_context)
+                                   dataset_type_active=dataset_type_active,
+                                   application_context=application_context)
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)

@@ -83,16 +83,15 @@ def dataset_get():
 
     dataset_type = request.args.get('dataset_type')
 
-    # dataset_active and dataset_type_active are both set to 'Active' unless one of them is
-    # explicitly specified.
     val_enum = ['active', 'inactive']
 
     dataset_active = request.args.get('dataset_active')
     dataset_type_active = request.args.get('dataset_type_active')
 
-    if dataset_active is None and dataset_type_active is None:
-        dataset_active = 'Active'
-        dataset_type_active = 'Active'
+    # May 2024 - By default, return all assay classifications regardless of active status.
+    #if dataset_active is None and dataset_type_active is None:
+        #dataset_active = 'Active'
+        #dataset_type_active = 'Active'
 
     if dataset_active is not None:
         dataset_active = dataset_active.lower()
@@ -113,7 +112,8 @@ def dataset_get():
                                alt_name=alt_name, primary=primary, contains_pii=contains_pii, vis_only=vis_only,
                                vitessce_hint=vitessce_hint, dataset_provider=dataset_provider,
                                dataset_type=dataset_type, dataset_active=dataset_active,
-                               dataset_type_active=dataset_type_active, application_context=application_context)
+                               dataset_type_active=dataset_type_active,
+                               application_context=application_context)
 
     if result is None or result == {}:
         # Empty result
@@ -129,7 +129,6 @@ def dataset_get_old():
     # May 2024 replaced with new standard methodology.
 
     """Returns information on a set of HuBMAP or SenNet dataset types, with options to filter the list to those with specific property values. Filters are additive (i.e., boolean AND)
-
 
     :query application_context: Required filter to indicate application context.
     :type application_context: str

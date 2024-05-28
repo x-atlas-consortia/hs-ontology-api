@@ -45,9 +45,11 @@ def dataset_types_get(dataset_type=None):
     # dataset_type_active's default is active.
     val_enum = ['active', 'inactive']
     dataset_type_active = request.args.get('dataset_type_active')
-    if dataset_type_active is None:
-        dataset_type_active = 'active'
-    else:
+    # May 2024 Return all dataset types by default.
+    #if dataset_type_active is None:
+        #dataset_type_active = 'active'
+    #else:
+    if dataset_type_active is not None:
         dataset_type_active = dataset_type_active.lower()
     err = validate_parameter_value_in_enum(param_name='dataset_type_active', param_value=dataset_type_active,
                                            enum_list=val_enum)
