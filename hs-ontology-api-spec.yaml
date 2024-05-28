@@ -1186,16 +1186,27 @@ components:
         vis-only:
           type: string
           description: Indicates whether the assay classification  is for visualization only
-          items:
-            type: string
-            example: true
+          example: true
         vitessce-hints:
           type: array
           description: Flags for Vitessce visualization of datasets that associate with the assay classification.
           items:
             type: string
-            example: [ "pyramid","anndata","is_image","is_tiled","is_sc","rna","atac","sprm","codex","maldi" ]
-          example: Microscopy
+            example: [ "pyramid" ]
+        measurement_assay:
+          type: array
+          description: codes for the experimental assay method used to generate dataset files. Applicable to primary datasets.
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the measurement assay in an ontology
+                example: "OBI:0002039"
+              term:
+                type: string
+                description: preferred term for the measurement assay in the ontology
+                example: assay for transposase-accessible chromatin using sequencing
     RuiCodeTerm:
       type: object
       description: Response body for organs/by-code GET request
