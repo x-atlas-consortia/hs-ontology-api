@@ -116,17 +116,7 @@ CALL
 	WHERE pDataset.CUI = DatasetCUI
 	AND c2.SAB=context
 	AND CASE WHEN context='HUBMAP' THEN c2.CODE IN ['C004030','C004031'] ELSE c2.CODE IN ['C004022','C0040023'] END
-	RETURN DISTINCT t2.name AS dataset_active
-}
-// For each Dataset type, determine whether active or inactive.
-CALL
-{
-	WITH DatasetTypeCUI,context
-	OPTIONAL MATCH (pDataset:Concept)-[:isa]->(p2:Concept)-[:CODE]->(c2:Code)-[:PT]->(t2:Term)
-	WHERE pDataset.CUI = DatasetTypeCUI
-	AND c2.SAB=context
-	AND CASE WHEN context='HUBMAP' THEN c2.CODE IN ['C004030','C004031'] ELSE c2.CODE IN ['C004022','C0040023'] END
-	RETURN DISTINCT t2.name AS dataset_type_active
+	RETURN DISTINCT t2.name AS active_status
 }
 // For each assay classification, return the measurement assay.
 CALL
@@ -138,11 +128,8 @@ CALL
   RETURN COLLECT(DISTINCT{code:cMeas.CodeID,term:tMeas.name}) AS measurement_assay
 }
 // Apply filters.
-WITH data_type,description,alt_names,primary,dataset_provider,vis_only,contains_pii,vitessce_hints,dataset_type,dataset_active,dataset_type_active,measurement_assay
-// The default filters are that both the assay type and dataset type are active.
-// WHERE dataset_active='Active'
-// AND dataset_type_active='Active'
-// Optional filters
+WITH data_type,description,alt_names,primary,dataset_provider,vis_only,contains_pii,vitessce_hints,dataset_type,active_status,measurement_assay
+// WHERE active_status='Active'
 // AND data_type='10x-multiome'
 // AND description='10X Multiome'
 // AND 'DESI-IMS' IN alt_names
@@ -151,6 +138,7 @@ WITH data_type,description,alt_names,primary,dataset_provider,vis_only,contains_
 // AND vis_only = true
 // AND 'is_image' IN vitessce_hints
 // AND toUpper(dataset_provider) =~ '.*IEC.*'
+
 $optional_filters
 
 // Note the use of back-ticking for the vis-only key.
@@ -158,8 +146,7 @@ WITH COLLECT({data_type:data_type,description:description,alt_names:alt_names,pr
 dataset_provider:dataset_provider,`vis-only`:vis_only,
 contains_pii:contains_pii,vitessce_hints:vitessce_hints,
 dataset_type:dataset_type,
-dataset_active:dataset_active,
-dataset_type_active:dataset_type_active,
+active_status:active_status,
 measurement_assay:measurement_assay})
 AS assay_classifications
 RETURN assay_classifications

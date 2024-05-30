@@ -2,8 +2,9 @@ from flask import Blueprint, jsonify, current_app, request,  make_response
 from ubkg_api.utils.http_error_string import validate_required_parameters,validate_query_parameter_names,\
     get_404_error_string,validate_parameter_value_in_enum
 
-# MAY 2024 Use common utilities from ubkg-api.
 from hs_ontology_api.utils.neo4j_logic import dataset_types_get_logic
+
+from hs_ontology_api.utils.validate_parameters import validate_application_context, validate_active_status
 
 dataset_types_blueprint = Blueprint('dataset_types', __name__, url_prefix='/dataset-types')
 
@@ -25,7 +26,7 @@ def dataset_types_get(dataset_type=None):
     """
 
     # Validate parameter names.
-    err = validate_query_parameter_names(['application_context', 'dataset_type', 'dataset_type_active'])
+    err = validate_query_parameter_names(['application_context', 'dataset_type', 'active_status'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -33,7 +34,6 @@ def dataset_types_get(dataset_type=None):
     err = validate_required_parameters(required_parameter_list=['application_context'])
     if err != 'ok':
         return make_response(err, 400)
-
     # case-insensitive
     application_context = request.args.get('application_context').upper()
     val_enum = ['HUBMAP', 'SENNET']
@@ -42,17 +42,11 @@ def dataset_types_get(dataset_type=None):
     if err != 'ok':
         return make_response(err, 400)
 
-    # dataset_type_active's default is active.
-    val_enum = ['active', 'inactive']
-    dataset_type_active = request.args.get('dataset_type_active')
-    # May 2024 Return all dataset types by default.
-    #if dataset_type_active is None:
-        #dataset_type_active = 'active'
-    #else:
-    if dataset_type_active is not None:
-        dataset_type_active = dataset_type_active.lower()
-    err = validate_parameter_value_in_enum(param_name='dataset_type_active', param_value=dataset_type_active,
-                                           enum_list=val_enum)
+    # active_status
+    active_status = request.args.get('active_status')
+    if active_status is not None:
+        active_status = active_status.lower()
+    err = validate_active_status(param_value=active_status)
     if err != 'ok':
         return make_response(err, 400)
 
@@ -60,7 +54,7 @@ def dataset_types_get(dataset_type=None):
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = dataset_types_get_logic(neo4j_instance, dataset_type=dataset_type,
-                                     dataset_type_active=dataset_type_active, application_context=application_context)
+                                     active_status=active_status, application_context=application_context)
 
     iserr = result is None or result == {}
     if not iserr:

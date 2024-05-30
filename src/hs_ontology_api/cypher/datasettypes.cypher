@@ -25,10 +25,10 @@ CALL
  	AND r.CUI=pType.CUI
  	AND rAct.CUI = pAct.CUI
 	AND CASE WHEN context='HUBMAP' THEN cAct.CODE IN ['C004030','C004031'] ELSE cAct.CODE IN ['C004022','C0040023'] END
- 	RETURN DISTINCT cType.CodeID AS DatasetTypeCode, tType.name AS DatasetTypeTerm,tAct.name as DatasetTypeActive
+ 	RETURN DISTINCT cType.CodeID AS DatasetTypeCode, tType.name AS DatasetTypeTerm,tAct.name as active_status
  }
  //Filter on specified activity type (active or inactive).
- WITH CUIType, DatasetTypeCode, DatasetTypeTerm, DatasetTypeActive
+ WITH CUIType, DatasetTypeCode, DatasetTypeTerm, active_status
  $filters
- WITH COLLECT(DISTINCT {code:DatasetTypeCode, name:DatasetTypeTerm, dataset_type_active:DatasetTypeActive}) AS datasettypes
+ WITH COLLECT(DISTINCT {code:DatasetTypeCode, name:DatasetTypeTerm, active_status:active_status}) AS datasettypes
  RETURN {dataset_types:datasettypes} AS response

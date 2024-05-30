@@ -61,7 +61,7 @@ def loadquerystring(filename: str) -> str:
 
 def build_dataset_query(data_type=None, description=None, alt_name=None, primary=None, contains_pii=None,
                         vis_only=None, vitessce_hint=None, dataset_provider=None, dataset_type=None,
-                        dataset_active=None, dataset_type_active=None,
+                        active_status=None,
                         application_context: str = 'HUBMAP') -> str:
 
     """
@@ -93,8 +93,7 @@ def build_dataset_query(data_type=None, description=None, alt_name=None, primary
                              "external"/"lab" - all files provided by an external source
     :param dataset_type: the "Dataset type" or "soft assay dataset type" for the assoy classification
                          introduced with the Rules Engine
-    :param dataset_active: whether datasets for the assay classification are active (e.g., to be displayed in the UI)
-    :param dataset_type_active: whether datasets for the dataset type are active.
+    :param active_status: whether datasets for the assay classification are active (e.g., to be displayed in the UI)
 
     :return: str
     """
@@ -118,7 +117,10 @@ def build_dataset_query(data_type=None, description=None, alt_name=None, primary
     if description is not None:
         optionalfilters.append(f"description = '{description}'")
     if alt_name is not None:
-        optionalfilters.append(f"'{alt_name}' IN alt_names")
+        if type(alt_name) is list:
+            optionalfilters.append(f"{alt_name} IN alt_names")
+        else:
+            optionalfilters.append(f"'{alt_name}' IN alt_names")
     if primary is not None:
         optionalfilters.append(f"primary = {primary}")
     if contains_pii is not None:
@@ -131,16 +133,12 @@ def build_dataset_query(data_type=None, description=None, alt_name=None, primary
         optionalfilters.append(f"toUpper(dataset_provider) =~ '.*{dataset_provider.upper()}.*")
     if dataset_type is not None:
         optionalfilters.append(f"dataset_type = '{dataset_type}'")
-    if dataset_active == 'active':
-        optionalfilters.append(f"toLower(dataset_active) = 'active'")
-    else:
-        if dataset_active == 'inactive':
-            optionalfilters.append(f"(toLower(dataset_active) = 'inactive' OR dataset_active IS NULL)")
-    if dataset_type_active == 'active':
-        optionalfilters.append(f"toLower(dataset_type_active) = 'active'")
-    else:
-        if dataset_type_active == 'inactive':
-            optionalfilters.append(f"(toLower(dataset_type_active) = 'inactive' OR dataset_type_active IS NULL)")
+
+    #The default is to display all assay classifications regardless of status (active_status='all').
+    if active_status in ['active','inactive']:
+        optionalfilters.append(f"toLower(active_status) = '{active_status}'")
+    elif active_status == 'null':
+        optionalfilters.append('active_status IS NULL')
 
     if len(optionalfilters) == 0:
         querytxt = querytxt.replace('$optional_filters', '')
@@ -154,37 +152,45 @@ def make_assaytype_property_info(record):
     # JAS 11 December 2023 Although the class AssayTypePropertyInfo uses underscores for
     # properties such as contains_pii, the serialization converts the underscores to dashes.
 
-    return AssayTypePropertyInfo(
-        record['data_type'],
-        record['primary'],
-        record['description'],
-        record['vitessce_hints'],
-        record['contains_pii'],
-        record['vis_only'])
+    # May 2024 - refactored to work with new datasets query result and show active status.
 
+    assaytype = {}
+    assaytype['name'] = record['data_type']
+    assaytype['description'] = record['description']
+    assaytype['contains-pii'] = record['contains_pii']
+    assaytype['primary'] = record['primary']
+    assaytype['vis-only'] = record['vis-only']
+    assaytype['vitessce-hints'] = record['vitessce_hints']
+    assaytype['active_status'] = record['active_status']
+    return assaytype
 
-def assaytype_get_logic(neo4j_instance, primary: bool, application_context: str = 'HUBMAP') \
+def assaytype_get_logic(neo4j_instance, primary: bool, active_status=None, application_context: str = 'HUBMAP') \
         -> AssayTypePropertyInfo:
     # Build the Cypher query that will return the table of data.
-    query = query_cypher_dataset_info(application_context)
+
+    # May 2024 - refactored to work with new dataset query.
+
+    query = build_dataset_query(primary=primary, active_status=active_status,
+                                application_context=application_context)
 
     assaytypes: List[dict] = []
     # Execute Cypher query and return result.
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
         for record in recds:
-            if primary is None:
-                assaytypes.append(make_assaytype_property_info(record).serialize())
-            elif primary is True and record['primary'] is True:
-                assaytypes.append(make_assaytype_property_info(record).serialize())
-            elif primary is False and record['primary'] is False:
-                assaytypes.append(make_assaytype_property_info(record).serialize())
+            assay_classifications = record.get('assay_classifications')
+            # By default, this endpoint returns only primary assay classifications.
+            for ac in assay_classifications:
+                if primary is None or primary == ac['primary']:
+                    assaytypes.append(make_assaytype_property_info(ac))
+
+    # The "result" key is a legacy of the original assaytypes endpoint.
     result: dict = {"result": assaytypes}
     return result
 
 
-def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, application_context: str = 'HUBMAP') \
-        -> AssayTypePropertyInfo:
+def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, active_status=None,
+                             application_context: str = 'HUBMAP') -> AssayTypePropertyInfo:
     """
     This is intended to be a drop in replacement for the same endpoint in search-api.
 
@@ -192,7 +198,7 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
     environment.
 
     MAY 2024 - Refactored:
-    1. to filter to active assay classifications and dataset types
+    1. to filter to by active status
     2. to map directly from the JSON returned from the common neo4j query instead of using classes.
 
     """
@@ -202,7 +208,8 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
 
     # Note: This function no longer assumes compound alt-names--e.g., ['AF','image-pyramid'].
 
-    query = build_dataset_query(data_type=name, alt_name=alt_names, application_context=application_context)
+    query = build_dataset_query(data_type=name, alt_name=alt_names, active_status=active_status,
+                                application_context=application_context)
 
     # Execute Cypher query and return result.
     with neo4j_instance.driver.session() as session:
@@ -218,15 +225,7 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
             # assay_classifications is a list of assay classification objects.
             # Map each assay classification to a legacy "assay type" object.
             for ac in assay_classifications:
-                print(ac)
-                assaytype = {}
-                assaytype['name'] = ac['data_type']
-                assaytype['description'] = ac['description']
-                assaytype['contains-pii'] = ac['contains_pii']
-                assaytype['primary'] = ac['primary']
-                assaytype['vis-only'] = ac['vis-only']
-                assaytype['vitessce-hints'] = ac['vitessce_hints']
-
+                assaytype = make_assaytype_property_info(ac)
                 resplist.append(assaytype)
 
         # Return based on whether only one value returned (the case for /assaytypes/<name>) or multiple values
@@ -239,7 +238,7 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
 def dataset_get_logic(neo4j_instance, data_type=None, description=None,
                       alt_name=None, primary=None, contains_pii=None, vis_only=None,
                       vitessce_hint=None, dataset_provider=None, dataset_type=None,
-                      dataset_active=None, dataset_type_active=None,
+                      active_status=None,
                       measurement_assay_sab=None,
                       application_context: str = 'HUBMAP') -> dict:
 
@@ -266,8 +265,7 @@ def dataset_get_logic(neo4j_instance, data_type=None, description=None,
     querytxt = build_dataset_query(data_type=data_type, description=description, alt_name=alt_name,
                                    primary=primary, contains_pii=contains_pii, vis_only=vis_only,
                                    vitessce_hint=vitessce_hint, dataset_provider=dataset_provider,
-                                   dataset_type=dataset_type, dataset_active=dataset_active,
-                                   dataset_type_active=dataset_type_active,
+                                   dataset_type=dataset_type, active_status=active_status,
                                    application_context=application_context)
 
     # Set timeout for query based on value in app.cfg.
@@ -1643,7 +1641,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
         return fieldentities
 
 
-def dataset_types_get_logic(neo4j_instance, dataset_type=None, dataset_type_active=None,
+def dataset_types_get_logic(neo4j_instance, dataset_type=None, active_status=None,
                             application_context: str = 'HUBMAP') -> dict:
 
     """
@@ -1652,7 +1650,7 @@ def dataset_types_get_logic(neo4j_instance, dataset_type=None, dataset_type_acti
     :param neo4j_instance: UBKG connection
     :param dataset_type: the "Dataset type" or "soft assay dataset type" for an assoy classification
                          introduced with the Rules Engine
-    :param dataset_type_active: whether the dataset type is active.
+    :param active_status: whether the dataset type is active.
     :param application_context: HUBMAP or SENNET
     """
 
@@ -1661,12 +1659,23 @@ def dataset_types_get_logic(neo4j_instance, dataset_type=None, dataset_type_acti
     querytxt = loadquerystring(queryfile)
 
     querytxt = querytxt.replace('$context', f"'{application_context}'")
-    filters = f"WHERE DatasetTypeActive = '{dataset_type_active.capitalize()}'"
-    if dataset_type is not None:
-        filters = filters + f" AND DatasetTypeTerm = '{dataset_type}'"
-    querytxt = querytxt.replace('$filters', filters)
 
-    print(querytxt)
+    optionalfilters = []
+
+    if dataset_type is not None:
+        optionalfilters.append(f"DatasetTypeTerm = '{dataset_type}'")
+
+    # The default is to display all assay classifications regardless of status (active_status='all').
+    if active_status in ['active', 'inactive']:
+        optionalfilters.append(f"toLower(active_status) = '{active_status}'")
+    elif active_status == 'null':
+        optionalfilters.append('active_status IS NULL')
+
+    if len(optionalfilters) == 0:
+        querytxt = querytxt.replace('$filters', '')
+    else:
+        querytxt = querytxt.replace('$filters', 'WHERE ' + ' AND '.join(optionalfilters))
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 

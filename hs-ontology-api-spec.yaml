@@ -155,7 +155,7 @@ paths:
           schema:
             type: string
             example: Auto-fluorescence
-        - name: dataset_active
+        - name: active_status
           in: query
           required: false
           description: Optional filter for whether the assay classification is active (can be displayed in the UI) or inactive.
@@ -164,15 +164,9 @@ paths:
             enum:
               - active
               - inactive
-        - name: dataset_type_active
-          in: query
-          required: false
-          description: Optional filter for whether the dataset type is active (can be displayed in the UI) or inactive. If dataset_type=inactive, assay classifications that share the dataset type will not be returned.
-          schema:
-            type: string
-            enum:
-              - active
-              - inactive
+              - "null"
+              - all
+            default: all
         - name: description
           in: query
           required: false
@@ -277,7 +271,7 @@ paths:
               - sennet
               - HuBMAP
               - SenNet
-        - name: dataset_type_active
+        - name: active_status
           in: query
           required: false
           description: Optional filter for whether the dataset type is active (can be displayed in the UI) or inactive. If dataset_type_active is not specified in the query string, only those assay classifications with  dataset_type_active=active will be returned.
@@ -286,6 +280,8 @@ paths:
             enum:
               - active
               - inactive
+              - "null"
+              - all
       responses:
         '200':
           description: A JSON array of assay classifications with properties, optionally filtered by parameters
@@ -371,11 +367,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DatasetTypes'
+                $ref: '#/components/schemas/Organs'
         '400':
           description: invalid parameter name; invalid parameter value
         '404':
-          description: no assay classifications
+          description: no organs
         '5XX':
           description: unknown error
   /organs/by-code:
@@ -406,6 +402,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RuiCodeTerm'
+        '400':
+          description: invalid parameter name; missing parameter
+        '404':
+          description: no organs
+        '5XX':
+          description: unknown error
   /relationships/gene/{target_symbol}:
     get:
       operationId: relationships_for_gene_target_symbol_get
@@ -1163,14 +1165,10 @@ components:
           type: string
           description: Dataset type for the assay classification.
           example: RNAseq
-        dataset_active:
-          type: boolean
+        active_status:
+          type: string
           description: whether the assay classification is "active" (should be displayed in the Data Portal)
-          example: true
-        dataset_type_active:
-          type: boolean
-          description: whether any assay classifications that share the same dataset type are "active" (should be displayed in the Data Portal)
-          example: true
+          example: Active
         dataset_provider:
           type: string
           description: Identifies the provider of datasets associated with the assay classification. 'External Provider' also referred to as 'lab-processed'.
@@ -2058,7 +2056,37 @@ components:
                 type: string
                 description: name for the dataset type
                 example: Visium (with probes)
-              dataset_type_active:
+              active_status:
                 type: string
                 description: whether the dataset type is active (displayed in the UI)
                 example: Active
+    Organs:
+      type: array
+      description: Information on organs
+      items:
+        type: object
+        properties:
+          code:
+            type: string
+            description: Code for the organ in the application context indicated by the value of sab
+            example: C030042
+          organ_cui:
+            type: string
+            description: CUI for the concept associated with the code
+            example: C0003483
+          organ_uberon:
+            type: string
+            description: code for the organ in UBERON
+            example: "UBERON:0000947"
+          rui_code:
+            type: string
+            description: two-character code for the organ in the Registration User Interface
+            example: AO
+          sab:
+            type: string
+            description: application context SAB
+            example: HUBMAP
+          term:
+            type: string
+            description: preferred term for the organ in the application context
+            example: Aorta
