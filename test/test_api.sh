@@ -129,7 +129,7 @@ echo | tee -a test.out
 
 echo "/assaytype?application_context=HUBMAP&active_status=test GET => invalid active_status; should return custom 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype?application_context=test" \
+ --url "${UBKG_URL}/assaytype?application_context=HUBMAP&active_status=test" \
  --header "Accept: application/json"| cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
@@ -144,12 +144,12 @@ echo | tee -a test.out
 echo | tee -a test.out
 
 
-echo "TESTS FOR: assaytypes GET" | tee -a test.out
-echo "SIGNATURE: /assaytypes/<data_type name>?application_context=<context>" | tee -a test.out
+echo "TESTS FOR: assaytype GET" | tee -a test.out
+echo "SIGNATURE: /assaytype/<data_type name>?application_context=<context>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "/assaytypes/bulk-RNA?application_context=test => invalid application_context; should return custom 400" | tee -a test.out
+echo "/assaytype/bulk-RNA?application_context=test => invalid application_context; should return custom 400" | tee -a test.out
 curl --request GET \
  --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=test" \
  --header "Accept: application/json" | cut -c1-60 | tee -a test.out
@@ -157,23 +157,23 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "/assaytypes/bulk-RNA?application_context=HUBMAP&active_status=test => invalid active_status; should return custom 400" | tee -a test.out
+echo "/assaytype/bulk-RNA?application_context=HUBMAP&active_status=test => invalid active_status; should return custom 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=test" \
+ --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP&active_status=test" \
  --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "/assaytypes/bulk-RNA?application_context=HUBMAP&active_status=inactive => mismatched active_status; should return custom 404" | tee -a test.out
+echo "/assaytype/bulk-RNA?application_context=HUBMAP&active_status=inactive => mismatched active_status; should return custom 404" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP" \
+ --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP&active_status=inactive" \
  --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "/assaytypes/bulk-RNA?application_context=HUBMAP => should return 200" | tee -a test.out
+echo "/assaytype/bulk-RNA?application_context=HUBMAP => should return 200" | tee -a test.out
 curl --request GET \
  --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP" \
  --header "Accept: application/json" | cut -c1-60 | tee -a test.out
@@ -182,11 +182,67 @@ echo | tee -a test.out
 echo | tee -a test.out
 
 echo "TESTS FOR: datasets GET" | tee -a test.out
-echo "SIGNATURE: /datasets?application_context=<context>&data_type=<data_type>&description=<description>&alt_name=<alt_name>&primary=<true or false>&contains_pii=<true or false>&vis_only=<true or false>&vitessce_hint=<hint>&dataset_provider=<provider>" | tee -a test.out
+echo "SIGNATURE: /datasets?application_context=<context>&data_type=<data_type>&description=<description>&alt_name=<alt_name>&primary=<true or false>&contains_pii=<true or false>&vis_only=<true or false>&vitessce_hint=<hint>&dataset_provider=<provider>&dataset_type=<dataset_type>&active_status=<active_status>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
-echo "/datasets?application_context=HUBMAP => should return 200" | tee -a test.out
 
+echo "/datasets?application_context=test => missing application_context; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/datasets" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/datasets?application_context=test => invalid application_context; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/datasets?application_context=test" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/datasets?application_context=HUBMAP&active_status=test => invalid active_status; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/datasets?application_context=HUBMAP&active_status=test" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/datasets?application_context=HUBMAP&primary=test => invalid primary; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/datasets?application_context=HUBMAP&primary=test" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/datasets?application_context=HUBMAP&contains_pii=test => invalid contains_pii; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/datasets?application_context=HUBMAP&contains_pii=test" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/datasets?application_context=HUBMAP&vis_only=test => invalid vis_only; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/datasets?application_context=HUBMAP&vis_only=test" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/datasets?application_context=HUBMAP&dataset_provider=test => invalid dataset_provider; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/datasets?application_context=HUBMAP&dataset_provider=test" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/datasets?application_context=HUBMAP => should return 200" | tee -a test.out
 curl --request GET \
  --url "${UBKG_URL}/datasets?application_context=HUBMAP" \
  --header "Accept: application/json" | cut -c1-60 | tee -a test.out
@@ -236,8 +292,6 @@ curl --request GET \
 echo
 echo | tee -a test.out
 echo | tee -a test.out
-
-exit;
 
 echo "TESTS FOR: relationships/gene GET" | tee -a test.out
 echo "SIGNATURE: /relationships/gene/<HGNC symbol>" | tee -a test.out

@@ -80,7 +80,7 @@ def dataset_get():
 
     # active status
     active_status = set_active_status_default()
-    err = validate_active_status()
+    err = validate_active_status(param_value=active_status)
     if err != 'ok':
         return make_response(err, 400)
 

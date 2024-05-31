@@ -2,7 +2,10 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 
 from hs_ontology_api.utils.neo4j_logic import assaytype_name_get_logic
 from hs_ontology_api.utils.validate_parameters import validate_application_context, validate_active_status,\
-    set_active_status_default
+    set_active_status_default, get_parameter_value
+from ubkg_api.utils.http_error_string import get_number_agreement, get_number_agreement, get_404_error_string
+
+from ubkg_api.utils.http_error_string import list_as_single_quoted_string
 
 assayname_blueprint = Blueprint('assayname', __name__, url_prefix='/assayname')
 
@@ -21,6 +24,7 @@ def assayname_post():
     1. Use the Cypher dataset query common to the datasets, assaytype, and assayname endpoints.
     2. Filter by active status.
 
+    NOTE: As of May 2024, is the only endpoint that uses POST instead of GET.
     """
     if not request.is_json:
         return make_response("A JSON body with a 'Content-Type: application/json' header are required", 400)
@@ -28,23 +32,35 @@ def assayname_post():
     if 'name' not in request.json:
         return make_response('Request contains no "name" field', 400)
 
-    # This endpoint should only be used in HUBMAP.
-    application_context = "HUBMAP"
-    if 'application_context' in request.json:
-        application_context = request.json['application_context']
+    # This endpoint is likely to be used only in HUBMAP, so set a default.
+    #application_context = "HUBMAP"
+    application_context = get_parameter_value('application_context')
+    if application_context is None:
+        application_context = "HUBMAP"
 
-    err = validate_application_context(param_value=application_context)
-    if err != 'ok':
+    # The parameter validation functions of ubkg-api assume a GET call--i.e., that parameters are in the
+    # request arguments. This is likely to be the only POST call in hs-ontology-api, so some validation that
+    # requires checking the request body for parameters will happen in this function. The other option is to
+    # generalize the validation functions in ubkg-api to handle both GET and POST, which would only be
+    # worthwhile if there were more than a single legacy POST endpoint.
+
+    val_enum = ['HUBMAP','SENNET']
+    if application_context not in val_enum:
+        namelist = list_as_single_quoted_string(list_elements=val_enum)
+        prompt = get_number_agreement(val_enum)
+        err = f"Invalid value for parameter: 'application_context'. The possible parameter value{prompt}: {namelist}. " \
+               f"Refer to the SmartAPI documentation for this endpoint for more information."
         return make_response(err, 400)
+
     application_context = application_context.upper()
 
     # active status
     active_status = set_active_status_default()
-    err = validate_active_status()
+    print(f'active_status={active_status}')
+    err = validate_active_status(param_value=active_status)
     if err != 'ok':
         return make_response(err, 400)
 
-    print(f'active_status={active_status}')
     # This appears to replicate legacy logic originally intended to account for names that were composites--
     # e.g., ['AF', 'Image Pyramid']. The code below treats a list as a combination of data_type and alt_names,
     # which may not have been the original purpose of the composites. It's likely moot, as most of these composite
@@ -68,7 +84,8 @@ def assayname_post():
 
     if result is None or result == []:
         # JAS Oct 2023 changed from 400 to 404
-        # Not the standard custom 404, but replicates the original.
-        return make_response(f"No such assay_type {req_name}, even as alternate name", 404)
+        err = get_404_error_string(prompt_string=f'No such assay_type {req_name}, '
+                                                                f'even as alternate name')
+        return make_response(err,400)
 
     return jsonify(result)

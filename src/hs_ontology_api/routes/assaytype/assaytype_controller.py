@@ -34,7 +34,7 @@ def assaytype_get():
 
     # active status
     active_status = set_active_status_default()
-    err = validate_active_status()
+    err = validate_active_status(param_value=active_status)
     if err != 'ok':
         return make_response(err, 400)
 
@@ -65,8 +65,7 @@ def assaytype_name_get(name):
 
     # active status
     active_status = set_active_status_default()
-    print(f"active_status={active_status}")
-    err = validate_active_status()
+    err = validate_active_status(param_value=active_status)
     if err != 'ok':
         return make_response(err, 400)
 
