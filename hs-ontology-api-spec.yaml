@@ -20,9 +20,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/AssayNameRequest"
-            example:
-              name: [ PAS, Image Pyramid ]
-              application_context: HUBMAP
       responses:
         '200':
           description: A JSON array of the assay type name
@@ -69,6 +66,18 @@ paths:
               - sennet
               - HuBMAP
               - SenNet
+        - name: active_status
+          in: query
+          required: false
+          description: Optional filter for whether the assay classification is active or inactive.
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+              - "null"
+              - all
+            default: all
       responses:
         '200':
           description: A JSON array of the assay type name
@@ -158,7 +167,7 @@ paths:
         - name: active_status
           in: query
           required: false
-          description: Optional filter for whether the assay classification is active (can be displayed in the UI) or inactive.
+          description: Optional filter for whether the assay classification is active or inactive.
           schema:
             type: string
             enum:
@@ -1167,7 +1176,7 @@ components:
           example: RNAseq
         active_status:
           type: string
-          description: whether the assay classification is "active" (should be displayed in the Data Portal)
+          description: whether the assay classification is "active" or "inactive"
           example: Active
         dataset_provider:
           type: string
@@ -1299,6 +1308,14 @@ components:
             - sennet
             - HuBMAP
             - SenNet
+        active_status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - "null"
+            - all
+          example: all
     GeneListResponse:
       type: object
       description: High-level information on a set of genes requested by the genes endpoint.
