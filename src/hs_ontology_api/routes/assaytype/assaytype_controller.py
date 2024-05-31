@@ -25,8 +25,6 @@ def assaytype_get():
     if primary is not None:
         primary = primary.lower() == 'true'
 
-    #application_context = validate_application_context()
-
     # Validate required application context.
     application_context = request.args.get('application_context')
     err = validate_application_context(param_value=application_context)
@@ -65,10 +63,21 @@ def assaytype_name_get(name):
         return make_response(err, 400)
     application_context = application_context.upper()
 
+    # active status
+    active_status = set_active_status_default()
+    print(f"active_status={active_status}")
+    err = validate_active_status()
+    if err != 'ok':
+        return make_response(err, 400)
+
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = assaytype_name_get_logic(neo4j_instance, name=name, alt_names=None,
-                                      application_context=application_context)
+                                      active_status=active_status, application_context=application_context)
 
-    if result is None:
-        return make_response(f"No such assay_type {name}", 404)
+    if result == []:
+        # Add information on active_status parameter to legacy custom 404.
+        # return make_response(f"No such assay_type {name}", 404)
+        err = get_404_error_string(prompt_string=f'No such assay_type {name}')
+        return err
+
     return jsonify(result)

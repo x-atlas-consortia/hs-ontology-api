@@ -70,6 +70,40 @@ echo "TESTS FOR: assayname POST" | tee -a test.out
 echo "SIGNATURE: /assayname" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
+echo "/assayname_POST with invalid application_context => should return custom 400" | tee -a test.out
+curl --request POST \
+ --url "${UBKG_URL}/assayname" \
+ --header "Content-Type: application/json" \
+ --data '{"name": "bulk-RNAZ","application_context": "test"}' | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/assayname_POST with invalid name => should return custom 404" | tee -a test.out
+curl --request POST \
+ --url "${UBKG_URL}/assayname" \
+ --header "Content-Type: application/json" \
+ --data '{"name": "bulk-RNAZ"}' | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+
+echo "/assayname_POST with invalid active_status => should return custom 400" | tee -a test.out
+curl --request POST \
+ --url "${UBKG_URL}/assayname" \
+ --header "Content-Type: application/json" \
+ --data '{"name": "bulk-RNA","active_status":"test"}' | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/assayname_POST with mismatched active_status => should return custom 404" | tee -a test.out
+curl --request POST \
+ --url "${UBKG_URL}/assayname" \
+ --header "Content-Type: application/json" \
+ --data '{"name": "bulk-RNA","active_status":"inactive"}' | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
 
 echo "/assayname_POST with bulk-RNA => should return 200" | tee -a test.out
 curl --request POST \
@@ -84,6 +118,23 @@ echo "TESTS FOR: assaytypes GET" | tee -a test.out
 echo "SIGNATURE: /assaytypes?application_context=<context>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
+
+echo "/assaytype?application_context=test GET => invalid application_context; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype?application_context=test" \
+ --header "Accept: application/json"| cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/assaytype?application_context=HUBMAP&active_status=test GET => invalid active_status; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype?application_context=test" \
+ --header "Accept: application/json"| cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
 echo "/assaytype?application_context=HUBMAP GET => should return 200" | tee -a test.out
 curl --request GET \
  --url "${UBKG_URL}/assaytype?application_context=HUBMAP" \
@@ -97,6 +148,31 @@ echo "TESTS FOR: assaytypes GET" | tee -a test.out
 echo "SIGNATURE: /assaytypes/<data_type name>?application_context=<context>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
+
+echo "/assaytypes/bulk-RNA?application_context=test => invalid application_context; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=test" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/assaytypes/bulk-RNA?application_context=HUBMAP&active_status=test => invalid active_status; should return custom 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=test" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "/assaytypes/bulk-RNA?application_context=HUBMAP&active_status=inactive => mismatched active_status; should return custom 404" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
 echo "/assaytypes/bulk-RNA?application_context=HUBMAP => should return 200" | tee -a test.out
 curl --request GET \
  --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP" \
@@ -160,6 +236,8 @@ curl --request GET \
 echo
 echo | tee -a test.out
 echo | tee -a test.out
+
+exit;
 
 echo "TESTS FOR: relationships/gene GET" | tee -a test.out
 echo "SIGNATURE: /relationships/gene/<HGNC symbol>" | tee -a test.out

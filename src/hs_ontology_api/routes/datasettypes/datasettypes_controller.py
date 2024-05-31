@@ -3,7 +3,6 @@ from ubkg_api.utils.http_error_string import validate_required_parameters,valida
     get_404_error_string,validate_parameter_value_in_enum
 
 from hs_ontology_api.utils.neo4j_logic import dataset_types_get_logic
-
 from hs_ontology_api.utils.validate_parameters import validate_application_context, validate_active_status
 
 dataset_types_blueprint = Blueprint('dataset_types', __name__, url_prefix='/dataset-types')

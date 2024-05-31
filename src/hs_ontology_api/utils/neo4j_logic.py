@@ -229,7 +229,9 @@ def assaytype_name_get_logic(neo4j_instance, name: str, alt_names: list = None, 
                 resplist.append(assaytype)
 
         # Return based on whether only one value returned (the case for /assaytypes/<name>) or multiple values
-        if len(resplist) == 1:
+        if len(resplist) == 0:
+            return resplist
+        elif len(resplist) == 1 :
             return resplist[0]
         else:
             return {"result": resplist}
@@ -239,7 +241,6 @@ def dataset_get_logic(neo4j_instance, data_type=None, description=None,
                       alt_name=None, primary=None, contains_pii=None, vis_only=None,
                       vitessce_hint=None, dataset_provider=None, dataset_type=None,
                       active_status=None,
-                      measurement_assay_sab=None,
                       application_context: str = 'HUBMAP') -> dict:
 
     """
