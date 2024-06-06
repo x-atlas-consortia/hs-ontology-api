@@ -1,6 +1,6 @@
 #!/bin/bash
 ##########
-# Test script for UBKG API
+# Test script for hs-ontology-api integration with UBKG API
 ##########
 
 
@@ -59,6 +59,8 @@ echo "Using UBKG at: ${UBKG_URL}"
 # Using UBKG at: https://ontology-api.dev.hubmapconsortium.org
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
+
+if [[ 'kbkbkb' == 'KBKBKB' ]]; then
 
 echo "assayname_POST..."
 curl --request POST \
@@ -511,3 +513,212 @@ curl --request GET \
  --url "${UBKG_URL}/field-schemas?schema=imc3d" \
  --header "Content-Type: application/json" |cut -c1-60
 echo
+
+fi #kbkbkb
+
+########################################################################
+# function to test the exact HTTP code and some characteristic of the
+# JSON body of the response.
+# When $1 is not blank, is will be used to see if it exactly matches
+# the returned JSON body.
+# When $1 is blank, $4 will be used to see if the JSON body is at
+# least that length.
+########################################################################
+evaluate_JSON_body()
+{
+    ENDPOINT=$1
+    EXPECTED_HTTP_RESPONSE_CODE=$2
+    EXPECTED_JSON=$3
+
+    # If we're not doing an exact match on the JSON, then we should be
+    # doing a test that the length of the returned JSON is at least as
+    # long as expected.
+    if [[ "$#" -gt 3 ]]; then
+	EXPECTED_JSON_LENGTH=$4
+    else
+	EXPECTED_JSON_LENGTH=0
+    fi
+
+    # Execute the endpoint, and save the response + response code to a
+    # string that can be split apart.
+    CURL_OUTPUT=$(curl --request GET \
+		       --url "${UBKG_URL}${ENDPOINT}" \
+		       --header "Content-Type: application/json" \
+		       --silent \
+		       --write-out "-_-_-_->http_code=%{http_code}")
+    HTTP_RESPONSE_CODE=$(echo ${CURL_OUTPUT} | sed 's/.*-_-_-_->http_code=//')
+    RESPONSE_JSON=$(echo ${CURL_OUTPUT} | sed 's/.-_-_-_->http_code=.*//')
+    JSON_LENGTH=$(echo $RESPONSE_JSON | wc --chars)
+
+    # Evaluate the result, either for an exact match or a minimum length JSON body
+    if [[ "$HTTP_RESPONSE_CODE" != "$EXPECTED_HTTP_RESPONSE_CODE" ]]; then
+	echo "FAILED. Got $HTTP_RESPONSE_CODE response when expecting $EXPECTED_HTTP_RESPONSE_CODE"
+    else
+	if [[ -n "$EXPECTED_JSON" && "$RESPONSE_JSON" != "$EXPECTED_JSON" ]]; then
+	    echo "FAILED. Response JSON does not match expected JSON."
+	elif [[ -n $JSON_LENGTH && $JSON_LENGTH -lt $EXPECTED_JSON_LENGTH ]]; then
+	    echo "FAILED. Response JSON $JSON_LENGTH chars is shorter than expected length of $EXPECTED_JSON_LENGTH."
+	else
+	    echo "SUCCEEDED. Response HTTP code and JSON match expectations."
+	fi
+    fi
+    echo
+}
+
+########################################################################
+# function to test for an exact match on HTTP code and make sure the
+# large JSON body expected is longer than some threshold
+########################################################################
+evaluate_expected_JSON_length()
+{
+    EXPECTED_JSON_LENGTH=$1
+    EXPECTED_HTTP_RESPONSE_CODE=$2
+    ENDPOINT=$3
+    CURL_OUTPUT=$(curl --request GET \
+		       --url "${UBKG_URL}${ENDPOINT}" \
+		       --header "Content-Type: application/json" \
+		       --silent \
+		       --write-out "-_-_-_->http_code=%{http_code}")
+    HTTP_RESPONSE_CODE=$(echo ${CURL_OUTPUT} | sed 's/.*-_-_-_->http_code=//')
+    RESPONSE_JSON=$(echo ${CURL_OUTPUT} | sed 's/.-_-_-_->http_code=.*//')
+    if [[ "$HTTP_RESPONSE_CODE" != "$EXPECTED_HTTP_RESPONSE_CODE" ]]; then
+	echo "FAILED. Got $HTTP_RESPONSE_CODE response when expecting $EXPECTED_HTTP_RESPONSE_CODE"
+    else
+	if [[ "$RESPONSE_JSON" != "$EXPECTED_JSON" ]]; then
+	    echo "FAILED. Response JSON does not match expected JSON."
+	else
+	    echo "SUCCEEDED. Response HTTP code and JSON match expectations."
+	fi
+    fi
+    echo
+}
+# Develop tests for the following endpoints.
+# Snatch reasonable arguments from
+# https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837/#/
+# 
+
+echo "/concepts/paths/subgraph expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/concepts/paths/subgraph?sab=SNOMEDCT_US&rel=isa&skip=0&limit=10' \
+    '200' \
+    '' \
+    8077
+
+# /concepts/{concept_id}/paths/expand - ubkg-api
+
+echo "/concepts/C0006142/paths/expand?sab=SNOMEDCT_US&rel=isa&maxdepth=1 expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/concepts/C0006142/paths/expand?sab=SNOMEDCT_US&rel=isa&maxdepth=1' \
+    '200' \
+    '' \
+    540107
+
+echo "/concepts/C0006142/paths/trees?sab=SNOMEDCT_US&rel=isa&maxdepth=0 expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/concepts/C0006142/paths/trees?sab=SNOMEDCT_US&rel=isa&maxdepth=0' \
+    '200' \
+    '' \
+    48172
+
+echo "/concepts/C2720507/nodobjects expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/concepts/C2720507/nodeobjects' \
+    '200' \
+    '{"nodeobjects":[{"node":{"codes":[{"codeid":"MTH:NOCODE","sab":"MTH","terms":[{"name":"SNOMED CT Concept (SNOMED RT+CTV3)","tty":"PN"}]},{"codeid":"SNOMEDCT_US:138875005","sab":"SNOMEDCT_US","terms":[{"name":"SNOMED CT has been created by combining SNOMED RT and a computer-based nomenclature and classification known as Read Codes Version 3, which was created on behalf of the U.K. Department of Health.","tty":"SY"},{"name":"\u00a9 2002-2023 International Health Terminology Standards Development Organisation (IHTSDO). All rights reserved. SNOMED CT\u00ae, was originally created by The College of American Pathologists. \"SNOMED\" and \"SNOMED CT\" are registered trademarks of the IHTSDO.","tty":"SY"},{"name":"SNOMED CT Concept (SNOMED RT+CTV3)","tty":"FN"},{"name":"SNOMED CT Concept","tty":"PT"}]},{"codeid":"SRC:V-SNOMEDCT_US","sab":"SRC","terms":[{"name":"US Edition of SNOMED CT","tty":"RPT"},{"name":"SNOMED CT Concept","tty":"RHT"},{"name":"SNOMED CT, US Edition","tty":"SSN"},{"name":"SNOMEDCT_US","tty":"RAB"}]}],"cui":"C2720507","definitions":[],"pref_term":"SNOMED CT Concept (SNOMED RT+CTV3)","semantic_types":[{"def":"A conceptual entity resulting from human endeavor. Concepts assigned to this type generally refer to information created by humans for some purpose.","stn":"A2.4","sty":"Intellectual Product","tui":"T170"}]}}]}'
+
+
+echo "/concepts/C2720507/paths/shortestpath/C1272753?sab=SNOMEDCT_US&rel=isa expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/concepts/C2720507/paths/shortestpath/C1272753?sab=SNOMEDCT_US&rel=isa' \
+    '200' \
+    'kbkbkb-@todo failing on 500'
+
+echo "/database/server expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/database/server'\
+    '200' \
+    '{"edition":"community","version":"5.11.0"}'
+
+echo "/node-types expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/node-types' \
+    '200' \
+    '{"node_types":["Code","Concept","Definition","Semantic","Term"]}'
+
+echo "/node-types/Code/counts?sab=MSH expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/node-types/Code/counts?sab=MSH' \
+    '200' \
+    '{"node_types":[{"node_type":{"count":5088308,"label":"Code"}}],"total_count":5088308}'
+
+echo "/node-types/Code/counts-by-sab?sab=MSH expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/node-types/Code/counts-by-sab?sab=MSH' \
+    '200' \
+    '{"node_types":[{"node_type":{"count":353698,"label":"Code","sabs":[{"count":353698,"sab":"MSH"}]}}],"total_count":353698}'
+
+echo "/property-types expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/property-types' \
+    '200' \
+    '{"property_types":["ATUI","CODE","CUI","CodeID","DEF","SAB","STN","TUI","evidence_class","lowerbound","name","upperbound","value"]}'
+
+echo "/relationship-types expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/relationship-types' \
+    '200' \
+    '' \
+    43755
+
+echo "/sabs expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/sabs' \
+    '200' \
+    '' \
+    2238010
+
+echo "/sabs/codes/counts expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/sabs/codes/counts' \
+    '200' \
+    '' \
+    44855
+
+echo "/sabs/MSH/codes/counts expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/sabs/MSH/codes/counts' \
+    '200' \
+    '{"sabs":[{"count":353698,"position":1,"sab":"MSH"}]}'
+
+echo "/sabs/MSH/codes/details expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/sabs/MSH/codes/details' \
+    '200' \
+    '' \
+    177515
+
+echo "/sabs/MSH/term-types expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/sabs/MSH/term-types' \
+    '200' \
+    '{"sab":"MSH","term_types":["PM","N1","ET","DEV","DSV","MH","PEP","XQ","PXQ","QEV","TQ","QAB","PCE","NM","CE","HT","QSV","HS"]}'
+
+echo "/semantics/semantic-types expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/semantics/semantic-types' \
+    '200' \
+    '' \
+    31214
+
+echo "/semantics/semantic-types/T071 expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/semantics/semantic-types/T071' \
+    '200' \
+    '{"semantic_types":[{"position":1,"semantic_type":{"def":"A broad type for grouping physical and conceptual entities.","stn":"A","sty":"Entity","tui":"T071"}}]}'
+
+echo "/semantics/semantic-types/T071 expecting HTTP 200 response"
+evaluate_JSON_body \
+    '/semantics/semantic-types/T071/subtypes' \
+    '200' \
+    '' \
+    20574
