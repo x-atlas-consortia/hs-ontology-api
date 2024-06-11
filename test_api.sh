@@ -70,34 +70,6 @@ evaluate_JSON_body()
     echo
 }
 
-########################################################################
-# function to test for an exact match on HTTP code and make sure the
-# large JSON body expected is longer than some threshold
-########################################################################
-evaluate_expected_JSON_length()
-{
-    EXPECTED_JSON_LENGTH=$1
-    EXPECTED_HTTP_RESPONSE_CODE=$2
-    ENDPOINT=$3
-    CURL_OUTPUT=$(curl --request GET \
-		       --url "${UBKG_URL}${ENDPOINT}" \
-		       --header "Content-Type: application/json" \
-		       --silent \
-		       --write-out "-_-_-_->http_code=%{http_code}")
-    HTTP_RESPONSE_CODE=$(echo ${CURL_OUTPUT} | sed 's/.*-_-_-_->http_code=//')
-    RESPONSE_JSON=$(echo ${CURL_OUTPUT} | sed 's/.-_-_-_->http_code=.*//')
-    if [[ "$HTTP_RESPONSE_CODE" != "$EXPECTED_HTTP_RESPONSE_CODE" ]]; then
-	echo "FAILED. Got $HTTP_RESPONSE_CODE response when expecting $EXPECTED_HTTP_RESPONSE_CODE"
-    else
-	if [[ "$RESPONSE_JSON" != "$EXPECTED_JSON" ]]; then
-	    echo "FAILED. Response JSON does not match expected JSON."
-	else
-	    echo "SUCCEEDED. Response HTTP code and JSON match expectations."
-	fi
-    fi
-    echo
-}
-
 #####
 # Get options
 while getopts ":hv:" option; do
