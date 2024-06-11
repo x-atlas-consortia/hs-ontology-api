@@ -21,6 +21,83 @@ Help()
    echo "-v     test environment: l (local), d (DEV), or p (PROD)"
 }
 
+########################################################################
+# function to test the exact HTTP code and some characteristic of the
+# JSON body of the response.
+# When $1 is not blank, is will be used to see if it exactly matches
+# the returned JSON body.
+# When $1 is blank, $4 will be used to see if the JSON body is at
+# least that length.
+########################################################################
+evaluate_JSON_body()
+{
+    ENDPOINT=$1
+    EXPECTED_HTTP_RESPONSE_CODE=$2
+    EXPECTED_JSON=$3
+
+    # If we're not doing an exact match on the JSON, then we should be
+    # doing a test that the length of the returned JSON is at least as
+    # long as expected.
+    if [[ "$#" -gt 3 ]]; then
+	EXPECTED_JSON_LENGTH=$4
+    else
+	EXPECTED_JSON_LENGTH=0
+    fi
+
+    # Execute the endpoint, and save the response + response code to a
+    # string that can be split apart.
+    CURL_OUTPUT=$(curl --request GET \
+		       --url "${UBKG_URL}${ENDPOINT}" \
+		       --header "Content-Type: application/json" \
+		       --silent \
+		       --write-out "-_-_-_->http_code=%{http_code}")
+    HTTP_RESPONSE_CODE=$(echo ${CURL_OUTPUT} | sed 's/.*-_-_-_->http_code=//')
+    RESPONSE_JSON=$(echo ${CURL_OUTPUT} | sed 's/.-_-_-_->http_code=.*//')
+    JSON_LENGTH=$(echo $RESPONSE_JSON | wc --chars)
+
+    # Evaluate the result, either for an exact match or a minimum length JSON body
+    if [[ "$HTTP_RESPONSE_CODE" != "$EXPECTED_HTTP_RESPONSE_CODE" ]]; then
+	echo "FAILED. Got $HTTP_RESPONSE_CODE response when expecting $EXPECTED_HTTP_RESPONSE_CODE"
+    else
+	if [[ -n "$EXPECTED_JSON" && "$RESPONSE_JSON" != "$EXPECTED_JSON" ]]; then
+	    echo "FAILED. Response JSON does not match expected JSON."
+	elif [[ -n $JSON_LENGTH && $JSON_LENGTH -lt $EXPECTED_JSON_LENGTH ]]; then
+	    echo "FAILED. Response JSON $JSON_LENGTH chars is shorter than expected length of $EXPECTED_JSON_LENGTH."
+	else
+	    echo "SUCCEEDED. Response HTTP code and JSON match expectations."
+	fi
+    fi
+    echo
+}
+
+########################################################################
+# function to test for an exact match on HTTP code and make sure the
+# large JSON body expected is longer than some threshold
+########################################################################
+evaluate_expected_JSON_length()
+{
+    EXPECTED_JSON_LENGTH=$1
+    EXPECTED_HTTP_RESPONSE_CODE=$2
+    ENDPOINT=$3
+    CURL_OUTPUT=$(curl --request GET \
+		       --url "${UBKG_URL}${ENDPOINT}" \
+		       --header "Content-Type: application/json" \
+		       --silent \
+		       --write-out "-_-_-_->http_code=%{http_code}")
+    HTTP_RESPONSE_CODE=$(echo ${CURL_OUTPUT} | sed 's/.*-_-_-_->http_code=//')
+    RESPONSE_JSON=$(echo ${CURL_OUTPUT} | sed 's/.-_-_-_->http_code=.*//')
+    if [[ "$HTTP_RESPONSE_CODE" != "$EXPECTED_HTTP_RESPONSE_CODE" ]]; then
+	echo "FAILED. Got $HTTP_RESPONSE_CODE response when expecting $EXPECTED_HTTP_RESPONSE_CODE"
+    else
+	if [[ "$RESPONSE_JSON" != "$EXPECTED_JSON" ]]; then
+	    echo "FAILED. Response JSON does not match expected JSON."
+	else
+	    echo "SUCCEEDED. Response HTTP code and JSON match expectations."
+	fi
+    fi
+    echo
+}
+
 #####
 # Get options
 while getopts ":hv:" option; do
@@ -59,8 +136,6 @@ echo "Using UBKG at: ${UBKG_URL}"
 # Using UBKG at: https://ontology-api.dev.hubmapconsortium.org
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
-
-if [[ 'kbkbkb' == 'KBKBKB' ]]; then
 
 echo "assayname_POST..."
 curl --request POST \
@@ -514,84 +589,6 @@ curl --request GET \
  --header "Content-Type: application/json" |cut -c1-60
 echo
 
-fi #kbkbkb
-
-########################################################################
-# function to test the exact HTTP code and some characteristic of the
-# JSON body of the response.
-# When $1 is not blank, is will be used to see if it exactly matches
-# the returned JSON body.
-# When $1 is blank, $4 will be used to see if the JSON body is at
-# least that length.
-########################################################################
-evaluate_JSON_body()
-{
-    ENDPOINT=$1
-    EXPECTED_HTTP_RESPONSE_CODE=$2
-    EXPECTED_JSON=$3
-
-    # If we're not doing an exact match on the JSON, then we should be
-    # doing a test that the length of the returned JSON is at least as
-    # long as expected.
-    if [[ "$#" -gt 3 ]]; then
-	EXPECTED_JSON_LENGTH=$4
-    else
-	EXPECTED_JSON_LENGTH=0
-    fi
-
-    # Execute the endpoint, and save the response + response code to a
-    # string that can be split apart.
-    CURL_OUTPUT=$(curl --request GET \
-		       --url "${UBKG_URL}${ENDPOINT}" \
-		       --header "Content-Type: application/json" \
-		       --silent \
-		       --write-out "-_-_-_->http_code=%{http_code}")
-    HTTP_RESPONSE_CODE=$(echo ${CURL_OUTPUT} | sed 's/.*-_-_-_->http_code=//')
-    RESPONSE_JSON=$(echo ${CURL_OUTPUT} | sed 's/.-_-_-_->http_code=.*//')
-    JSON_LENGTH=$(echo $RESPONSE_JSON | wc --chars)
-
-    # Evaluate the result, either for an exact match or a minimum length JSON body
-    if [[ "$HTTP_RESPONSE_CODE" != "$EXPECTED_HTTP_RESPONSE_CODE" ]]; then
-	echo "FAILED. Got $HTTP_RESPONSE_CODE response when expecting $EXPECTED_HTTP_RESPONSE_CODE"
-    else
-	if [[ -n "$EXPECTED_JSON" && "$RESPONSE_JSON" != "$EXPECTED_JSON" ]]; then
-	    echo "FAILED. Response JSON does not match expected JSON."
-	elif [[ -n $JSON_LENGTH && $JSON_LENGTH -lt $EXPECTED_JSON_LENGTH ]]; then
-	    echo "FAILED. Response JSON $JSON_LENGTH chars is shorter than expected length of $EXPECTED_JSON_LENGTH."
-	else
-	    echo "SUCCEEDED. Response HTTP code and JSON match expectations."
-	fi
-    fi
-    echo
-}
-
-########################################################################
-# function to test for an exact match on HTTP code and make sure the
-# large JSON body expected is longer than some threshold
-########################################################################
-evaluate_expected_JSON_length()
-{
-    EXPECTED_JSON_LENGTH=$1
-    EXPECTED_HTTP_RESPONSE_CODE=$2
-    ENDPOINT=$3
-    CURL_OUTPUT=$(curl --request GET \
-		       --url "${UBKG_URL}${ENDPOINT}" \
-		       --header "Content-Type: application/json" \
-		       --silent \
-		       --write-out "-_-_-_->http_code=%{http_code}")
-    HTTP_RESPONSE_CODE=$(echo ${CURL_OUTPUT} | sed 's/.*-_-_-_->http_code=//')
-    RESPONSE_JSON=$(echo ${CURL_OUTPUT} | sed 's/.-_-_-_->http_code=.*//')
-    if [[ "$HTTP_RESPONSE_CODE" != "$EXPECTED_HTTP_RESPONSE_CODE" ]]; then
-	echo "FAILED. Got $HTTP_RESPONSE_CODE response when expecting $EXPECTED_HTTP_RESPONSE_CODE"
-    else
-	if [[ "$RESPONSE_JSON" != "$EXPECTED_JSON" ]]; then
-	    echo "FAILED. Response JSON does not match expected JSON."
-	else
-	    echo "SUCCEEDED. Response HTTP code and JSON match expectations."
-	fi
-    fi
-    echo
-}
 # Develop tests for the following endpoints.
 # Snatch reasonable arguments from
 # https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837/#/
@@ -631,7 +628,8 @@ echo "/concepts/C2720507/paths/shortestpath/C1272753?sab=SNOMEDCT_US&rel=isa exp
 evaluate_JSON_body \
     '/concepts/C2720507/paths/shortestpath/C1272753?sab=SNOMEDCT_US&rel=isa' \
     '200' \
-    'kbkbkb-@todo failing on 500'
+    '' \
+    1385
 
 echo "/database/server expecting HTTP 200 response"
 evaluate_JSON_body \
