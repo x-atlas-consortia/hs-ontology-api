@@ -1452,3 +1452,50 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
                 pass
 
         return fieldentities
+
+def assayclasses_get_logic(neo4j_instance,assayclass=None,context=None) -> dict:
+    """
+    July 2024
+        Obtains information on the assay classes (rule-based dataset "kinds") that are specified in
+        the testing rules json file.
+
+        The return from the query is a complete JSON, so there is no need for a model class.
+
+        :param neo4j_instance: neo4j connection
+        :param assayclass: either the code for the assay class's rule or the value of rule_description
+        :param context: application context--i.e., HUBMAP or SENNET
+
+        example: if a assay class's rule has rule_description="non-DCWG primary AF" and rule code "HUBMAP:C200001", either
+        "non-DCWG primary AF" or "C200001" will result in selection of the assay class. The application context is used
+        to identify the complete rule code.
+
+        """
+    assayclasses: [dict] = []
+
+    # Load and parameterize query.
+    querytxt = loadquerystring('assayclass.cypher')
+
+    # Filter by application context.
+    querytxt = querytxt.replace('$context', context)
+
+    # Filter by assay class
+    if assayclass is not None:
+        querytxt = querytxt.replace('$assayclass_filter', f"AND (cRBD.CodeID = context+':{assayclass}' OR tRBD.name='{assayclass}')")
+    else:
+        querytxt = querytxt.replace('$assayclass_filter','')
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        recds: neo4j.Result = session.run(query)
+        for record in recds:
+
+            assayclass = record.get('rule_based_datasets')
+            try:
+                assayclasses.append(assayclass)
+
+            except KeyError:
+                pass
+
+    return assayclasses
