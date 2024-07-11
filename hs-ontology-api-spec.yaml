@@ -10,6 +10,40 @@ servers:
   - url: https://ontology.api.hubmapconsortium.org/
     description: Production server
 paths:
+  /assayclasses:
+    get:
+      operationId: assayclass_get
+      summary: Returns metadata on "assay classes"--the rule-based classifications of datasets managed by the Rules Engine. An assay class describes characteristics that are common to all datasets that are processed with a particular workflow.
+      parameters:
+        - name: application_context
+          in: query
+          required: false
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+      responses:
+        '200':
+          description: A JSON array of assay classification objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssayClass'
+        '400':
+          description: Missing parameter; invalid parameter value
+        '404':
+          description: No assay classes matching parameters
+        '5XX':
+          description: Unknown error
   /assayname: # CPK MAR 2023 - replacement for search-api endpoint of the same name
     post:
       operationId: assayname_post
@@ -123,111 +157,6 @@ paths:
                 vitessce-hints: ["pyramid","anndata"]
                 contains-pii: true
                 vis-only: true
-  /datasets: # JAS FEB 2023 - note that parameters use underscores, even when the corresponding key in the response uses dashes--e.g., alt_names, alt-names
-    get:
-      operationId: dataset_get
-      summary: Returns information on a set of HuBMAP or SenNet dataset types, with options to filter the list to those with specific property values. Filters are additive (i.e., boolean AND)
-      parameters:
-        - name: application_context
-          in: query
-          required: true
-          description: Required filter to indicate application context.
-          schema:
-            type: string
-            enum:
-              - HUBMAP
-              - SENNET
-              - hubmap
-              - sennet
-              - HuBMAP
-              - SenNet
-        - name: data_type
-          in: query
-          required: false
-          description: Optional filter for data_type
-          schema:
-            type: string
-            example: AF
-        - name: description
-          in: query
-          required: false
-          description: Optional filter for display name. Use URL-encoding (space = %20).
-          schema:
-            type: string
-            example: Autofluorescence%20Microscopy
-        - name: alt_name
-          in: query
-          required: false
-          description: Optional filter for a single element in the alt-names list--i.e., return datasets for which alt-names includes a value that matches the parameter. Although the field is named 'alt-names', the parameter uses 'alt_name'. Use URL-encoding (space = %20)
-          schema:
-            type: string
-            example: Light%20Sheet
-        - name: primary
-          in: query
-          required: false
-          description: Optional filter to filter to primary (true) or derived (false) assay.
-          schema:
-            type: string
-            enum:
-              - true
-              - false
-        - name: contains_pii
-          in: query
-          required: false
-          description: Optional filter for whether the dataset contains Patient Identifying Information (PII). Although the field is named 'contains-pii', use 'contains_pii' as an argument.
-          schema:
-            type: string
-            enum:
-              - true
-              - false
-        - name: vis_only
-          in: query
-          required: false
-          description: Optional filter for whether datasets are visualization only (true). Although the field is named 'vis-only', use 'vis_only' as an argument.
-          schema:
-            type: string
-            enum:
-              - true
-              - false
-        - name: vitessce_hint
-          in: query
-          required: false
-          description: Optional filter for a single element in the vitessce_hint list--i.e., return datasets for which vitessce_hints includes a value that matches the parameter. Although the field is named 'vitessce-hints', use 'vitessce_hint' as an argument.
-          schema:
-            type: string
-            enum:
-              - pyramid
-              - anndata
-              - is_image
-              - is_tiled
-              - is_sc
-              - rna
-              - atac
-              - sprm
-              - codex
-              - maldi
-        - name: dataset_provider
-          in: query
-          required: false
-          description: Optional filter to identify the dataset provider - IEC (iec)  or external (lab)
-          schema:
-            type: string
-            enum:
-              - iec
-              - IEC
-              - external
-              - External
-              - lab
-              - Lab
-      responses:
-        '200':
-          description: A JSON array of dataset types with properties, optionally filtered by parameters
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DatasetPropertyInfo'
   /organs:
     get:
       operationId: get_organ_types
@@ -1895,3 +1824,123 @@ components:
                 type: string
                 description: name of schema
                 example: imc3d
+    AssayClass:
+      type: object
+      description: A set of assay classifications
+      properties:
+        rule_description:
+          type: object
+          description: information on the rule in the Rules Engine's testing_rule_chain.json
+          properties:
+            code:
+              type: string
+              description: UBKG code for the rule.
+              example: HUBMAP:C200150
+            name:
+              type: string
+              description: corresponds to the "rule_description" key in the assay classification object in the testing_rule_chain.json.
+              example: non-DCWG primary IMC2D
+        value:
+          type: object
+          description: corresponds to the "value" key in the assay classification object in the testing_rule_chain.json. Contains configuration metadata common to all datasets that are generated by a particular processing workflow.
+          properties:
+            active_status:
+              type: string
+              description: whether the assay classification corresponds to an active ingestion workflow--i.e., whether datasets can be processed.
+              example: active
+            assaytype:
+              type: string
+              description: unique identifier for an ingestion processing workflow.
+              example: IMC2D
+            dataset_type:
+              type: object
+              description: categorization of datasets that are generated by the assay class. Allows for multiple analytical hierarchies.
+              properties:
+                dataset_type:
+                  type: string
+                  description: corresponds to the "dataset_type" key in the testing_rule_chain.json.
+                  example: 2D Imaging Mass Cytometry
+                PDR_category:
+                  type: string
+                  description: category for the dataset_type per the HuBMAP Data Coordination Working Group's "Pipeline Decision Rules" (PDR) document.
+                  example: MxNF
+                fig2:
+                  type: object
+                  description: categorization of the dataset_type that comforms to that used in Figure 2 of the 2023 Jain et al paper in Nature Cell Biology (https://www.nature.com/articles/s41556-023-01194-w).
+                  properties:
+                    aggregated_assaytype:
+                      type: string
+                      description: corresponds to "assay type" category in Figure 2.
+                      example: LC-MS
+                    modality:
+                      type: string
+                      description: corresponds to "modality" category in Figure 2.
+                      example: Proteomics
+                    category:
+                      type: string
+                      description: corresponds to "category" category in Figure 2.
+                      example: bulk
+                description:
+                  type: string
+                  description: the string used to describe datasets generated by the processing workflow associated with the assay classification
+                  example: 2D Imaging Mass Cytometry
+                dir_schema:
+                  type: string
+                  description: identifier for the directory schema for files in datasets generated by the processing workflow associated with the assay classification
+                  example: imc-v0
+                tbl_schema:
+                  type: string
+                  description: identifier for the table schema for files in datasets generated by the processing workflow associated with the assay classification
+                  example: imc-v
+                measurement_assay:
+                  type: object
+                  description: corresponds to the generic experiment or assay modality used to generate a "raw" dataset from a tissue sample.
+                  properties:
+                    codes:
+                      type: array
+                      description: set of codes from biomedical vocabularies for the measurement assay
+                      items:
+                        type: object
+                        properties:
+                          code:
+                            type: string
+                            description: code from a biomedical vocabulary or ontology
+                            example: OBI:0003096
+                          term:
+                            type: string
+                            description: preferred term for the code in the biomedical vocabulary or ontology
+                            example: imaging mass cytometry assay
+                    contains_full_genetic_sequences:
+                      type: boolean
+                      description: whether the measurement assay generates full genetic sequences from the sample. Full genetic sequencing information from human sources is considered Patient Identifying Information (PII), which is protected.
+                      example: false
+                is_multiassay:
+                  type: boolean
+                  description: indicates whether the assay class is for a "multi-assay". Multi-assays use more than one experimental modality on samples to generate datasets--e.g., both RNAseq and ATACseq.
+                must_contain:
+                  type: array
+                  description: if the assay class is for a multi-assay, a list of the dataset types that are considered components of the multi-assay.
+                  items:
+                    type: string
+                    example:
+                      [RNASeq,ATACSeq]
+                pipeline_shorthand:
+                  type: string
+                  description: name that summarizes a multi-factor processing workflow
+                  example: Salmon + SPRM
+                primary:
+                  type: boolean
+                  description: whether datasets generated by the processing workflow associated with the assay class are "primary" (from the original experiment) or "derived"/"processed" (from post-experimental data processing)
+                  example: true
+                provider:
+                  type: string
+                  description: the provider of datasets generated by the processing workflow associate with the assay class. Possible values are "IEC" (corresponding to datasets generated by the HuBMAP/SenNet Infrastructure and Engagement Component) or "External" (complete datasets coming directly from a HuBMAP/SenNet lab--e.g., a Tissue Mapping Center).
+                  example: IEC
+                vitessce_hints:
+                  type: array
+                  description: set of keys used to identify the type of visualization that the Vitessce application should use to represent datasets associated with the assay class.
+                  items:
+                    type: string
+                    example: [anndata,rna]
+
+

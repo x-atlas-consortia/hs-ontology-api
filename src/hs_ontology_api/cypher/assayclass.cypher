@@ -11,7 +11,7 @@ CALL
 	WHERE p.CUI = context+':C000004 CUI'
 	AND r.CUI=pRBD.CUI
 	$assayclass_filter
-	RETURN pRBD.CUI AS CUIRBD,cRBD.CODE AS CodeRBD,tRBD.name AS NameRBD
+	RETURN pRBD.CUI AS CUIRBD,cRBD.CodeID AS CodeRBD,tRBD.name AS NameRBD
 	ORDER BY pRBD.CUI
 }
 // assaytype
