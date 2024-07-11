@@ -17,7 +17,7 @@ paths:
       parameters:
         - name: application_context
           in: query
-          required: false
+          required: true
           description: Filter to indicate application context
           schema:
             type: string
@@ -29,6 +29,59 @@ paths:
               - sennet
               - HuBMAP
               - SenNet
+        - name: is_primary
+          in: query
+          required: false
+          description: Optional filter to only assay classes that correspond to primary assay classes (true) or derived/processed assay classes (false)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A JSON array of assay classification objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssayClass'
+        '400':
+          description: Missing parameter; invalid parameter value
+        '404':
+          description: No assay classes matching parameters
+        '5XX':
+          description: Unknown error
+  /assayclasses/{class}:
+    get:
+      operationId: assayclass_name_get
+      summary: Returns metadata on the specified "assay class"--the rule-based classification of a dataset managed by the Rules Engine. An assay class describes characteristics that are common to all datasets that are processed with a particular workflow.
+      parameters:
+        - name: class
+          in: path
+          required: true
+          description: An identifier for an assay class. Can be EITHER the string that corresponds to the "rule_description" key in the testing_rules_chain.json file (e.g., "non-DCWG primary AF") OR the code from the UBKG for the assay class (e.g., "C200001"). Note that HUBMAP and SENNET have equivalent codes for each assay class for which the SAB differs--e.g., the "non-DCWG primary AF" assay class has full code "HUBMAP:C200001" in HUBMAP and "SENNET:C200001" in SENNET. If using the code, do not include the application context (HUBMAP or SENNET).
+          schema:
+            type: string
+            example: non-DCWG primary AF
+        - name: application_context
+          in: query
+          required: true
+          description: Filter to indicate application context
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+        - name: is_primary
+          in: query
+          required: false
+          description: Optional filter to only assay classes that correspond to primary assay classes (true) or derived/processed assay classes (false)
+          schema:
+            type: string
       responses:
         '200':
           description: A JSON array of assay classification objects

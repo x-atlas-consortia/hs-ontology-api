@@ -3,6 +3,8 @@
 // Return information on rule-based datasets--i.e., the datasets specified in the Rule Engine's testing rule chain.
 
 // Obtain identifiers for rule-based datasets (assay classes) for the application context.
+// The assayclass_filter allows filtering by either the UBKG code or term (rule_description)
+// for the assay class.
 WITH '$context' AS context
 CALL
 {
@@ -47,13 +49,14 @@ CALL
 	WHERE pRBD.CUI=CUIRBD
 	RETURN COLLECT(REPLACE(tvitessce_hint.name,'_vitessce_hint','')) AS vitessce_hints
 }
-// is_primary
+// is_primary. The is_primaryfilter allows for filtering to just primary or derived assay classes.
 CALL
 {
 	WITH CUIRBD,context
-	OPTIONAL MATCH (pRBD:Concept)-[:has_process_state]->(pdsProcess:Concept)-[:isa]->(pProcessParent:Concept)
+	MATCH (pRBD:Concept)-[:has_process_state]->(pdsProcess:Concept)-[:isa]->(pProcessParent:Concept)
 	WHERE pRBD.CUI=CUIRBD
 	AND pProcessParent.CUI = context+':C004002 CUI'
+	$is_primary_filter
 	RETURN CASE WHEN pdsProcess.CUI=context+':C004003 CUI' THEN true else false END AS is_primary
 }
 // dataset_type
