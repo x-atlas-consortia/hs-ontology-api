@@ -1,8 +1,7 @@
 from flask import Blueprint, jsonify, current_app, make_response,request
 
-from ubkg_api.common_routes.validate import validate_application_context
 from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
-                                              validate_parameter_value_in_enum)
+                                              validate_parameter_value_in_enum, validate_required_parameters)
 from hs_ontology_api.utils.neo4j_logic import assayclasses_get_logic
 
 assayclasses_blueprint = Blueprint('assayclasses_hs', __name__, url_prefix='/assayclasses')
@@ -21,12 +20,22 @@ def assayclasses_get(name=None):
     Filters are additive (i.e., boolean AND)
 
     """
-
-    application_context = validate_application_context()
-
     # Validate parameters.
+
     # Check for invalid parameter names.
     err = validate_query_parameter_names(parameter_name_list=['application_context','is_primary'])
+    if err != 'ok':
+        return make_response(err, 400)
+
+    # Check for required parameters.
+    err = validate_required_parameters(required_parameter_list=['application_context'])
+    if err != 'ok':
+        return make_response(err, 400)
+    application_context = request.args.get('application_context')
+
+    # Check for valid application context.
+    val_enum = ['HUBMAP','SENNET']
+    err = validate_parameter_value_in_enum(param_name='application_context', param_value=application_context, enum_list=val_enum)
     if err != 'ok':
         return make_response(err, 400)
 

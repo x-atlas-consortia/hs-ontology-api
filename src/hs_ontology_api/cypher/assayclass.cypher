@@ -19,9 +19,10 @@ CALL
 // assaytype
 CALL
 {
-	WITH CUIRBD
+	WITH CUIRBD, context
 	MATCH (pRBD:Concept)-[:has_assaytype]->(passaytype:Concept)-[:PREF_TERM]->(tassaytype:Term)
 	WHERE pRBD.CUI=CUIRBD
+	$assaytype_filter
 	RETURN REPLACE(tassaytype.name,'_assaytype','') AS assaytype
 }
 // dir-schema

@@ -1453,7 +1453,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
 
         return fieldentities
 
-def assayclasses_get_logic(neo4j_instance,assayclass=None, is_primary=None, context=None) -> dict:
+def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, is_primary=None, context=None) -> dict:
     """
     July 2024
         Obtains information on the assay classes (rule-based dataset "kinds") that are specified in
@@ -1463,6 +1463,7 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, is_primary=None, cont
 
         :param neo4j_instance: neo4j connection
         :param assayclass: either the code for the assay class's rule or the value of rule_description
+        :param assaytype: the assaytype
         :param context: application context--i.e., HUBMAP or SENNET
         :param is_primary: either null or boolean as to whether to filter on primary or derived
 
@@ -1495,7 +1496,12 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, is_primary=None, cont
             cui = 'C004004 CUI'
         querytxt = querytxt.replace('$is_primary_filter',f"AND pdsProcess.CUI=context+':{cui}'")
 
-    print(querytxt)
+    # Filter by assaytype
+    if assaytype is None:
+        querytxt = querytxt.replace('$assaytype_filter','')
+    else:
+        querytxt = querytxt.replace('$assaytype_filter', f"AND REPLACE(tassaytype.name,'_assaytype','') = '{assaytype}'")
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
