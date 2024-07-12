@@ -13,7 +13,7 @@ paths:
   /assayclasses:
     get:
       operationId: assayclass_get
-      summary: Returns metadata on "assay classes"--the rule-based classifications of datasets managed by the Rules Engine. An assay class describes characteristics that are common to all datasets that are processed with a particular workflow.
+      summary: REPLACEMENT for datasets endpoint. Returns metadata on "assay classes"--the rule-based classifications of datasets managed by the Rules Engine. An assay class describes characteristics that are common to all datasets that are processed with a particular workflow.
       parameters:
         - name: application_context
           in: query
@@ -53,7 +53,7 @@ paths:
   /assayclasses/{class}:
     get:
       operationId: assayclass_name_get
-      summary: Returns metadata on the specified "assay class"--the rule-based classification of a dataset managed by the Rules Engine. An assay class describes characteristics that are common to all datasets that are processed with a particular workflow.
+      summary: REPLACEMENT for datasets endpoint. Returns metadata on the specified "assay class"--the rule-based classification of a dataset managed by the Rules Engine. An assay class describes characteristics that are common to all datasets that are processed with a particular workflow.
       parameters:
         - name: class
           in: path
@@ -100,16 +100,13 @@ paths:
   /assayname: # CPK MAR 2023 - replacement for search-api endpoint of the same name
     post:
       operationId: assayname_post
-      summary: Replacement for the same endpoint in search-api
+      summary: Replacement for assayname endpoint in the search-api
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/AssayNameRequest"
-            example:
-              name: [ PAS, Image Pyramid ]
-              application_context: HUBMAP
       responses:
         '200':
           description: A JSON array of the assay type name
@@ -117,13 +114,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssayTypePropertyInfo'
-              example:
-                name: bulk-RNA
-                primary: true
-                description: Bulk RNA-seq
-                vitessce-hints: ["pyramid","anndata"]
-                contains-pii: true
-                vis-only: true
         '400':
           description: Invalid request - missing request body; missing key *name* in request body; value for key *name* incorrectly specified
         '404':
@@ -163,13 +153,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssayTypePropertyInfo'
-              example:
-                name: bulk-RNA
-                primary: true
-                description: Bulk RNA-seq
-                vitessce-hints: ["pyramid","anndata"]
-                contains-pii: true
-                vis-only: true
   /assaytype/{name}: # CPK MAR 2023 - replacement for search-src endpoint of the same name
     get:
       operationId: assaytype_name_get
@@ -971,11 +954,11 @@ components:
   schemas:
     AssayTypePropertyInfo:
       type: object
-      description: Properties of a HuBMAP/SenNet AssayType.
+      description: Properties of a HuBMAP/SenNet assaytype
       properties:
         name:
           type: string
-          description: AssayType name; used to characterize dataset entities in provenance hierarchy
+          description: assaytype hierarchy
           example: bulk-RNA
         primary:
           type: boolean
@@ -990,60 +973,15 @@ components:
           description: Flags for Vitessce visualization
           items:
             type: string
-            example: ["pyramid","anndata","is_image","is_tiled","is_sc","rna","atac","sprm","codex","maldi"]
-        contains-pii:
-          type: boolean
-          description: Whether the dataset contains Patient Identifying Information (PII) (true or false)
-          example: true
-        vis-only:
-          type: boolean
-          description: Indicates whether for visualization only (true or false)
-          items:
-            type: boolean
-            example: true
-    DatasetPropertyInfo: # Schema name JAS FEB 2023. Note that GET parameters use underscores, even when the corresponding key in the response uses dashes--e.g., alt_names, alt-names.
-      type: object
-      description: Properties of a HuBMAP/SenNet Dataset. Where applicable, key names match those found in the original assay_types.yaml.
-      properties:
-        alt-names:
-          type: array
-          description: Alternative/deprecated synonyms of data_type that may still be associated with dataset entities
-          items:
-            type: string
-          example: [ "MALDI-IMS-pos", "MALDI-IMS-neg" ]
+            example: ["pyramid","anndata"]
         contains-pii:
           type: string
-          description: Whether the dataset contains Patient Identifying Information (PII)
-          example: true
-        data_type:
-          type: string
-          description: Data type for the dataset; used to characterize dataset entities in provenance hierarchy
-          example: bulk-RNA
-        dataset_provider:
-          type: string
-          description: Identifies the provider of the dataset. 'External Provider' also referred to as 'lab-processed'.
-          example: HuBMAP IEC
-        description:
-          type: string
-          description: How datasets of the data type are named in the Data Portal.
-          example: Bulk RNA-seq
-        primary:
-          type: string
-          description: Indicates whether the assay is primary (true) or derived (false)
-          example: true
+          description: DEPRECATED
+          example: deprecated
         vis-only:
           type: string
-          description: Indicates whether for visualization only
-          items:
-            type: string
-            example: true
-        vitessce-hints:
-          type: array
-          description: Flags for Vitessce visualization
-          items:
-            type: string
-            example: ["pyramid","anndata","is_image","is_tiled","is_sc","rna","atac","sprm","codex","maldi"]
-          example: Microscopy
+          description: DEPRECATED
+          example: deprecated
     RuiCodeTerm:
       type: object
       description: Respoonse body for organs/by-code GET request
@@ -1995,5 +1933,3 @@ components:
                   items:
                     type: string
                     example: [anndata,rna]
-
-

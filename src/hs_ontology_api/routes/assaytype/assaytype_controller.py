@@ -1,4 +1,4 @@
-# assaytype routes replace the equivalent legacy routes in the search-api.
+# The assaytype routes replace the equivalent legacy routes in the search-api.
 # July 2024 - refactored to work with new UBKG assay class model.
 
 from flask import Blueprint, jsonify, current_app, request, make_response
@@ -26,7 +26,6 @@ def assaytype_get(name=None):
     Returns information for the legacy assaytype and assaytype/{name} endpoints.
     :param name: corresponds to the assaytype
     """
-
 
     # Validate parameters.
 
@@ -59,14 +58,13 @@ def assaytype_get(name=None):
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = assayclasses_get_logic(
-        neo4j_instance, assaytype=name, is_primary=is_primary, context=application_context)
+        neo4j_instance, assaytype=name, context=application_context)
 
-    if result is None or result == []:
+    if (result is None or result == []):
         # Empty result
         err = get_404_error_string(prompt_string=f"No results for "
                                                  f"specified parameters")
         return make_response(err, 404)
-
 
     # Build the legacy response from the new response.
     listresponse=[]
@@ -78,16 +76,17 @@ def assaytype_get(name=None):
         assaytype['description'] = val.get('description')
         assaytype['vitessce-hints'] = val.get('vitessce_hints')
         # The vis-only and contains-pii properties have been deprecated.
+        assaytype['vis-only'] = 'deprecated'
+        assaytype['contains-pii'] = 'deprecated'
         listresponse.append(assaytype)
 
     # Remove duplicates. There will likely be both "non-DCWG" and "DCWG" rules for the same assaytype, for which the
     # subset used for assaytype response will contain duplicates.
     listunique = remove_duplicate_dicts_from_list(listinput=listresponse, indexval='name')
 
-    # The assaytype endpoint makes the list a value of a "result" key; The assaytype endpoint with name parameter
-    # returns just the single assay object.
-    if len(listunique) == 1:
-       return jsonify(listunique[0])
+    # The assaytype endpoint returns a list of objects that is the value of a key named 'result'.
+    # The assaytype/{name} endpoint returns a single object.
+    if len(listunique) ==1:
+        return jsonify(listunique[0])
     else:
-        dictresp = {'result':listunique}
-        return jsonify(dictresp)
+        return jsonify({'result':listunique})
