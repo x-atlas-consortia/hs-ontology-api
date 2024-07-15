@@ -1,6 +1,6 @@
 #!/bin/bash
 ##########
-# Test script for UBKG API
+# Test script for hs-ontology API
 ##########
 
 
@@ -14,7 +14,7 @@ Help()
    # Display Help
    echo ""
    echo "****************************************"
-   echo "HELP: UBKG API test script"
+   echo "HELP: hs-ontology API test script"
    echo
    echo "Syntax: ./test_api.sh [-option]..."
    echo "option"
@@ -105,19 +105,64 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "TESTS FOR: datasets GET" | tee -a test.out
-echo "SIGNATURE: /datasets?application_context=<context>&data_type=<data_type>&description=<description>&alt_name=<alt_name>&primary=<true or false>&contains_pii=<true or false>&vis_only=<true or false>&vitessce_hint=<hint>&dataset_provider=<provider>" | tee -a test.out
+echo "TESTS FOR: assayclasses GET" | tee -a test.out
+echo "SIGNATURE: /assayclassed?application_context=<context>&is_primary=<is_primary>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
-echo "/datasets?application_context=HUBMAP => should return 200" | tee -a test.out
-
+echo "1. /assaytypes?application_context=x => invalid application context; should return 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/datasets?application_context=HUBMAP" \
- --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+ --url "${UBKG_URL}/assayclass/?application_context=HUBMAPx" \
+ --header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+echo "2. /assaytypes => missing application context; should return 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype?application_context=HUBMAP" \
+ --header "Accept: application/json" | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
+echo "3. /assaytypes => invalid parameter; should return 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype?application_context=HUBMAP&is_primary=x" \
+ --header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "4. /assaytypes => valid, all; should return 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype?application_context=HUBMAP" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "4. /assaytypes => valid, all, primary; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype?application_context=HUBMAP&is_primary=true" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "4. /assaytypes/AFX => invalid assaytype; should return 404" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype/AFX?application_context=HUBMAP" \
+--header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "4. /assaytypes/AF => valid assaytype; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assaytype/AF?application_context=HUBMAP" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
 
 echo "TESTS FOR: organs GET" | tee -a test.out
 echo "SIGNATURE: /organs?application_context=<context>" | tee -a test.out
@@ -160,6 +205,8 @@ curl --request GET \
 echo
 echo | tee -a test.out
 echo | tee -a test.out
+
+exit;
 
 echo "TESTS FOR: relationships/gene GET" | tee -a test.out
 echo "SIGNATURE: /relationships/gene/<HGNC symbol>" | tee -a test.out

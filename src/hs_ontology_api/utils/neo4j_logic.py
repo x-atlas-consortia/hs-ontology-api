@@ -1234,21 +1234,18 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
     return fieldtypes
 
 
-def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=None,
-                           data_type=None, dataset_type=None) -> List[FieldAssay]:
+def field_assays_get_logic(neo4j_instance, field_name=None, assaytype=None) -> dict:
     """
     Returns detailed information on the associations between a  metadata field and assay datasets.
     :param neo4j_instance: connection to UBKG instance
     :param field_name: optional filter: name of field
-    :param assay_identifier: optional filter: name of assay_identifier used in legacy field_assays.yaml.
-    This corresponds to a data_type; an alt-name, or a description.
-    :param data_type: legacy data_type
-    :param dataset_type: soft assay dataset type
+    :param assaytype: optional filter: name of assay_identifier used in legacy field_assays.yaml. Although
+    the legacy yaml allows for alt-names and descriptions, these are no longer valid.
     :return:
     """
 
     # response list
-    fieldassays: [FieldAssay] = []
+    fieldassays: [dict] = []
 
     # Used in WHERE clauses when no filter is needed.
     identity_filter = '1=1'
@@ -1265,54 +1262,27 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assay_identifier=Non
         field_filter = f" AND tField.name = '{field_name}'"
     query = query.replace('$field_filter', field_filter)
 
-    # Allow for filtering on assay_identifier.
-    if assay_identifier is None:
+    # Allow for filtering on assaytype.
+    if assaytype is None:
         assay_type_filter = f'AND {identity_filter}'
     else:
-        assay_type_filter = f" AND tAssay.name='{assay_identifier}'"
+        assay_type_filter = f" AND tAssayType.name='{assaytype}'"
 
     query = query.replace('$assay_type_filter', assay_type_filter)
-
-    # Allow for filtering on data_type and dataset_type
-    list_data_filters = []
-    if data_type is None:
-        list_data_filters.append(identity_filter)
-    else:
-        list_data_filters.append(f"data_type='{data_type}'")
-
-    if dataset_type is None:
-        list_data_filters.append(identity_filter)
-    else:
-        list_data_filters.append(f"dataset_type='{dataset_type}'")
-
-    if len(list_data_filters) == 0:
-        filter = f' WHERE {identity_filter}'
-    else:
-        filter = ' WHERE ' + ' AND '.join(list_data_filters)
-
-    query = query.replace('$data_type_dataset_type_filters', filter)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         recds: neo4j.Result = session.run(query)
 
-        record_count = 0
-
-        # Build response object. Valid responses contain something in the assays element other than
-        # ['none|none|none'].
-        for record in recds:
+        for field in recds:
+            resp = field.get('fieldassays')
             try:
-                if record.get('assays') != ['none|none|none']:
-                    fieldassay: FieldAssay = \
-                        FieldAssay(code_ids=record.get('code_ids'),
-                                   name=record.get('field_name'),
-                                   assays=record.get('assays')).serialize()
-                    fieldassays.append(fieldassay)
-                    record_count = record_count + 1
+                fieldassays.append(resp)
+
             except KeyError:
                 pass
 
-        return fieldassays
+        return resp
 
 def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None, schema=None) -> List[FieldSchema]:
     """
