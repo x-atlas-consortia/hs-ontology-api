@@ -206,8 +206,6 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-exit;
-
 echo "TESTS FOR: relationships/gene GET" | tee -a test.out
 echo "SIGNATURE: /relationships/gene/<HGNC symbol>" | tee -a test.out
 echo | tee -a test.out
@@ -226,9 +224,9 @@ echo "SIGNATURE: /valueset?child_sabs=<list of sabs.&parent_sab=<sab>&parent_cod
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C001000 => should return 200" | tee -a test.out
+echo "/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C000002 => should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C001000" \
+ --url "${UBKG_URL}/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C000002" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
@@ -551,7 +549,7 @@ echo | tee -a test.out
 echo | tee -a test.out
 
 echo "TESTS FOR: field-assays GET" | tee -a test.out
-echo "SIGNATURE: /field-assays/<assay_identifier>?data_type=<data_type>&dataset_type=<dataset_type" | tee -a test.out
+echo "SIGNATURE: /field-assays/<assay_identifier>?assaytype=<assaytype>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
 
@@ -579,49 +577,19 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /field-assays?assay_identifier=X => no results; should return 404" | tee -a test.out
+echo "4. /field-assays?assaytype=X => no results; should return 404" | tee -a test.out
 echo "SHOULD RETURN 404; no results"
 curl --request GET \
- --url "${UBKG_URL}/field-assays?assay_identifier=X" \
+ --url "${UBKG_URL}/field-assays?assaytype=X" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "5. /field-assays?assay_identifier=snRNAseq => should return 200" | tee -a test.out
+echo "5. /field-assays?assaytype=snRNAseq => should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/field-assays?assay_identifier=snRNAseq" \
+ --url "${UBKG_URL}/field-assays?assaytype=snRNAseq" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "5. /field-assays?data_type=X => no results; should return 404" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/field-assays?data_type=X" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "6. /field-assays?data_type=seqFISH => should return 200" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/field-assays?data_type=seqFISH" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "7. field-assays?dataset_type=X => no results; should return 404" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/field-assays?dataset_type=x" \
- --header "Content-Type: application/json"
-echo
-
-echo "8. /field-assays?dataset_type=RNAseq => should return 200" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/field-assays?dataset_type=RNAseq" \
- --header "Content-Type: application/json"| cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
