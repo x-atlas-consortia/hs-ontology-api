@@ -988,7 +988,7 @@ components:
           example: "UT"
         organ_uberon:
           type: string
-          description: UBERON code
+          description: UBERON or FMA code.
         organ_cui:
           type: string
           description: The organ CUI
