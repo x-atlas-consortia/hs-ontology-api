@@ -32,9 +32,16 @@ paths:
         - name: is_primary
           in: query
           required: false
-          description: Optional filter to only assay classes that correspond to primary assay classes (true) or derived/processed assay classes (false)
+          description: optional filter to only assay classes that correspond to primary assay classes (true) or derived/processed assay classes (false)
           schema:
             type: string
+        - name: assaytype
+          in: query
+          required: false
+          description: optional filter to a particular assaytype. Multiple assay classes can have the same assaytype.
+          schema:
+            type: string
+            example: AF
       responses:
         '200':
           description: A JSON array of assay classification objects
@@ -82,6 +89,13 @@ paths:
           description: Optional filter to only assay classes that correspond to primary assay classes (true) or derived/processed assay classes (false)
           schema:
             type: string
+        - name: assaytype
+          in: query
+          required: false
+          description: optional filter to a particular assaytype. Multiple assay classes can have the same assaytype.
+          schema:
+            type: string
+            example: AF
       responses:
         '200':
           description: A JSON array of assay classification objects
@@ -109,7 +123,7 @@ paths:
               $ref: "#/components/schemas/AssayNameRequest"
       responses:
         '200':
-          description: A JSON array of the assay type name
+          description: A JSON array of the assaytype with the specified name.
           content:
             application/json:
               schema:
@@ -1036,8 +1050,8 @@ components:
             - type: array
               items:
                 type: string
-          description: AssayType name which can be a string or an array of strings
-          example: [ PAS, Image Pyramid ]
+          description: AssayType name which can be a string or an array of strings. This is an array for downward compatibility.
+          example: [AF]
         application_context:
           type: string
           default: HUBMAP

@@ -75,7 +75,7 @@ echo "/assayname_POST with bulk-RNA => should return 200" | tee -a test.out
 curl --request POST \
  --url "${UBKG_URL}/assayname" \
  --header "Content-Type: application/json" \
- --data '{"name": "bulk-RNA"}' | cut -c1-60 | tee -a test.out
+ --data '{"name": ["bulk-RNA"]}' |tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
@@ -93,72 +93,68 @@ echo | tee -a test.out
 echo | tee -a test.out
 
 
-echo "TESTS FOR: assaytypes GET" | tee -a test.out
-echo "SIGNATURE: /assaytypes/<data_type name>?application_context=<context>" | tee -a test.out
-echo | tee -a test.out
-echo | tee -a test.out
-echo "/assaytypes/bulk-RNA?application_context=HUBMAP => should return 200" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP" \
- --header "Accept: application/json" | cut -c1-60 | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
 echo "TESTS FOR: assayclasses GET" | tee -a test.out
-echo "SIGNATURE: /assayclassed?application_context=<context>&is_primary=<is_primary>" | tee -a test.out
+echo "SIGNATURE: /assayclasses?application_context=<context>&is_primary=<is_primary>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
-echo "1. /assaytypes?application_context=x => invalid application context; should return 400" | tee -a test.out
+echo "1. /assayclasses?application_context=x => invalid application context; should return 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assayclass/?application_context=HUBMAPx" \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAPx" \
  --header "Accept: application/json" | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
-echo "2. /assaytypes => missing application context; should return 400" | tee -a test.out
+echo "2. /assayclasses => missing application context; should return 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype?application_context=HUBMAP" \
- --header "Accept: application/json" | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "3. /assaytypes => invalid parameter; should return 400" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/assaytype?application_context=HUBMAP&is_primary=x" \
+ --url "${UBKG_URL}/assayclasses?" \
  --header "Accept: application/json" | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /assaytypes => valid, all; should return 400" | tee -a test.out
+echo "3. /assayclasses => invalid parameter; should return 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype?application_context=HUBMAP" \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&is_primary=x" \
+ --header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "4. /assayclasses => valid, all; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP" \
 --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /assaytypes => valid, all, primary; should return 200" | tee -a test.out
+echo "4. /assayclasses => valid, all, primary; should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype?application_context=HUBMAP&is_primary=true" \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&is_primary=true" \
 --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /assaytypes/AFX => invalid assaytype; should return 404" | tee -a test.out
+echo "4. /assayclasses/AFX => invalid assayclass; should return 404" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype/AFX?application_context=HUBMAP" \
+ --url "${UBKG_URL}/assayclasses/AFX?application_context=HUBMAP" \
 --header "Accept: application/json" | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /assaytypes/AF => valid assaytype; should return 200" | tee -a test.out
+echo "4. /assayclasses/non-DCWG primary AF => valid assayclass; should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype/AF?application_context=HUBMAP" \
+ --url "${UBKG_URL}/assayclasses/non-DCWG primary AF?application_context=HUBMAP" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "4. /assayclasses/C200001 => valid assayclass; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/C200001?application_context=HUBMAP" \
 --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out

@@ -23,7 +23,7 @@ CALL
 	MATCH (pRBD:Concept)-[:has_assaytype]->(passaytype:Concept)-[:PREF_TERM]->(tassaytype:Term)
 	WHERE pRBD.CUI=CUIRBD
 	$assaytype_filter
-	RETURN REPLACE(tassaytype.name,'_assaytype','') AS assaytype
+	RETURN DISTINCT REPLACE(tassaytype.name,'_assaytype','') AS assaytype
 }
 // dir-schema
 CALL
@@ -31,7 +31,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_dir_schema]->(pdir_schema:Concept)-[:PREF_TERM]->(tdir_schema:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN tdir_schema.name AS dir_schema
+	RETURN DISTINCT tdir_schema.name AS dir_schema
 }
 // tbl-schema
 CALL
@@ -39,7 +39,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_tbl_schema]->(ptbl_schema:Concept)-[:PREF_TERM]->(ttbl_schema:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN ttbl_schema.name AS tbl_schema
+	RETURN DISTINCT ttbl_schema.name AS tbl_schema
 }
 // vitessce_hints
 // Strip the optional suffix '_vitessce_hint' from terms such as 'rna_vitessce_hint'.
@@ -48,7 +48,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_vitessce_hint]->(pvitessce_hint:Concept)-[:PREF_TERM]->(tvitessce_hint:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN COLLECT(REPLACE(tvitessce_hint.name,'_vitessce_hint','')) AS vitessce_hints
+	RETURN COLLECT(DISTINCT REPLACE(tvitessce_hint.name,'_vitessce_hint','')) AS vitessce_hints
 }
 // is_primary. The is_primaryfilter allows for filtering to just primary or derived assay classes.
 CALL
@@ -58,7 +58,7 @@ CALL
 	WHERE pRBD.CUI=CUIRBD
 	AND pProcessParent.CUI = context+':C004002 CUI'
 	$is_primary_filter
-	RETURN CASE WHEN pdsProcess.CUI=context+':C004003 CUI' THEN true else false END AS is_primary
+	RETURN DISTINCT CASE WHEN pdsProcess.CUI=context+':C004003 CUI' THEN true else false END AS is_primary
 }
 // dataset_type
 CALL
@@ -66,7 +66,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_dataset_type]->(pdataset_type:Concept)-[:PREF_TERM]->(tdataset_type:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN tdataset_type.name AS dataset_type, pdataset_type.CUI AS CUIDatasetType
+	RETURN DISTINCT tdataset_type.name AS dataset_type, pdataset_type.CUI AS CUIDatasetType
 }
 // Pipeline Decision Rules category
 CALL
@@ -74,7 +74,7 @@ CALL
 	WITH CUIDatasetType
 	OPTIONAL MATCH (pDatasetType:Concept)-[:has_pdr_category]->(pPDRCategory:Concept)-[:PREF_TERM]->(tPDRCategory:Term)
 	WHERE pDatasetType.CUI=CUIDatasetType
-	RETURN tPDRCategory.name AS pdr_category
+	RETURN DISTINCT tPDRCategory.name AS pdr_category
 }
 // Fig 2 aggregated assay type
 CALL
@@ -82,7 +82,7 @@ CALL
 	WITH CUIDatasetType
 	OPTIONAL MATCH (pDatasetType:Concept)-[:has_fig2_agg_assay_type]->(pFig2agg:Concept)-[:PREF_TERM]->(tFig2agg:Term)
 	WHERE pDatasetType.CUI=CUIDatasetType
-	RETURN tFig2agg.name AS fig2_aggregated_assaytype
+	RETURN DISTINCT tFig2agg.name AS fig2_aggregated_assaytype
 }
 // Fig2 modality
 CALL
@@ -90,7 +90,7 @@ CALL
 	WITH CUIDatasetType
 	OPTIONAL MATCH (pDatasetType:Concept)-[:has_fig2_modality]->(pFig2modality:Concept)-[:PREF_TERM]->(tFig2modality:Term)
 	WHERE pDatasetType.CUI=CUIDatasetType
-	RETURN tFig2modality.name AS fig2_modality
+	RETURN DISTINCT tFig2modality.name AS fig2_modality
 }
 // Fig2 category
 CALL
@@ -98,7 +98,7 @@ CALL
 	WITH CUIDatasetType
 	OPTIONAL MATCH (pDatasetType:Concept)-[:has_fig2_category]->(pFig2category:Concept)-[:PREF_TERM]->(tFig2category:Term)
 	WHERE pDatasetType.CUI=CUIDatasetType
-	RETURN tFig2category.name AS fig2_category
+	RETURN DISTINCT tFig2category.name AS fig2_category
 }
 // description
 CALL
@@ -106,7 +106,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_description]->(pdescription:Concept)-[:PREF_TERM]->(tdescription:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN REPLACE(tdescription.name,'_description','') AS description
+	RETURN DISTINCT REPLACE(tdescription.name,'_description','') AS description
 }
 // pipeline-shorthand
 CALL
@@ -114,7 +114,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_pipeline_shorthand]->(pshorthand:Concept)-[:PREF_TERM]->(tshorthand:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN tshorthand.name AS pipeline_shorthand
+	RETURN DISTINCT tshorthand.name AS pipeline_shorthand
 }
 // is multi-assay
 CALL
@@ -123,7 +123,7 @@ CALL
 	OPTIONAL MATCH (pRBD:Concept)-[:isa]->(pMulti:Concept)
 	WHERE pRBD.CUI=CUIRBD
 	AND pMulti.CUI = context+':C004033 CUI'
-	RETURN CASE WHEN pMulti.CUI IS NOT NULL THEN True ELSE False END AS is_multiassay
+	RETURN DISTINCT CASE WHEN pMulti.CUI IS NOT NULL THEN True ELSE False END AS is_multiassay
 }
 // must_contain
 CALL
@@ -131,7 +131,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:must_contain]->(pDT:Concept)-[:PREF_TERM]->(tDT:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN COLLECT(tDT.name) AS must_contain
+	RETURN COLLECT(DISTINCT tDT.name) AS must_contain
 }
 // measurement assay CUI
 CALL
@@ -139,7 +139,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_measurement_assay]->(pMeas:Concept)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN pMeas.CUI as CUIMeas
+	RETURN DISTINCT pMeas.CUI as CUIMeas
 }
 // Optional measurement codes
 CALL
@@ -156,7 +156,7 @@ CALL
 	OPTIONAL MATCH (pRBD:Concept)-[:contains]->(ppii:Concept)
 	WHERE pRBD.CUI=CUIMeas
 	AND ppii.CUI = context+':C004009 CUI'
-	RETURN CASE WHEN NOT ppii.CUI IS null THEN true ELSE false END AS contains_full_genetic_sequences
+	RETURN DISTINCT CASE WHEN NOT ppii.CUI IS null THEN true ELSE false END AS contains_full_genetic_sequences
 }
 // provider
 CALL
@@ -164,7 +164,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_provider]->(pProvider:Concept)-[:PREF_TERM]->(tProvider:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN tProvider.name AS provider
+	RETURN DISTINCT tProvider.name AS provider
 }
 // active status
 CALL
@@ -172,7 +172,7 @@ CALL
 	WITH CUIRBD
 	OPTIONAL MATCH (pRBD:Concept)-[:has_active_status]->(pStatus:Concept)-[:PREF_TERM]->(tStatus:Term)
 	WHERE pRBD.CUI=CUIRBD
-	RETURN tStatus.name AS active_status
+	RETURN DISTINCT tStatus.name AS active_status
 }
 CALL
 {

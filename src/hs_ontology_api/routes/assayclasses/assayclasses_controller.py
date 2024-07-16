@@ -23,7 +23,7 @@ def assayclasses_get(name=None):
     # Validate parameters.
 
     # Check for invalid parameter names.
-    err = validate_query_parameter_names(parameter_name_list=['application_context','is_primary'])
+    err = validate_query_parameter_names(parameter_name_list=['application_context','is_primary','assaytype'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -48,9 +48,11 @@ def assayclasses_get(name=None):
         if err != 'ok':
             return make_response(err, 400)
 
+    assaytype = request.args.get('assaytype')
+
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = assayclasses_get_logic(
-            neo4j_instance, assayclass=name, is_primary=is_primary, context=application_context)
+            neo4j_instance, assayclass=name, is_primary=is_primary, assaytype=assaytype, context=application_context)
 
     if result is None or result == []:
         # Empty result
