@@ -128,7 +128,7 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /assayclasses => valid, all, primary; should return 200" | tee -a test.out
+echo "5. /assayclasses => valid, all, primary; should return 200" | tee -a test.out
 curl --request GET \
  --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&is_primary=true" \
 --header "Accept: application/json" | cut -c1-60 | tee -a test.out
@@ -136,7 +136,7 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /assayclasses/AFX => invalid assayclass; should return 404" | tee -a test.out
+echo "6. /assayclasses/AFX => invalid assayclass; should return 404" | tee -a test.out
 curl --request GET \
  --url "${UBKG_URL}/assayclasses/AFX?application_context=HUBMAP" \
 --header "Accept: application/json" | tee -a test.out
@@ -144,15 +144,15 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /assayclasses/non-DCWG primary AF => valid assayclass; should return 200" | tee -a test.out
+echo "7. /assayclasses/non-DCWG primary AF => valid assayclass; should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assayclasses/non-DCWG primary AF?application_context=HUBMAP" \
+ --url "${UBKG_URL}/assayclasses/non-DCWG%20primary%20AF?application_context=HUBMAP" \
 --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /assayclasses/C200001 => valid assayclass; should return 200" | tee -a test.out
+echo "8. /assayclasses/C200001 => valid assayclass; should return 200" | tee -a test.out
 curl --request GET \
  --url "${UBKG_URL}/assayclasses/C200001?application_context=HUBMAP" \
 --header "Accept: application/json" | cut -c1-60 | tee -a test.out
