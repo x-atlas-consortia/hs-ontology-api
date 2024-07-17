@@ -61,12 +61,14 @@ CALL
 	RETURN DISTINCT CASE WHEN pdsProcess.CUI=context+':C004003 CUI' THEN true else false END AS is_primary
 }
 // dataset_type
+// The dataset_type concepts in HUBMAP are cross-referenced to HRAVS concepts; however, the terms for the HRAVS concepts
+// are enclosed in a list, so use the HUBMAP terms.
 CALL
 {
-	WITH CUIRBD
-	OPTIONAL MATCH (pRBD:Concept)-[:has_dataset_type]->(pdataset_type:Concept)-[:PREF_TERM]->(tdataset_type:Term)
-	WHERE pRBD.CUI=CUIRBD
-	RETURN DISTINCT tdataset_type.name AS dataset_type, pdataset_type.CUI AS CUIDatasetType
+	WITH CUIRBD,context
+    OPTIONAL MATCH (pRBD:Concept)-[:has_dataset_type]->(pdataset_type:Concept)-[:CODE]->(cdataset_type:Code)-[r:PT]->(tdataset_type:Term)
+    WHERE pRBD.CUI=CUIRBD AND cdataset_type.SAB=context
+    RETURN DISTINCT tdataset_type.name AS dataset_type, pdataset_type.CUI AS CUIDatasetType
 }
 // Pipeline Decision Rules category
 CALL
