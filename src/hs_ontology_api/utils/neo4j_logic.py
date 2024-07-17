@@ -1472,7 +1472,6 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, is_pr
     else:
         querytxt = querytxt.replace('$assaytype_filter', f"AND REPLACE(tassaytype.name,'_assaytype','') = '{assaytype}'")
 
-    print(querytxt)
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
