@@ -36,7 +36,7 @@ ubkg-api package can be recompiled for use by the hs-ontology-api.
 To test hs-ontology-api endpoints, use the **test_api.s**h script in this folder. 
 The script writes output to the test.out file, which is ignored by git.
 
-#### Gatewoy: integration testing
+#### Gateway: integration testing
 Because the API gateway manages the endpoint URLs of all components of a UBKG API instance, it
 is often necessary to test the union of endpoint URLs. This is not a functional test of a particular endpoint; 
 instead, it is an integration test of the gateway configuration.
