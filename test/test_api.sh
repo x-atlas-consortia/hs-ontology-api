@@ -94,7 +94,7 @@ echo | tee -a test.out
 
 
 echo "TESTS FOR: assayclasses GET" | tee -a test.out
-echo "SIGNATURE: /assayclasses?application_context=<context>&is_primary=<is_primary>" | tee -a test.out
+echo "SIGNATURE: /assayclasses?application_context=<context>&process_state=<process_state>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
 echo "1. /assayclasses?application_context=x => invalid application context; should return 400" | tee -a test.out
@@ -114,7 +114,7 @@ echo | tee -a test.out
 
 echo "3. /assayclasses => invalid parameter; should return 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&is_primary=x" \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&process_state=x" \
  --header "Accept: application/json" | tee -a test.out
 echo
 echo | tee -a test.out
@@ -130,7 +130,7 @@ echo | tee -a test.out
 
 echo "5. /assayclasses => valid, all, primary; should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&is_primary=true" \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&process_state=primary" \
 --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
