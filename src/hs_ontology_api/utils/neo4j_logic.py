@@ -1423,7 +1423,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
 
         return fieldentities
 
-def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, is_primary=None, context=None) -> dict:
+def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, process_state=None, context=None) -> dict:
     """
     July 2024
         Obtains information on the assay classes (rule-based dataset "kinds") that are specified in
@@ -1435,7 +1435,7 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, is_pr
         :param assayclass: either the code for the assay class's rule or the value of rule_description
         :param assaytype: the assaytype
         :param context: application context--i.e., HUBMAP or SENNET
-        :param is_primary: either null or boolean as to whether to filter on primary or derived
+        :param process_state: in the enum ['primary','derived','epic']
 
         example: if a assay class's rule has rule_description="non-DCWG primary AF" and rule code "HUBMAP:C200001", either
         "non-DCWG primary AF" or "C200001" will result in selection of the assay class. The application context is used
@@ -1456,15 +1456,11 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, is_pr
     else:
         querytxt = querytxt.replace('$assayclass_filter','')
 
-    # Filter by is_primary
-    if is_primary is None:
-        querytxt = querytxt.replace('$is_primary_filter','')
+    # Filter by process_state
+    if process_state is None:
+        querytxt = querytxt.replace('$process_state_filter','')
     else:
-        if is_primary.lower() == 'true':
-            cui = 'C004003 CUI'
-        else:
-            cui = 'C004004 CUI'
-        querytxt = querytxt.replace('$is_primary_filter',f"AND pdsProcess.CUI=context+':{cui}'")
+        querytxt = querytxt.replace('$process_state_filter',f"AND tdsProcess.name='{process_state}'")
 
     # Filter by assaytype
     if assaytype is None:

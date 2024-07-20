@@ -51,22 +51,25 @@ CALL
         WHERE pRBD.CUI=CUIRBD AND r.CUI=pvitessce_hint.CUI AND cvitessce_hint.SAB=context
         RETURN COLLECT(DISTINCT REPLACE(tvitessce_hint.name,'_vitessce_hint','')) AS vitessce_hints
 }
-// is_primary. The is_primaryfilter allows for filtering to just primary or derived assay classes.
+// process state. The process_state_filter allows for filtering to just primary or derived assay classes.
 CALL
 {
         WITH CUIRBD,context
-        MATCH (pRBD:Concept)-[:has_process_state]->(pdsProcess:Concept)-[:isa]->(pProcessParent:Concept)
+        MATCH (pRBD:Concept)-[:has_process_state]->(pdsProcess:Concept)-[:isa]->(pProcessParent:Concept),
+        (pdsProcess:Concept)-[:CODE]->(cdsProcess:Code)-[r:PT]->(tdsProcess:Term)
         WHERE pRBD.CUI=CUIRBD
         AND pProcessParent.CUI = context+':C004002 CUI'
-        $is_primary_filter
-        RETURN DISTINCT CASE WHEN pdsProcess.CUI=context+':C004003 CUI' THEN true else false END AS is_primary
+        AND r.CUI=pdsProcess.CUI
+        AND cdsProcess.SAB=context
+        $process_state_filter
+        RETURN tdsProcess.name as process_state
 }
 // dataset_type
 // The dataset_type concepts in HUBMAP are cross-referenced to HRAVS concepts; however, the terms for the HRAVS concepts
 // are enclosed in a list, so use the HUBMAP terms.
 CALL
 {
-        WITH CUIRBD,context
+    WITH CUIRBD,context
     OPTIONAL MATCH (pRBD:Concept)-[:has_dataset_type]->(pdataset_type:Concept)-[:CODE]->(cdataset_type:Code)-[r:PT]->(tdataset_type:Term)
     WHERE pRBD.CUI=CUIRBD AND r.CUI=pdataset_type.CUI AND cdataset_type.SAB=context
     RETURN DISTINCT tdataset_type.name AS dataset_type, pdataset_type.CUI AS CUIDatasetType
@@ -179,7 +182,7 @@ CALL
 }
 CALL
 {
-WITH CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema, vitessce_hints,is_primary,pipeline_shorthand,description,dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,is_multiassay,must_contain,MeasCodes,contains_full_genetic_sequences,provider,active_status
+WITH CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema, vitessce_hints,process_state,pipeline_shorthand,description,dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,is_multiassay,must_contain,MeasCodes,contains_full_genetic_sequences,provider,active_status
 RETURN
 {
         rule_description:
@@ -187,7 +190,8 @@ RETURN
         },
         value:
         {
-                assaytype:assaytype, dir_schema:dir_schema, tbl_schema:tbl_schema, vitessce_hints:vitessce_hints, primary:is_primary,
+                assaytype:assaytype, dir_schema:dir_schema, tbl_schema:tbl_schema, vitessce_hints:vitessce_hints,
+                process_state:process_state,
                 pipeline_shorthand:pipeline_shorthand, description:description,
                 is_multiassay:is_multiassay, must_contain:must_contain,
                 provider:provider,

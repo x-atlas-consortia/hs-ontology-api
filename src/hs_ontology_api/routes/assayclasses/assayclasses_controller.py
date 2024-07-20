@@ -23,7 +23,7 @@ def assayclasses_get(name=None):
     # Validate parameters.
 
     # Check for invalid parameter names.
-    err = validate_query_parameter_names(parameter_name_list=['application_context','is_primary','assaytype'])
+    err = validate_query_parameter_names(parameter_name_list=['application_context','process_state','assaytype'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -40,11 +40,11 @@ def assayclasses_get(name=None):
         return make_response(err, 400)
 
     # Check for valid parameter values.
-    is_primary = request.args.get('is_primary')
-    if is_primary is not None:
-        is_primary = is_primary.lower()
-        val_enum=['true','false']
-        err = validate_parameter_value_in_enum(param_name='is_primary',param_value=is_primary,enum_list=val_enum)
+    process_state = request.args.get('process_state')
+    if process_state is not None:
+        process_state = process_state.lower()
+        val_enum=['primary','derived','epic']
+        err = validate_parameter_value_in_enum(param_name='process_state',param_value=process_state,enum_list=val_enum)
         if err != 'ok':
             return make_response(err, 400)
 
@@ -52,7 +52,7 @@ def assayclasses_get(name=None):
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = assayclasses_get_logic(
-            neo4j_instance, assayclass=name, is_primary=is_primary, assaytype=assaytype, context=application_context)
+            neo4j_instance, assayclass=name, process_state=process_state, assaytype=assaytype, context=application_context)
 
     if result is None or result == []:
         # Empty result
