@@ -36,6 +36,9 @@ while getopts ":hv:" option; do
    esac
 done
 
+# Check for environment parameter.
+: ${env:?Missing environment parameter (-v). Run this script with -h for options.}
+
 # Environment URLs.
 UBKG_URL_PROD=https://ontology.api.hubmapconsortium.org
 UBKG_URL_DEV=https://ontology-api.dev.hubmapconsortium.org
@@ -53,6 +56,7 @@ case "$env" in
     UBKG_URL="${UBKG_URL:-$UBKG_URL_LOCAL}";;
 
 esac
+
 
 echo "Using UBKG at: ${UBKG_URL}" | tee test.out
 echo "For these tests, only first 60 characters of output from HTTP 200 returns displayed." | tee -a test.out
