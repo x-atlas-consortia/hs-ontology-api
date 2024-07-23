@@ -13,7 +13,7 @@ CALL
         WHERE p.CUI = context+':C000004 CUI'
         AND r.CUI=pRBD.CUI
         $assayclass_filter
-        RETURN pRBD.CUI AS CUIRBD,cRBD.CodeID AS CodeRBD,tRBD.name AS NameRBD
+        RETURN pRBD.CUI AS CUIRBD,cRBD.CODE AS CodeRBD,tRBD.name AS NameRBD
         ORDER BY pRBD.CUI
 }
 // assaytype
@@ -182,11 +182,11 @@ CALL
 }
 CALL
 {
-WITH CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema, vitessce_hints,process_state,pipeline_shorthand,description,dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,is_multiassay,must_contain,MeasCodes,contains_full_genetic_sequences,provider,active_status
+WITH context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema, vitessce_hints,process_state,pipeline_shorthand,description,dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,is_multiassay,must_contain,MeasCodes,contains_full_genetic_sequences,provider,active_status
 RETURN
 {
         rule_description:
-        {       code:CodeRBD,name:NameRBD
+        {       code:CodeRBD,application_context:context, name:NameRBD
         },
         value:
         {

@@ -1462,12 +1462,14 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
     else:
         querytxt = querytxt.replace('$process_state_filter',f"AND tdsProcess.name='{process_state}'")
 
-    # Filter by assaytype
+    # Filter by assaytype, but only if this is the general endpoint.
+    #(The endpoint that filters by assayclass assumes a single response; assaytype is not unique.)
     if assaytype is None:
         querytxt = querytxt.replace('$assaytype_filter','')
-    else:
+    elif assayclass is None:
         querytxt = querytxt.replace('$assaytype_filter', f"AND REPLACE(tassaytype.name,'_assaytype','') = '{assaytype}'")
-
+    else:
+        querytxt = querytxt.replace('$assaytype_filter','')
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 

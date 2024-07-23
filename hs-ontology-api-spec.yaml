@@ -97,22 +97,13 @@ paths:
               - primary
               - derived
               - epic
-        - name: assaytype
-          in: query
-          required: false
-          description: optional filter to a particular assaytype. Multiple assay classes can have the same assaytype.
-          schema:
-            type: string
-            example: AF
       responses:
         '200':
-          description: A JSON array of assay classification objects
+          description: An assay classification objects
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AssayClass'
+                $ref: '#/components/schemas/AssayClass'
         '400':
           description: Missing parameter; invalid parameter value
         '404':
@@ -1770,7 +1761,11 @@ components:
             code:
               type: string
               description: UBKG code for the rule.
-              example: HUBMAP:C200150
+              example: C200150
+            application_context:
+              type: string
+              description: the application context for the code--i.e., the SAB
+              example: HUBMAP
             name:
               type: string
               description: corresponds to the "rule_description" key in the assay classification object in the testing_rule_chain.json.

@@ -33,11 +33,12 @@ def assayclasses_get(name=None):
         return make_response(err, 400)
     application_context = request.args.get('application_context')
 
-    # Check for valid application context.
+    # Check for valid application context. The parameter is case-insensitive.
     val_enum = ['HUBMAP','SENNET']
-    err = validate_parameter_value_in_enum(param_name='application_context', param_value=application_context, enum_list=val_enum)
+    err = validate_parameter_value_in_enum(param_name='application_context', param_value=application_context.upper(), enum_list=val_enum)
     if err != 'ok':
         return make_response(err, 400)
+    application_context = application_context.upper()
 
     # Check for valid parameter values.
     process_state = request.args.get('process_state')
@@ -48,7 +49,13 @@ def assayclasses_get(name=None):
         if err != 'ok':
             return make_response(err, 400)
 
+    # Filter by assaytype.
+    # If this is for the endpoint that filters by assay class, then ignore filtering by assaytype.
+    # (The endpoint that filters by assay class assumes a single response, and assaytype is not unique for assay
+    # classes).
     assaytype = request.args.get('assaytype')
+    if assaytype is not None and name is not None:
+       assaytype = None
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = assayclasses_get_logic(
@@ -60,5 +67,7 @@ def assayclasses_get(name=None):
                                                  f"specified parameters")
         return make_response(err, 404)
 
-
-    return jsonify(result)
+    if len(result) == 1:
+        return jsonify(result[0])
+    else:
+        return jsonify(result)
