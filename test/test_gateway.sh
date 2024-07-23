@@ -85,6 +85,9 @@ while getopts ":hv:" option; do
    esac
 done
 
+# Check for environment parameter.
+: ${env:?Missing environment parameter (-v). Run this script with -h for options.}
+
 # Environment URLs.
 UBKG_URL_PROD=https://ontology.api.hubmapconsortium.org
 UBKG_URL_DEV=https://ontology-api.dev.hubmapconsortium.org
