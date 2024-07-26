@@ -1,15 +1,14 @@
-ubkg-api==2.1.4
-Flask==2.1.3
+Flask==3.0.3
+# Flask depends on Werkzeug...
+Werkzeug==3.0.3
+
+#git+https://github.com/x-atlas-consortia/ubkg-api.git@flask-v3x
+#ubkg-api==2.1.4
 neo4j==5.15.0
 
 # for analysis of tabular data
 pandas==1.5.0
 numpy==1.23.5
-
-# Flask 2.1.3 installs the latest Werkzeug==3.0.0 (released on 9/30/2023) and causing import issues 
-# Use a pinned version 2.3.7 (the latest release before 3.0.0) to mitigate temporaryly
-# Will upgrade Flask to newer version later on across all APIs. 10/3/2023 - Zhou
-Werkzeug==2.3.7
 
 # Cells API client
 # hubmap-api-py-client==0.0.9
