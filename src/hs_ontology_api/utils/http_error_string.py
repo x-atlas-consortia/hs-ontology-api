@@ -121,11 +121,3 @@ def validate_parameter_value_in_enum(param_name=None, param_value=None, enum_lis
                f"Refer to the SmartAPI documentation for this endpoint for more information."
 
     return "ok"
-
-def validate_application_context():
-
-    application_context = request.args.get('application_context')
-    if application_context is None:
-        return abort(jsonify(
-            f'Invalid application_context ({application_context}) specified. Please pass one of SENNET or HUBMAP')), 400
-    return application_context
