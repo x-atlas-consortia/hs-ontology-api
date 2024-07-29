@@ -48,6 +48,7 @@ def assaytype_get(name=None):
         return make_response(err, 400)
 
     # Check for valid parameter values.
+    # Map the legacy is_primary parameter to new process_state parameter.
     is_primary = request.args.get('is_primary')
     if is_primary is not None:
         is_primary = is_primary.lower()
@@ -55,10 +56,16 @@ def assaytype_get(name=None):
         err = validate_parameter_value_in_enum(param_name='is_primary', param_value=is_primary, enum_list=val_enum)
         if err != 'ok':
             return make_response(err, 400)
+        if is_primary == 'true':
+            process_state = 'primary'
+        else:
+            process_state = 'derived'
+    else:
+        process_state = None
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = assayclasses_get_logic(
-        neo4j_instance, assaytype=name, context=application_context)
+        neo4j_instance, assaytype=name, process_state=process_state, context=application_context)
 
     if (result is None or result == []):
         # Empty result
