@@ -30,7 +30,7 @@ def assaytype_get(name=None):
     # Validate parameters.
 
     # Check for invalid parameter names.
-    err = validate_query_parameter_names(parameter_name_list=['application_context', 'is_primary'])
+    err = validate_query_parameter_names(parameter_name_list=['application_context', 'primary'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -49,11 +49,11 @@ def assaytype_get(name=None):
 
     # Check for valid parameter values.
     # Map the legacy is_primary parameter to new process_state parameter.
-    is_primary = request.args.get('is_primary')
+    is_primary = request.args.get('primary')
     if is_primary is not None:
         is_primary = is_primary.lower()
         val_enum = ['true', 'false']
-        err = validate_parameter_value_in_enum(param_name='is_primary', param_value=is_primary, enum_list=val_enum)
+        err = validate_parameter_value_in_enum(param_name='primary', param_value=is_primary, enum_list=val_enum)
         if err != 'ok':
             return make_response(err, 400)
         if is_primary == 'true':
