@@ -1,6 +1,6 @@
 #!/bin/bash
 ##########
-# Test script for UBKG API
+# Test script for hs-ontology API
 ##########
 
 
@@ -14,7 +14,7 @@ Help()
    # Display Help
    echo ""
    echo "****************************************"
-   echo "HELP: UBKG API test script"
+   echo "HELP: hs-ontology API test script"
    echo
    echo "Syntax: ./test_api.sh [-option]..."
    echo "option"
@@ -36,6 +36,9 @@ while getopts ":hv:" option; do
    esac
 done
 
+# Check for environment parameter.
+: ${env:?Missing environment parameter (-v). Run this script with -h for options.}
+
 # Environment URLs.
 UBKG_URL_PROD=https://ontology.api.hubmapconsortium.org
 UBKG_URL_DEV=https://ontology-api.dev.hubmapconsortium.org
@@ -53,6 +56,7 @@ case "$env" in
     UBKG_URL="${UBKG_URL:-$UBKG_URL_LOCAL}";;
 
 esac
+
 
 echo "Using UBKG at: ${UBKG_URL}" | tee test.out
 echo "For these tests, only first 60 characters of output from HTTP 200 returns displayed." | tee -a test.out
@@ -75,7 +79,7 @@ echo "/assayname_POST with bulk-RNA => should return 200" | tee -a test.out
 curl --request POST \
  --url "${UBKG_URL}/assayname" \
  --header "Content-Type: application/json" \
- --data '{"name": "bulk-RNA"}' | cut -c1-60 | tee -a test.out
+ --data '{"name": ["bulk-RNA"]}' |tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
@@ -93,31 +97,72 @@ echo | tee -a test.out
 echo | tee -a test.out
 
 
-echo "TESTS FOR: assaytypes GET" | tee -a test.out
-echo "SIGNATURE: /assaytypes/<data_type name>?application_context=<context>" | tee -a test.out
+echo "TESTS FOR: assayclasses GET" | tee -a test.out
+echo "SIGNATURE: /assayclasses?application_context=<context>&process_state=<process_state>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
-echo "/assaytypes/bulk-RNA?application_context=HUBMAP => should return 200" | tee -a test.out
+echo "1. /assayclasses?application_context=x => invalid application context; should return 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP" \
- --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAPx" \
+ --header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+echo "2. /assayclasses => missing application context; should return 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses?" \
+ --header "Accept: application/json" | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "TESTS FOR: datasets GET" | tee -a test.out
-echo "SIGNATURE: /datasets?application_context=<context>&data_type=<data_type>&description=<description>&alt_name=<alt_name>&primary=<true or false>&contains_pii=<true or false>&vis_only=<true or false>&vitessce_hint=<hint>&dataset_provider=<provider>" | tee -a test.out
-echo | tee -a test.out
-echo | tee -a test.out
-echo "/datasets?application_context=HUBMAP => should return 200" | tee -a test.out
-
+echo "3. /assayclasses => invalid parameter; should return 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/datasets?application_context=HUBMAP" \
- --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&process_state=x" \
+ --header "Accept: application/json" | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
+echo "4. /assayclasses => valid, all; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "5. /assayclasses => valid, all, primary; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP&process_state=primary" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "6. /assayclasses/AFX => invalid assayclass; should return 404" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/AFX?application_context=HUBMAP" \
+--header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "7. /assayclasses/non-DCWG primary AF => valid assayclass; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/non-DCWG%20primary%20AF?application_context=HUBMAP" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "8. /assayclasses/C200001 => valid assayclass; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/C200001?application_context=HUBMAP" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
 
 echo "TESTS FOR: organs GET" | tee -a test.out
 echo "SIGNATURE: /organs?application_context=<context>" | tee -a test.out
@@ -179,9 +224,9 @@ echo "SIGNATURE: /valueset?child_sabs=<list of sabs.&parent_sab=<sab>&parent_cod
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C001000 => should return 200" | tee -a test.out
+echo "/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C000002 => should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C001000" \
+ --url "${UBKG_URL}/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C000002" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
@@ -504,7 +549,7 @@ echo | tee -a test.out
 echo | tee -a test.out
 
 echo "TESTS FOR: field-assays GET" | tee -a test.out
-echo "SIGNATURE: /field-assays/<assay_identifier>?data_type=<data_type>&dataset_type=<dataset_type" | tee -a test.out
+echo "SIGNATURE: /field-assays/<assay_identifier>?assaytype=<assaytype>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
 
@@ -532,49 +577,19 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "4. /field-assays?assay_identifier=X => no results; should return 404" | tee -a test.out
+echo "4. /field-assays?assaytype=X => no results; should return 404" | tee -a test.out
 echo "SHOULD RETURN 404; no results"
 curl --request GET \
- --url "${UBKG_URL}/field-assays?assay_identifier=X" \
+ --url "${UBKG_URL}/field-assays?assaytype=X" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "5. /field-assays?assay_identifier=snRNAseq => should return 200" | tee -a test.out
+echo "5. /field-assays?assaytype=snRNAseq => should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/field-assays?assay_identifier=snRNAseq" \
+ --url "${UBKG_URL}/field-assays?assaytype=snRNAseq" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "5. /field-assays?data_type=X => no results; should return 404" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/field-assays?data_type=X" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "6. /field-assays?data_type=seqFISH => should return 200" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/field-assays?data_type=seqFISH" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "7. field-assays?dataset_type=X => no results; should return 404" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/field-assays?dataset_type=x" \
- --header "Content-Type: application/json"
-echo
-
-echo "8. /field-assays?dataset_type=RNAseq => should return 200" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/field-assays?dataset_type=RNAseq" \
- --header "Content-Type: application/json"| cut -c1-60 | tee -a test.out
 echo
 echo | tee -a test.out
 echo | tee -a test.out
