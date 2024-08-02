@@ -2,8 +2,8 @@ Flask==3.0.3
 # Flask depends on Werkzeug...
 Werkzeug==3.0.3
 
-#git+https://github.com/x-atlas-consortia/ubkg-api.git@flask-v3x
-#ubkg-api==2.1.4
+git+https://github.com/x-atlas-consortia/ubkg-api.git@dev-integrate
+#ubkg-api==2.1.6
 neo4j==5.15.0
 
 # for analysis of tabular data
