@@ -72,7 +72,9 @@ def assayname_post():
         assaytype = {}
         val = r.get('value')
         assaytype['name'] = val.get('assaytype')
-        assaytype['primary'] = val.get('primary')
+        # July 2024 - Process states have changed from a simple binary for primary/derived to a categorical
+        # value of 'primary', 'derived', or 'epic'. The legacy model will observe the binary model.
+        assaytype['primary'] = val.get('process_state')=='primary'
         assaytype['description'] = val.get('description')
         assaytype['vitessce-hints'] = val.get('vitessce_hints')
         # The vis-only and contains-pii properties have been deprecated.

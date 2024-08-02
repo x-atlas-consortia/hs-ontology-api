@@ -46,6 +46,7 @@ evaluate_JSON_body()
 
     # Execute the endpoint, and save the response + response code to a
     # string that can be split apart.
+    # JAS corrected parameter for pipe to wc (-c instead of --chars).
     CURL_OUTPUT=$(curl --request GET \
 		       --url "${UBKG_URL}${ENDPOINT}" \
 		       --header "Content-Type: application/json" \
@@ -53,7 +54,7 @@ evaluate_JSON_body()
 		       --write-out "-_-_-_->http_code=%{http_code}")
     HTTP_RESPONSE_CODE=$(echo ${CURL_OUTPUT} | sed 's/.*-_-_-_->http_code=//')
     RESPONSE_JSON=$(echo ${CURL_OUTPUT} | sed 's/.-_-_-_->http_code=.*//')
-    JSON_LENGTH=$(echo $RESPONSE_JSON | wc --chars)
+    JSON_LENGTH=$(echo $RESPONSE_JSON | wc -c)
 
     # Evaluate the result, either for an exact match or a minimum length JSON body
     if [[ "$HTTP_RESPONSE_CODE" != "$EXPECTED_HTTP_RESPONSE_CODE" ]]; then
@@ -132,9 +133,10 @@ curl --request GET \
  --header "Accept: application/json" |cut -c1-60
 echo
 
-echo "datasets GET"
+# JAS update: datasets replaced with assayclasses
+echo "assayclasses GET"
 curl --request GET \
- --url "${UBKG_URL}/datasets?application_context=HUBMAP" \
+ --url "${UBKG_URL}/assayclasses?application_context=HUBMAP" \
  --header "Accept: application/json" |cut -c1-60
 echo
 
@@ -164,7 +166,7 @@ echo
 
 echo "valueset GET..."
 curl --request GET \
- --url "${UBKG_URL}/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C001000" \
+ --url "${UBKG_URL}/valueset?child_sabs=OBI&parent_sab=HUBMAP&parent_code=C000002" \
  --header "Content-Type: application/json" |cut -c1-60
 echo
 
@@ -574,7 +576,7 @@ evaluate_JSON_body \
     '/concepts/paths/subgraph?sab=SNOMEDCT_US&rel=isa&skip=0&limit=10' \
     '200' \
     '' \
-    8077
+    8021
 
 # /concepts/{concept_id}/paths/expand - ubkg-api
 
@@ -583,21 +585,20 @@ evaluate_JSON_body \
     '/concepts/C0006142/paths/expand?sab=SNOMEDCT_US&rel=isa&maxdepth=1' \
     '200' \
     '' \
-    540107
+    526167
 
 echo "/concepts/C0006142/paths/trees?sab=SNOMEDCT_US&rel=isa&maxdepth=0 expecting HTTP 200 response"
 evaluate_JSON_body \
     '/concepts/C0006142/paths/trees?sab=SNOMEDCT_US&rel=isa&maxdepth=0' \
     '200' \
     '' \
-    48172
+    41113
 
-echo "/concepts/C2720507/nodobjects expecting HTTP 200 response"
+echo "/concepts/C2720507/nodeobjects expecting HTTP 200 response"
 evaluate_JSON_body \
     '/concepts/C2720507/nodeobjects' \
     '200' \
-    '{"nodeobjects":[{"node":{"codes":[{"codeid":"MTH:NOCODE","sab":"MTH","terms":[{"name":"SNOMED CT Concept (SNOMED RT+CTV3)","tty":"PN"}]},{"codeid":"SNOMEDCT_US:138875005","sab":"SNOMEDCT_US","terms":[{"name":"SNOMED CT has been created by combining SNOMED RT and a computer-based nomenclature and classification known as Read Codes Version 3, which was created on behalf of the U.K. Department of Health.","tty":"SY"},{"name":"\u00a9 2002-2023 International Health Terminology Standards Development Organisation (IHTSDO). All rights reserved. SNOMED CT\u00ae, was originally created by The College of American Pathologists. \"SNOMED\" and \"SNOMED CT\" are registered trademarks of the IHTSDO.","tty":"SY"},{"name":"SNOMED CT Concept (SNOMED RT+CTV3)","tty":"FN"},{"name":"SNOMED CT Concept","tty":"PT"}]},{"codeid":"SRC:V-SNOMEDCT_US","sab":"SRC","terms":[{"name":"US Edition of SNOMED CT","tty":"RPT"},{"name":"SNOMED CT Concept","tty":"RHT"},{"name":"SNOMED CT, US Edition","tty":"SSN"},{"name":"SNOMEDCT_US","tty":"RAB"}]}],"cui":"C2720507","definitions":[],"pref_term":"SNOMED CT Concept (SNOMED RT+CTV3)","semantic_types":[{"def":"A conceptual entity resulting from human endeavor. Concepts assigned to this type generally refer to information created by humans for some purpose.","stn":"A2.4","sty":"Intellectual Product","tui":"T170"}]}}]}'
-
+    '{"nodeobjects":[{"node":{"codes":[{"codeid":"MTH:NOCODE","sab":"MTH","terms":[{"name":"SNOMED CT Concept (SNOMED RT+CTV3)","tty":"PN"}]},{"codeid":"SNOMEDCT_US:138875005","sab":"SNOMEDCT_US","terms":[{"name":"SNOMED CT has been created by combining SNOMED RT and a computer-based nomenclature and classification known as Read Codes Version 3, which was created on behalf of the U.K. Department of Health.","tty":"SY"},{"name":"\u00a9 2002-2024 International Health Terminology Standards Development Organisation (IHTSDO). All rights reserved. SNOMED CT\u00ae, was originally created by The College of American Pathologists. \"SNOMED\" and \"SNOMED CT\" are registered trademarks of the IHTSDO.","tty":"SY"},{"name":"SNOMED CT Concept (SNOMED RT+CTV3)","tty":"FN"},{"name":"SNOMED CT Concept","tty":"PT"}]},{"codeid":"SRC:V-SNOMEDCT_US","sab":"SRC","terms":[{"name":"US Edition of SNOMED CT","tty":"RPT"},{"name":"SNOMED CT Concept","tty":"RHT"},{"name":"SNOMED CT, US Edition","tty":"SSN"},{"name":"SNOMEDCT_US","tty":"RAB"}]}],"cui":"C2720507","definitions":[],"pref_term":"SNOMED CT Concept (SNOMED RT+CTV3)","semantic_types":[{"def":"A conceptual entity resulting from human endeavor. Concepts assigned to this type generally refer to information created by humans for some purpose.","stn":"A2.4","sty":"Intellectual Product","tui":"T170"}]}}]}'
 
 echo "/concepts/C2720507/paths/shortestpath/C1272753?sab=SNOMEDCT_US&rel=isa expecting HTTP 200 response"
 evaluate_JSON_body \
@@ -622,13 +623,13 @@ echo "/node-types/Code/counts?sab=MSH expecting HTTP 200 response"
 evaluate_JSON_body \
     '/node-types/Code/counts?sab=MSH' \
     '200' \
-    '{"node_types":[{"node_type":{"count":5088308,"label":"Code"}}],"total_count":5088308}'
+    '{"node_types":[{"node_type":{"count":5124728,"label":"Code"}}],"total_count":5124728}'
 
 echo "/node-types/Code/counts-by-sab?sab=MSH expecting HTTP 200 response"
 evaluate_JSON_body \
     '/node-types/Code/counts-by-sab?sab=MSH' \
     '200' \
-    '{"node_types":[{"node_type":{"count":353698,"label":"Code","sabs":[{"count":353698,"sab":"MSH"}]}}],"total_count":353698}'
+    '{"node_types":[{"node_type":{"count":354269,"label":"Code","sabs":[{"count":354269,"sab":"MSH"}]}}],"total_count":354269}'
 
 echo "/property-types expecting HTTP 200 response"
 evaluate_JSON_body \
@@ -641,7 +642,7 @@ evaluate_JSON_body \
     '/relationship-types' \
     '200' \
     '' \
-    43755
+    43529
 
 echo "/sabs expecting HTTP 200 response"
 evaluate_JSON_body \
@@ -661,14 +662,14 @@ echo "/sabs/MSH/codes/counts expecting HTTP 200 response"
 evaluate_JSON_body \
     '/sabs/MSH/codes/counts' \
     '200' \
-    '{"sabs":[{"count":353698,"position":1,"sab":"MSH"}]}'
+    '{"sabs":[{"count":354269,"position":1,"sab":"MSH"}]}'
 
 echo "/sabs/MSH/codes/details expecting HTTP 200 response"
 evaluate_JSON_body \
     '/sabs/MSH/codes/details' \
     '200' \
     '' \
-    177515
+    177514
 
 echo "/sabs/MSH/term-types expecting HTTP 200 response"
 evaluate_JSON_body \
