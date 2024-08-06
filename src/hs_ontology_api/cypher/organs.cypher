@@ -14,8 +14,15 @@ CALL
 CALL
 {
 	WITH OrganCUI OPTIONAL MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term)
-	WHERE pOrgan.CUI=OrganCUI AND cOrgan.SAB='UBERON'
+	WHERE pOrgan.CUI=OrganCUI AND cOrgan.SAB IN ['UBERON']
 	AND r2.CUI=pOrgan.CUI RETURN cOrgan.CodeID AS OrganUBERON
+}
+// Obtain FMA codes.
+CALL
+{
+	WITH OrganCUI OPTIONAL MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term)
+	WHERE pOrgan.CUI=OrganCUI AND cOrgan.SAB IN ['FMA']
+	AND r2.CUI=pOrgan.CUI RETURN cOrgan.CodeID AS OrganFMA
 }
 // RUI codes are property nodes linked to organ nodes.
 CALL
@@ -24,6 +31,6 @@ CALL
 	WHERE pOrgan.CUI=OrganCUI AND r1.SAB=$sab RETURN t2CC.name as OrganTwoCharacterCode
 }
 // Filter out the "Other" organ node.
-WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganCUI
+WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI
 WHERE NOT (OrganCode = 'C030071' AND OrganSAB=$sab)
-RETURN OrganCode,OrganSAB,OrganName,OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName
+RETURN OrganCode,OrganSAB,OrganName,CASE WHEN OrganUBERON IS NULL THEN OrganFMA ELSE OrganUBERON END AS OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName

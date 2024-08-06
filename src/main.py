@@ -1,11 +1,12 @@
 from os import path
-from flask import Flask, jsonify, current_app
+from flask import Flask
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
 from hs_ontology_api.routes.assaytype.assaytype_controller import assaytype_blueprint
 from hs_ontology_api.routes.assayname.assayname_controller import assayname_blueprint
-from hs_ontology_api.routes.datasets.datasets_controller import datasets_blueprint
+# July 2024 deprecated datasets
+# from src.hs_ontology_api.routes.deprecated.datasets.datasets_controller import datasets_blueprint
 from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
 from hs_ontology_api.routes.relationships.relationships_controller import relationships_blueprint
 from hs_ontology_api.routes.valueset.valueset_controller import valueset_blueprint
@@ -26,6 +27,9 @@ from hs_ontology_api.routes.fieldschemas.fieldschemas_controller import field_sc
 from hs_ontology_api.routes.fieldtypesinfo.fieldtypesinfo_controller import field_types_info_blueprint
 from hs_ontology_api.routes.fieldentities.fieldentities_controller import field_entities_blueprint
 
+# JAS July 2024
+from hs_ontology_api.routes.assayclasses.assayclasses_controller import assayclasses_blueprint
+
 # Cells API client
 # May 2024 deprecated
 # from hs_ontology_api.utils.cellsclient import OntologyCellsClient
@@ -43,7 +47,9 @@ app = UbkgAPI(make_flask_config(), Path(__file__).absolute().parent.parent).app
 
 app.register_blueprint(assaytype_blueprint)
 app.register_blueprint(assayname_blueprint)
-app.register_blueprint(datasets_blueprint)
+# July 2024 - deprecating datasets
+#app.register_blueprint(datasets_blueprint)
+
 app.register_blueprint(organs_blueprint)
 app.register_blueprint(relationships_blueprint)
 app.register_blueprint(valueset_blueprint)
@@ -63,6 +69,8 @@ app.register_blueprint(field_assays_blueprint)
 app.register_blueprint(field_schemas_blueprint)
 app.register_blueprint(field_types_info_blueprint)
 app.register_blueprint(field_entities_blueprint)
+# July 2024
+app.register_blueprint(assayclasses_blueprint)
 
 
 # Instantiate a Cells API client.

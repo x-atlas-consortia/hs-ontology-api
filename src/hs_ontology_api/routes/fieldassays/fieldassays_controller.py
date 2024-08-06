@@ -15,36 +15,24 @@ def field_assays_get(name=None):
     """
 
     # Get optional filtering parameters:
-    # assay_identifier - legacy identifier for assay dataset from field_assays.yaml.
-    #                    Can be a data_type, alt-name, or description.
-    # data_type - legacy data_type, used in ingestion workflows
-    # dataset_type - "soft assay" dataset type, used by the Rules Engine
+    # assaytype - legacy identifier for assay dataset from field_assays.yaml.
 
     # Validate parameters
-    err = validate_query_parameter_names(['assay_identifier', 'data_type', 'dataset_type'])
+    err = validate_query_parameter_names(['assaytype'])
     if err != 'ok':
         return make_response(err, 400)
 
-    assay_identifier = request.args.get('assay_identifier')
-    data_type = request.args.get('data_type')
-    dataset_type = request.args.get('dataset_type')
+    assaytype = request.args.get('assaytype')
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    result = field_assays_get_logic(neo4j_instance, field_name=name, assay_identifier=assay_identifier,
-                                    data_type=data_type, dataset_type=dataset_type)
+    result = field_assays_get_logic(neo4j_instance, field_name=name, assaytype=assaytype)
 
     iserr = False
     if result is None or result == []:
         iserr = True
     else:
-        # Check for no assay associations.
-        # The result object is an list of dicts if the route is unfiltered (field-associations) and a dict
-        # if filtered (field-associations/{name}).
-        if type(result) == list:
-            assays = result[0].get('assays')
-        else:
-            assays = result.get('assays')
-        iserr = len(assays) == 0
+        fields = result.get('fields')
+        iserr = len(fields)==0
 
     if iserr:
         # Empty result

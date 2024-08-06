@@ -1,5 +1,7 @@
 # coding: utf-8
 
+# JULY 2024 - Refactored to account for new assay class model.
+
 # JAS December 2023
 # FieldAssay model class
 # Used by the field-assays endpoint.
@@ -20,19 +22,18 @@ class FieldAssay:
         Replaces and enhances the legacy field_assays.yaml with additional information related to HUBMAP datasets
         and CEDAR.
 
-        :param code_ids: delimited list of code_ids for the metadata field. The code_ids can come from both
-                         HMFIELD or CEDAR.
-        :param name: equivalent of the field key in the yaml (HMFIELD) or field name (CEDAR)
+        :param code_ids: delimited list of code_ids for the metadata field. The code_ids come from
+                         HMFIELD.
+        :param name: equivalent of the field key in the yaml (HMFIELD)
         :param assays: delimited list of values in format <assay_identifier>|<data_type>|<dataset_type>.
                Each value in the list has elements:
                 - assay_identifier: the assay identifier for the assay from the yaml.
                                     This can be a "not DCWG" (i.e., pre-soft assay) data_type; an alt-name;
                                     or a dataset description used in the Data Portal.
-                - data_type: the pre-soft assay data_type, if this is a "not DCWG" assay dataset
-                - dataset_type: the "soft assay" dataset type
+                - assay_type: the pre-soft assay data_type, if this is a "not DCWG" assay dataset
 
         example:
-        code_ids - [HMFIELD:1008|CEDAR:9f654d25-4de7-4eda-899b-417f05e5d5c3]
+        code_ids - [HMFIELD:1008]
         name - acquisition_instrument_model
         assays - [scRNAseq-10xGenomics|scRNAseq-10xGenomics-v3|RNASeq,...]
 
@@ -65,8 +66,7 @@ class FieldAssay:
             # If no associated assays were found, the query returns ['none|none|none'].
             for assay in assays:
                 if assay.split('|')[0] != 'none':
-                    dictassay = {'assay_identifier': assay.split('|')[0], 'data_type': assay.split('|')[1],
-                                 'dataset_type': assay.split('|')[2]}
+                    dictassay = {'assay_identifier': assay.split('|')[0], 'assay_type': assay.split('|')[1]}
                     listassays.append(dictassay)
         self._assays = listassays
 
