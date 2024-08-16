@@ -1,7 +1,5 @@
 from flask import Blueprint, jsonify, current_app, request
 
-from ubkg_api.common_routes.validate import validate_application_context
-
 from hs_ontology_api.utils.neo4j_logic import dataset_get_logic
 
 datasets_blueprint = Blueprint('datasets_hs', __name__, url_prefix='/datasets')

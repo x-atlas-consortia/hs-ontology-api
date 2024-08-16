@@ -1485,3 +1485,46 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
                 pass
 
     return assayclasses
+
+def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None) -> dict:
+    """
+    July 2024
+        Obtains information on dataset types.
+
+        The return from the query is a complete JSON, so there is no need for a model class.
+
+        :param neo4j_instance: neo4j connection
+        :param datasettype: dataset_type
+        :param context: application context--i.e., HUBMAP or SENNET
+
+        """
+    datasettypes: [dict] = []
+
+    # Load and parameterize query.
+    querytxt = loadquerystring('datasettypes.cypher')
+
+    # Filter by application context.
+    querytxt = querytxt.replace('$context', context)
+
+    # Filter by dataset type
+    if datasettype is not None:
+        querytxt = querytxt.replace('$datasettype_filter', f"AND tDatasetType.name='{datasettype}'")
+    else:
+        querytxt = querytxt.replace('$datasettype_filter','')
+
+    print(querytxt)
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        recds: neo4j.Result = session.run(query)
+        for record in recds:
+
+            dst = record.get('dataset_types')
+            try:
+                datasettypes.append(dst)
+
+            except KeyError:
+                pass
+
+    return datasettypes

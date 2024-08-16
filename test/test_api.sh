@@ -164,6 +164,54 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
+echo "TESTS FOR: dataset-types GET" | tee -a test.out
+echo "SIGNATURE: /dataset-types?application_context" | tee -a test.out
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "1. /dataset-types?application_context=x => invalid application context; should return 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types?application_context=HUBMAPx" \
+ --header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+
+echo "2. /dataset-types => missing application context; should return 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types?" \
+ --header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "3. /dataset-types?application_context=HUBMAP => valid; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types?application_context=HUBMAP" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+
+# dataset-types/<id> uses the same code as dataset-types
+echo "TESTS FOR: dataset-types/<id> GET" | tee -a test.out
+echo "SIGNATURE: /dataset-types/<id>?application_context" | tee -a test.out
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "1. /dataset-types/test?application_context=x => invalid dataset-type; should return custom 404" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/test?application_context=HUBMAPx" \
+ --header "Accept: application/json" | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "2. /dataset-types/2D Imaging Mass Cytometry?application_context=HUBMAP => valid; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/2D%20Imaging%20Mass%20Cytometry?application_context=HUBMAP" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+
 echo "TESTS FOR: organs GET" | tee -a test.out
 echo "SIGNATURE: /organs?application_context=<context>" | tee -a test.out
 echo | tee -a test.out
