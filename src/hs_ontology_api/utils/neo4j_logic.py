@@ -1512,7 +1512,7 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None) -> dic
     else:
         querytxt = querytxt.replace('$datasettype_filter','')
 
-    print(querytxt)
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
