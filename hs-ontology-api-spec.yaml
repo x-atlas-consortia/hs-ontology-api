@@ -110,7 +110,7 @@ paths:
           description: No assay classes matching parameters
         '5XX':
           description: Unknown error
-  /dataset-type:
+  /dataset-types:
     get:
       operationId: datasettypes_get
       summary: Returns metadata on the new "soft assay" dataset types.
@@ -144,7 +144,7 @@ paths:
           description: No dataset types matching parameters
         '5XX':
           description: Unknown error
-  /dataset-type/{name}:
+  /dataset-types/{name}:
     get:
       operationId: datasettypes_name_get
       summary: Returns metadata on the specified "soft assay" dataset type.
