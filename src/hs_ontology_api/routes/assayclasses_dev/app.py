@@ -1,9 +1,24 @@
 import os
 import json
-from flask import Flask, request, Response, abort
 from urllib.request import urlopen
 from urllib.error import HTTPError
 import logging
+from flask import Flask, request, Response, abort, Blueprint
+
+
+####################################################################################################
+# For assayclasses development needs - Zhou 8/28/2024
+assayclasses_dev_blueprint = Blueprint('assayclasses-dev', __name__, url_prefix='/assayclasses-dev')
+
+@assayclasses_dev_blueprint.route('', methods=['GET'])
+def assayclasses_dev_get_all():
+    return assayclass()
+
+@assayclasses_dev_blueprint.route('/<code>', methods=['GET'])
+def assayclasses_dev_get_by_code(code):
+    return assayclasses_by_code(code)
+####################################################################################################
+
 
 #
 # This is a RESTful service that exposes two endpoints:
@@ -30,7 +45,7 @@ logger = logging.getLogger()
 
 
 app = Flask(__name__,
-            instance_path=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance'),
+            instance_path=os.path.join(os.path.abspath(os.path.dirname(__file__)), '../../instance'),
             instance_relative_config=True)
 app.config.from_pyfile('app.cfg')
 
