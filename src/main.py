@@ -75,6 +75,13 @@ app.register_blueprint(assayclasses_blueprint)
 app.register_blueprint(datasettypes_blueprint)
 
 
+####################################################################################################
+# For assayclasses development needs - Zhou 8/28/2024
+from hs_ontology_api.routes.assayclasses_dev.app import assayclasses_dev_blueprint
+app.register_blueprint(assayclasses_dev_blueprint)
+####################################################################################################
+
+
 # Instantiate a Cells API client.
 # May 2024 Deprecated
 # cellsurl = make_flask_config().get('CELLSURL')
