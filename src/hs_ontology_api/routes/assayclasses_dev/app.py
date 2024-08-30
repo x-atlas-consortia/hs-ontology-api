@@ -92,8 +92,10 @@ def check_for_valid_application_context() -> None:
     Check for a valid auery parameter application_context, and if not found abort with a 400.
     """
     application_context = request.args.get('application_context')
-    if application_context != "HUBMAP":
-        abort(400, "A query parameter of application_context=HUBMAP must be specified")
+    if application_context is None or application_context.upper() != "HUBMAP":
+        abort(Response(json.dumps({"message": "A query parameter of application_context=HUBMAP must be specified"}),
+                       400,
+                       mimetype='application/json'))
 
 
 @app.route('/', methods=['GET'])

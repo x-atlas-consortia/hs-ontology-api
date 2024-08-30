@@ -5207,5 +5207,42 @@
                 "is_sc"
             ]
         }
+    },
+    {
+        "rule_description": {
+            "application_context": "HUBMAP",
+            "code": "C202010",
+            "name": "derived salmon_rnaseq_10x json-based"
+        },
+        "value": {
+            "active_status": "active",
+            "asssaytype": "salmon_rnaseq_10x",
+            "dataset_type": {
+                "PDR_category": "RNA Sequencing",
+                "dataset_type": "RNAseq",
+                "fig2": {
+                    "aggregated_assaytype": null,
+                    "category": "bulk",
+                    "modality": "Transcriptomics"
+                }
+            },
+            "description": "scRNAseq (10x Genomics) [Salmon]",
+            "dir_schema": null,
+            "is_multiassay": false,
+            "measurement_assay": {
+                "codes": [],
+                "contains_full_genetic_sequences": false
+            },
+            "must_contain": [],
+            "pipeline_shorthand": "Salmon",
+            "process_state": "derived",
+            "provider": "IEC",
+            "tbl_schema": null,
+            "vitessce_hints": [
+                "rna",
+                "is_sc",
+                "json_based"
+            ]
+        }
     }
 ]
