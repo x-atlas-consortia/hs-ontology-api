@@ -66,10 +66,18 @@ The `/assayclasses/<assay-code>` endpoint searches the same [assayclasses.json f
 }
 ```
 
-## Deployment on DEV VM
+## Docker Deployment on DEV VM
 
-First build a new docker image using the Dockerfile. Then spin up the container
+First build a new docker image
 
 ```
-docker run -it -d <image-name> -p 8181:8181 --restart=always
+docker compose build
 ```
+
+Then spin up the container
+
+```
+docker compose up -d
+```
+
+Once the container is up running correctly, you can access at `http://gateway.dev.hubmapconsortium.org:8181/assayclasses`

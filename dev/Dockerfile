@@ -6,9 +6,7 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN yum install -y && \
-    pip install --upgrade pip -r requirements.txt && \
-    yum clean all
+RUN pip install --upgrade pip -r requirements.txt
 
 EXPOSE 8181
 
