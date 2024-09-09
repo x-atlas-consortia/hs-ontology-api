@@ -211,6 +211,8 @@ def get_organ_types_logic(neo4j_instance, sab):
     :param neo4j_instance: pointer to neo4j connection
     :return:
 
+    JAS SEPT 2024 - Converted to using JSON returned from query. Added organ category and laterality.
+
     JAS NOV 2023 - Moved query string to external file and implemented loadquery utility logic.
     """
     result = []
@@ -223,14 +225,16 @@ def get_organ_types_logic(neo4j_instance, sab):
 
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
+        #for record in recds:
+            #item = SabCodeTermRuiCode(sab=record.get('OrganSAB'), code=record.get('OrganCode'),
+                                      #term=record.get('OrganName'), rui_code=record.get('OrganTwoCharacterCode'),
+                                      #organ_uberon=record.get('OrganUBERON'), organ_cui=record.get('OrganCUI')
+                                      #).serialize()
+            #result.append(item)
         for record in recds:
-            item = SabCodeTermRuiCode(sab=record.get('OrganSAB'), code=record.get('OrganCode'),
-                                      term=record.get('OrganName'), rui_code=record.get('OrganTwoCharacterCode'),
-                                      organ_uberon=record.get('OrganUBERON'), organ_cui=record.get('OrganCUI')
-                                      ).serialize()
-            result.append(item)
-    return result
+            result.append(record.get('organ'))
 
+        return result
 
 def relationships_for_gene_target_symbol_get_logic(neo4j_instance, target_symbol: str) -> dict:
     """

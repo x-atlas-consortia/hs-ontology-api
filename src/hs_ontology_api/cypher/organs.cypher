@@ -1,3 +1,5 @@
+// JAS SEPT 2024 - Converted return to JSON. Added organ category and laterality.
+
 //  Replaces and extends a read of the organ_types.yaml in the search-api. Used by endpoints in the organs route.
 
 // The calling function in neo4j_logic.py will replace $sab.
@@ -33,4 +35,6 @@ CALL
 // Filter out the "Other" organ node.
 WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI
 WHERE NOT (OrganCode = 'C030071' AND OrganSAB=$sab)
-RETURN DISTINCT OrganCode,OrganSAB,OrganName,CASE WHEN OrganUBERON IS NULL THEN OrganFMA ELSE OrganUBERON END AS OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName
+//RETURN DISTINCT OrganCode,OrganSAB,OrganName,CASE WHEN OrganUBERON IS NULL THEN OrganFMA ELSE OrganUBERON END AS OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName
+RETURN {code:OrganCode, sab:OrganSAB, term:OrganName, organ_uberon:CASE WHEN OrganUBERON IS NULL THEN OrganFMA ELSE OrganUBERON END, rui_code:OrganTwoCharacterCode, organ_cui:OrganCUI} AS organ
+ORDER BY OrganName
