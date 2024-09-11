@@ -32,9 +32,34 @@ CALL
 	WITH OrganCUI OPTIONAL MATCH (pOrgan:Concept)-[r1:has_two_character_code]->(p2CC:Concept)-[r2:PREF_TERM]->(t2CC:Term)
 	WHERE pOrgan.CUI=OrganCUI AND r1.SAB=$sab RETURN t2CC.name as OrganTwoCharacterCode
 }
+// Organ categories
+CALL
+{
+   WITH OrganCUI
+   OPTIONAL MATCH (pOrgan:Concept)-[:isa]-(pOrganCat:Concept)-[:isa]->(pCat:Concept),
+   // HuBMAP name for the category
+   (pOrganCat:Concept)-[:CODE]->(cOrganCat:Code)-[rOrganCat:PT]-(tOrganCat:Term),
+   // UBERON code for the category
+   (pOrganCat:Concept)-[:CODE]->(cUBERON:Code)
+   WHERE pOrgan.CUI = OrganCUI
+   //Organ cat parent
+   AND pCat.CUI='HUBMAP:C045000 CUI'
+   AND cOrganCat.SAB='HUBMAP'
+   AND rOrganCat.CUI=pOrganCat.CUI
+   AND cUBERON.SAB='UBERON'
+   RETURN DISTINCT
+   CASE
+   // Kidney mapped to both kidney and mammalian kidney
+   WHEN OrganCUI in ['C0227614','C0227613'] THEN 'UBERON:0002113'
+   // Lung mapped to both lung and pair of lungs
+   WHEN OrganCUI in ['C0225730','C0225706'] THEN 'UBERON:0002048'
+   ELSE cUBERON.CodeID END AS OrganCatUBERON,tOrganCat.name AS OrganCatTerm
+}
 // Filter out the "Other" organ node.
-WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI
+WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI,CASE WHEN OrganCatUBERON is null then {category:{}} ELSE {category:{code:OrganCatUBERON, term:OrganCatTerm}} END AS category
+
 WHERE NOT (OrganCode = 'C030071' AND OrganSAB=$sab)
-//RETURN DISTINCT OrganCode,OrganSAB,OrganName,CASE WHEN OrganUBERON IS NULL THEN OrganFMA ELSE OrganUBERON END AS OrganUBERON,OrganTwoCharacterCode,OrganCUI ORDER BY OrganName
-RETURN {code:OrganCode, sab:OrganSAB, term:OrganName, organ_uberon:CASE WHEN OrganUBERON IS NULL THEN OrganFMA ELSE OrganUBERON END, rui_code:OrganTwoCharacterCode, organ_cui:OrganCUI} AS organ
-ORDER BY OrganName
+RETURN DISTINCT {code:OrganCode, sab:OrganSAB, term:OrganName,
+organ_uberon:CASE WHEN OrganUBERON IS NULL THEN OrganFMA ELSE OrganUBERON END,
+rui_code:OrganTwoCharacterCode, organ_cui:OrganCUI, category:category} AS organ
+ORDER BY organ.term
