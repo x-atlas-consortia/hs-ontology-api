@@ -36,15 +36,16 @@ CALL
 CALL
 {
    WITH OrganCUI
-   OPTIONAL MATCH (pOrgan:Concept)-[:isa]-(pOrganCat:Concept)-[:isa]->(pCat:Concept),
+   OPTIONAL MATCH (pOrgan:Concept)-[:isa]-(pOrganCat:Concept)-[:isa]->(pCat:Concept)-[:CODE]->(cCat:Code),
    // HuBMAP name for the category
    (pOrganCat:Concept)-[:CODE]->(cOrganCat:Code)-[rOrganCat:PT]-(tOrganCat:Term),
    // UBERON code for the category
    (pOrganCat:Concept)-[:CODE]->(cUBERON:Code)
    WHERE pOrgan.CUI = OrganCUI
    //Organ cat parent
-   AND pCat.CUI='HUBMAP:C045000 CUI'
-   AND cOrganCat.SAB='HUBMAP'
+   AND cCat.SAB=$sab
+   AND cCat.CODE='C045000'
+   AND cOrganCat.SAB=$sab
    AND rOrganCat.CUI=pOrganCat.CUI
    AND cUBERON.SAB='UBERON'
    RETURN DISTINCT
@@ -55,11 +56,22 @@ CALL
    WHEN OrganCUI in ['C0225730','C0225706'] THEN 'UBERON:0002048'
    ELSE cUBERON.CodeID END AS OrganCatUBERON,tOrganCat.name AS OrganCatTerm
 }
+// Laterality
+CALL
+{
+    WITH OrganCUI
+    OPTIONAL MATCH (pOrgan:Concept)-[:has_laterality]->(pLaterality:Concept)-[:CODE]->(cLaterality:Code)-[rLaterality:PT]->(tLaterality:Term)
+    WHERE pOrgan.CUI = OrganCUI
+    AND rLaterality.CUI = pLaterality.CUI
+    AND cLaterality.SAB=$sab
+    RETURN DISTINCT tLaterality.name as laterality
+}
 // Filter out the "Other" organ node.
-WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI,CASE WHEN OrganCatUBERON is null then {category:{}} ELSE {category:{code:OrganCatUBERON, term:OrganCatTerm}} END AS category
+WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI,laterality,
+CASE WHEN OrganCatUBERON is null then {category:{}} ELSE {category:{code:OrganCatUBERON, term:OrganCatTerm}} END AS category
 
 WHERE NOT (OrganCode = 'C030071' AND OrganSAB=$sab)
 RETURN DISTINCT {code:OrganCode, sab:OrganSAB, term:OrganName,
 organ_uberon:CASE WHEN OrganUBERON IS NULL THEN OrganFMA ELSE OrganUBERON END,
-rui_code:OrganTwoCharacterCode, organ_cui:OrganCUI, category:category} AS organ
+rui_code:OrganTwoCharacterCode, organ_cui:OrganCUI, laterality:laterality, category:category} AS organ
 ORDER BY organ.term
