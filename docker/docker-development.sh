@@ -83,7 +83,7 @@ else
 
         echo 'Checks complete, all good :)'
     elif [ "$1" = "config" ]; then
-        docker-compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api config
+        docker compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api config
     elif [ "$1" = "build" ]; then
         # Delete the copied source code dir if exists
         if [ -d "ubkg-api/src" ]; then
@@ -106,13 +106,13 @@ else
         cp ../VERSION ubkg-api
         cp ../BUILD ubkg-api
 
-        docker-compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api build
+        docker compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api build
     elif [ "$1" = "start" ]; then
-        docker-compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api up -d
+        docker compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api up -d
     elif [ "$1" = "stop" ]; then
-        docker-compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api stop
+        docker compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api stop
     elif [ "$1" = "down" ]; then
-        docker-compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api down
+        docker compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api down
     fi
 fi
 

@@ -20,7 +20,8 @@ touch /var/run/nginx.pid
 chown -R hubmap:hubmap /var/run/nginx.pid
 chown -R hubmap:hubmap /var/cache/nginx
 chown -R hubmap:hubmap /var/log/nginx
-# Lastly we use gosu to execute our process "$@" as that user
+
+# Lastly we use su-exec to execute our process "$@" as that user
 # Remember CMD from a Dockerfile of child image gets passed to the entrypoint.sh as command line arguments
 # "$@" is a shell variable that means "all the arguments"
-exec /usr/local/bin/gosu hubmap "$@"
+exec /usr/local/bin/su-exec hubmap "$@"

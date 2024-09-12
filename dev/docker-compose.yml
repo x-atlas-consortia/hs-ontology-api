@@ -1,0 +1,13 @@
+services:
+  
+  assayclasses-dev-server:
+    build: 
+      context: .
+    container_name: assayclasses-dev-server
+    ports:
+      - "8181:8181"
+    init: true
+    restart: always
+    volumes:
+      - "./instance:/usr/src/app/instance"
+    

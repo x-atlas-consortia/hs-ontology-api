@@ -56,11 +56,11 @@ else
     echo
 
     if [ "$1" = "start" ]; then
-        docker-compose -f docker-compose.yml -f docker-compose.deployment.yml -p hs-ontology-api up -d
+        docker compose -f docker-compose.yml -f docker-compose.deployment.yml -p hs-ontology-api up -d
     elif [ "$1" = "stop" ]; then
-        docker-compose -f docker-compose.yml -f docker-compose.deployment.yml -p hs-ontology-api stop
+        docker compose -f docker-compose.yml -f docker-compose.deployment.yml -p hs-ontology-api stop
     elif [ "$1" = "down" ]; then
-        docker-compose -f docker-compose.yml -f docker-compose.deployment.yml -p hs-ontology-api down
+        docker compose -f docker-compose.yml -f docker-compose.deployment.yml -p hs-ontology-api down
     fi
 fi
 
