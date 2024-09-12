@@ -64,11 +64,12 @@ CALL
     WHERE pOrgan.CUI = OrganCUI
     AND rLaterality.CUI = pLaterality.CUI
     AND cLaterality.SAB=$sab
-    RETURN DISTINCT tLaterality.name as laterality
+    // Return null for 'No Laterality' or 'Unknown Laterality'
+    RETURN DISTINCT CASE WHEN cLaterality.CODE IN ['C030039','C030040','C030041','C030022','C030023'] THEN NULL ELSE REPLACE(tLaterality.name," Laterality","") END AS laterality
 }
 // Filter out the "Other" organ node.
 WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI,laterality,
-CASE WHEN OrganCatUBERON is null then {category:{}} ELSE {category:{code:OrganCatUBERON, term:OrganCatTerm}} END AS category
+CASE WHEN OrganCatUBERON IS NULL THEN NULL ELSE {organ_UBERON:OrganCatUBERON, term:OrganCatTerm} END AS category
 
 WHERE NOT (OrganCode = 'C030071' AND OrganSAB=$sab)
 RETURN DISTINCT {code:OrganCode, sab:OrganSAB, term:OrganName,
