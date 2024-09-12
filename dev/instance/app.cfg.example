@@ -1,0 +1,3 @@
+# URL to the json file containing the assay class information
+ASSAYCLASSES_JSON_URL = 'https://raw.githubusercontent.com/x-atlas-consortia/hs-ontology-api/dev-integrate/dev/assayclasses.json'
+
