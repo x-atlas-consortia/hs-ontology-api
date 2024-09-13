@@ -69,7 +69,7 @@ CALL
 }
 // Filter out the "Other" organ node.
 WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI,laterality,
-CASE WHEN OrganCatUBERON IS NULL THEN NULL ELSE {organ_UBERON:OrganCatUBERON, term:OrganCatTerm} END AS category
+CASE WHEN OrganCatUBERON IS NULL THEN NULL ELSE {organ_uberon:OrganCatUBERON, term:OrganCatTerm} END AS category
 
 WHERE NOT (OrganCode = 'C030071' AND OrganSAB=$sab)
 RETURN DISTINCT {code:OrganCode, sab:OrganSAB, term:OrganName,
