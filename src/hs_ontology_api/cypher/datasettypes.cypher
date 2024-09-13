@@ -64,7 +64,18 @@ CALL
         AND cAssayType.SAB=context
         RETURN COLLECT(DISTINCT tAssayType.name) AS assaytypes
 }
-WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes
+// Whether an Epic datatype
+CALL
+{
+   WITH CUIDatasetType,context
+   OPTIONAL MATCH (pDatasetType:Concept)-[:isa]->(pEpic:Concept)-[:CODE]->(cEpic:Code)
+   WHERE pDatasetType.CUI = CUIDatasetType
+   AND cEpic.CODE = 'C004034'
+   AND cEpic.SAB = context
+   RETURN DISTINCT CASE WHEN pEpic IS NULL THEN 'false' ELSE 'true' END AS isepic
+}
+WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,isepic
+$epictype_filter
 RETURN
 {
         dataset_type:dataset_type,
@@ -75,5 +86,6 @@ RETURN
             modality:fig2_modality,
             category:fig2_category
         },
-        assaytypes:assaytypes
+        assaytypes:assaytypes,
+        isepic:isepic
 } AS dataset_types

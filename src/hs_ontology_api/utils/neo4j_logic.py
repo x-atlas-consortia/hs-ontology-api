@@ -1490,7 +1490,7 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
 
     return assayclasses
 
-def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None) -> dict:
+def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic=None) -> dict:
     """
     July 2024
         Obtains information on dataset types.
@@ -1500,6 +1500,7 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None) -> dic
         :param neo4j_instance: neo4j connection
         :param datasettype: dataset_type
         :param context: application context--i.e., HUBMAP or SENNET
+        :param isepic: optional filter to Epic dataset types
 
         """
     datasettypes: [dict] = []
@@ -1515,6 +1516,11 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None) -> dic
         querytxt = querytxt.replace('$datasettype_filter', f"AND tDatasetType.name='{datasettype}'")
     else:
         querytxt = querytxt.replace('$datasettype_filter','')
+
+    if isepic in ['true','false']:
+        querytxt = querytxt.replace('$epictype_filter', f"WHERE isepic='{isepic}'")
+    else:
+        querytxt = querytxt.replace('$epictype_filter','')
 
     print(querytxt)
     # Set timeout for query based on value in app.cfg.
