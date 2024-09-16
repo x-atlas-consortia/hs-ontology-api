@@ -140,6 +140,16 @@ curl --request GET \
  --header "Accept: application/json" |cut -c1-60
 echo
 
+echo "dataset-types GET"
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types?application_context=HUBMAP" \
+ --header "Accept: application/json" |cut -c1-60
+
+echo "dataset-types/<name> GET"
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/Auto-fluorescence?application_context=HUBMAP" \
+ --header "Accept: application/json" |cut -c1-60
+
 echo "organs GET for HUBMAP"
 curl --request GET \
  --url "${UBKG_URL}/organs?application_context=HUBMAP" \

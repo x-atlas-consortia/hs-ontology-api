@@ -129,6 +129,15 @@ paths:
               - sennet
               - HuBMAP
               - SenNet
+        - name: isepic
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
       responses:
         '200':
           description: A JSON array of dataset type objects
@@ -170,6 +179,15 @@ paths:
               - sennet
               - HuBMAP
               - SenNet
+        - name: isepic
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
       responses:
         '200':
           description: A dataset type object
@@ -1078,6 +1096,22 @@ components:
         organ_cui:
           type: string
           description: The organ CUI
+        laterality:
+          type: string
+          description: laterality of the organ-- left, right, or null
+          example: left
+        category:
+          type: object
+          description: the organ's category. Used primarily for organs that exhibit laterality.
+          properties:
+            organ_uberon:
+              type: string
+              description: UBERON code
+              example: "UBERON:0002185"
+            term:
+              type: string
+              description: name of the organ category
+              example: Bronchus
     HGNCIdRelationships:
       type: object
       description: Response Body for relationships/hgnc-id/{id} GET request
@@ -1983,3 +2017,7 @@ components:
                   items:
                     type: string
                     example: IMC2D
+                isepic:
+                  type: string
+                  description: whether the dataset type is for an EPIC dataset
+                  example: false

@@ -211,6 +211,8 @@ def get_organ_types_logic(neo4j_instance, sab):
     :param neo4j_instance: pointer to neo4j connection
     :return:
 
+    JAS SEPT 2024 - Converted to using JSON returned from query. Added organ category and laterality.
+
     JAS NOV 2023 - Moved query string to external file and implemented loadquery utility logic.
     """
     result = []
@@ -223,14 +225,16 @@ def get_organ_types_logic(neo4j_instance, sab):
 
     with neo4j_instance.driver.session() as session:
         recds: neo4j.Result = session.run(query)
+        #for record in recds:
+            #item = SabCodeTermRuiCode(sab=record.get('OrganSAB'), code=record.get('OrganCode'),
+                                      #term=record.get('OrganName'), rui_code=record.get('OrganTwoCharacterCode'),
+                                      #organ_uberon=record.get('OrganUBERON'), organ_cui=record.get('OrganCUI')
+                                      #).serialize()
+            #result.append(item)
         for record in recds:
-            item = SabCodeTermRuiCode(sab=record.get('OrganSAB'), code=record.get('OrganCode'),
-                                      term=record.get('OrganName'), rui_code=record.get('OrganTwoCharacterCode'),
-                                      organ_uberon=record.get('OrganUBERON'), organ_cui=record.get('OrganCUI')
-                                      ).serialize()
-            result.append(item)
-    return result
+            result.append(record.get('organ'))
 
+        return result
 
 def relationships_for_gene_target_symbol_get_logic(neo4j_instance, target_symbol: str) -> dict:
     """
@@ -1486,7 +1490,7 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
 
     return assayclasses
 
-def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None) -> dict:
+def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic=None) -> dict:
     """
     July 2024
         Obtains information on dataset types.
@@ -1496,6 +1500,7 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None) -> dic
         :param neo4j_instance: neo4j connection
         :param datasettype: dataset_type
         :param context: application context--i.e., HUBMAP or SENNET
+        :param isepic: optional filter to Epic dataset types
 
         """
     datasettypes: [dict] = []
@@ -1512,7 +1517,11 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None) -> dic
     else:
         querytxt = querytxt.replace('$datasettype_filter','')
 
-    print(querytxt)
+    if isepic in ['true','false']:
+        querytxt = querytxt.replace('$epictype_filter', f"WHERE isepic='{isepic}'")
+    else:
+        querytxt = querytxt.replace('$epictype_filter','')
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
