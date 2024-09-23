@@ -1500,7 +1500,7 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
         :param neo4j_instance: neo4j connection
         :param datasettype: dataset_type
         :param context: application context--i.e., HUBMAP or SENNET
-        :param isepic: optional filter to Epic dataset types
+        :param isepic: optional filter to Epic (externally processed) dataset types
 
         """
     datasettypes: [dict] = []
@@ -1518,7 +1518,11 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
         querytxt = querytxt.replace('$datasettype_filter','')
 
     if isepic in ['true','false']:
-        querytxt = querytxt.replace('$epictype_filter', f"WHERE isepic='{isepic}'")
+        if isepic == 'true':
+            isepicbool = True
+        else:
+            isepicbool = False
+        querytxt = querytxt.replace('$epictype_filter', f"WHERE is_externally_processed={isepicbool}")
     else:
         querytxt = querytxt.replace('$epictype_filter','')
 

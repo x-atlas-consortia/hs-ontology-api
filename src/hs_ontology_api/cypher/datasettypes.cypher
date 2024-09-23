@@ -72,9 +72,9 @@ CALL
    WHERE pDatasetType.CUI = CUIDatasetType
    AND cEpic.CODE = 'C004034'
    AND cEpic.SAB = context
-   RETURN DISTINCT CASE WHEN pEpic IS NULL THEN 'false' ELSE 'true' END AS isepic
+   RETURN DISTINCT CASE WHEN pEpic IS NULL THEN false ELSE true END AS is_externally_processed
 }
-WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,isepic
+WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed
 $epictype_filter
 RETURN
 {
@@ -87,5 +87,5 @@ RETURN
             category:fig2_category
         },
         assaytypes:assaytypes,
-        isepic:isepic
+        is_externally_processed:is_externally_processed
 } AS dataset_types
