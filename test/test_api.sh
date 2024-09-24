@@ -186,9 +186,9 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-echo "3. /dataset-types?application_context=HUBMAP&isepic=mango => invalid parameter; should return custom 400" | tee -a test.out
+echo "3. /dataset-types?application_context=HUBMAP&is_externally_processed=mango => invalid parameter; should return custom 400" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/dataset-types?application_context=HUBMAP&isepic=mango" \
+ --url "${UBKG_URL}/dataset-types?application_context=HUBMAP&is_externally_processed=mango" \
  --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
 echo "4. /dataset-types?application_context=HUBMAP => valid; should return 200" | tee -a test.out
@@ -196,9 +196,9 @@ curl --request GET \
  --url "${UBKG_URL}/dataset-types?application_context=HUBMAP" \
  --header "Accept: application/json" | cut -c1-60 | tee -a test.out
 echo
-echo "5. /dataset-types?application_context=HUBMAP&isepic=false => valid; should return 200" | tee -a test.out
+echo "5. /dataset-types?application_context=HUBMAP&is_externally_processed=false => valid; should return 200" | tee -a test.out
 curl --request GET \
- --url "${UBKG_URL}/dataset-types?application_context=HUBMAP&isepic=true" \
+ --url "${UBKG_URL}/dataset-types?application_context=HUBMAP&is_externally_processed=true" \
  --header "Accept: application/json" | tee -a test.out
 
 

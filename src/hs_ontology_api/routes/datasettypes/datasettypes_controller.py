@@ -25,7 +25,7 @@ def datasettypes_get(name=None):
     # Validate parameters.
 
     # Check for invalid parameter names.
-    err = validate_query_parameter_names(parameter_name_list=['application_context','isepic'])
+    err = validate_query_parameter_names(parameter_name_list=['application_context','is_externally_processed'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -44,9 +44,9 @@ def datasettypes_get(name=None):
 
     # Check for valid isepic. The parameter is case-insensitive
     val_enum = ['TRUE','FALSE']
-    isepic = request.args.get('isepic')
+    isepic = request.args.get('is_externally_processed')
     if isepic is not None:
-        err = validate_parameter_value_in_enum(param_name='isepic', param_value=isepic.upper(),
+        err = validate_parameter_value_in_enum(param_name='is_externally_processed', param_value=isepic.upper(),
                                            enum_list=val_enum)
         if err != 'ok':
             return make_response(err, 400)

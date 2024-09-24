@@ -164,14 +164,7 @@ CALL
         AND ppii.CUI = context+':C004009 CUI'
         RETURN DISTINCT CASE WHEN NOT ppii.CUI IS null THEN true ELSE false END AS contains_full_genetic_sequences
 }
-// provider
-CALL
-{
-        WITH CUIRBD,context
-        OPTIONAL MATCH (pRBD:Concept)-[:has_provider]->(pProvider:Concept)-[:CODE]-(cProvider:Code)-[r:PT]->(tProvider:Term)
-        WHERE pRBD.CUI=CUIRBD AND r.CUI=pProvider.CUI AND cProvider.SAB=context
-        RETURN DISTINCT tProvider.name AS provider
-}
+
 // active status
 CALL
 {
@@ -182,7 +175,12 @@ CALL
 }
 CALL
 {
-WITH context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema, vitessce_hints,process_state,pipeline_shorthand,description,dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,is_multiassay,must_contain,MeasCodes,contains_full_genetic_sequences,provider,active_status
+WITH
+context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
+vitessce_hints,process_state,pipeline_shorthand,
+description,dataset_type,pdr_category,
+fig2_aggregated_assaytype,fig2_modality,fig2_category,
+is_multiassay,must_contain,MeasCodes,contains_full_genetic_sequences,active_status
 RETURN
 {
         rule_description:
@@ -194,7 +192,6 @@ RETURN
                 process_state:process_state,
                 pipeline_shorthand:pipeline_shorthand, description:description,
                 is_multiassay:is_multiassay, must_contain:must_contain,
-                provider:provider,
                 active_status:active_status,
                 dataset_type:
                 {
