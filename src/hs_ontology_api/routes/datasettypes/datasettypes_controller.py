@@ -19,11 +19,13 @@ def datasettypes_get(name=None):
     in the testing rules json, with options to filter the list to those with specific property values.
     Filters are additive (i.e., boolean AND)
 
+    JAS Sept 2024 - added isepic filter
+
     """
     # Validate parameters.
 
     # Check for invalid parameter names.
-    err = validate_query_parameter_names(parameter_name_list=['application_context'])
+    err = validate_query_parameter_names(parameter_name_list=['application_context','is_externally_processed'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -40,9 +42,21 @@ def datasettypes_get(name=None):
         return make_response(err, 400)
     application_context = application_context.upper()
 
+    # Check for valid isepic. The parameter is case-insensitive
+    val_enum = ['TRUE','FALSE']
+    isepic = request.args.get('is_externally_processed')
+    if isepic is not None:
+        err = validate_parameter_value_in_enum(param_name='is_externally_processed', param_value=isepic.upper(),
+                                           enum_list=val_enum)
+        if err != 'ok':
+            return make_response(err, 400)
+
+    if isepic is not None:
+        isepic = isepic.lower()
+
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = datasettypes_get_logic(
-            neo4j_instance, datasettype=name, context=application_context)
+            neo4j_instance, datasettype=name, context=application_context, isepic=isepic)
 
     if result is None or result == []:
         # Empty result
