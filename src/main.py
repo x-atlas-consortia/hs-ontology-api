@@ -3,8 +3,10 @@ from flask import Flask
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
-from hs_ontology_api.routes.assaytype.assaytype_controller import assaytype_blueprint
-from hs_ontology_api.routes.assayname.assayname_controller import assayname_blueprint
+# October 2024 deprecated
+# from src.hs_ontology_api.routes.deprecated.assaytype.assaytype_controller import assaytype_blueprint
+# from src.hs_ontology_api.routes.deprecated.assayname import assayname_blueprint
+
 # July 2024 deprecated datasets
 # from src.hs_ontology_api.routes.deprecated.datasets.datasets_controller import datasets_blueprint
 from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
@@ -46,8 +48,9 @@ def make_flask_config():
 
 app = UbkgAPI(make_flask_config(), Path(__file__).absolute().parent.parent).app
 
-app.register_blueprint(assaytype_blueprint)
-app.register_blueprint(assayname_blueprint)
+# October 2024
+# app.register_blueprint(assaytype_blueprint)
+# app.register_blueprint(assayname_blueprint)
 # July 2024 - deprecating datasets
 #app.register_blueprint(datasets_blueprint)
 

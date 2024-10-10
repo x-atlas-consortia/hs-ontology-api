@@ -113,25 +113,6 @@ echo "Using UBKG at: ${UBKG_URL}"
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
 
-echo "assayname_POST..."
-curl --request POST \
- --url "${UBKG_URL}/assayname" \
- --header "Content-Type: application/json" \
- --data '{"name": "bulk-RNA"}'
-echo
-
-echo "assaytype GET"
-curl --request GET \
- --url "${UBKG_URL}/assaytype?application_context=HUBMAP" \
- --header "Accept: application/json" |cut -c1-60
-echo
-
-
-echo "assaytype/<name> GET"
-curl --request GET \
- --url "${UBKG_URL}/assaytype/bulk-RNA?application_context=HUBMAP" \
- --header "Accept: application/json" |cut -c1-60
-echo
 
 # JAS update: datasets replaced with assayclasses
 echo "assayclasses GET"
