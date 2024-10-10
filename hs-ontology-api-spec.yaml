@@ -201,102 +201,6 @@ paths:
           description: No dataset types matching parameters
         '5XX':
           description: Unknown error
-  /assayname: # CPK MAR 2023 - replacement for search-api endpoint of the same name
-    post:
-      operationId: assayname_post
-      summary: Replacement for assayname endpoint in the search-api
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AssayNameRequest"
-      responses:
-        '200':
-          description: A JSON array of the assaytype with the specified name.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AssayTypePropertyInfo'
-        '400':
-          description: Invalid request - missing request body; missing key *name* in request body; value for key *name* incorrectly specified
-        '404':
-          description: No assay type found corresponding to the value of the *name* key in the request body
-        '5XX':
-          description: Unknown error
-  /assaytype:
-    get:
-      operationId: assaytype_get
-      summary: Replacement for endpoint in search-api. The primary parameter filters by assay type (primary, not primary); if no value provided, all assay types are returned.
-      parameters:
-        - name: primary
-          in: query
-          required: false
-          description: Determines if records are all, primary, or not primary.
-          schema:
-            type: string
-            example: true
-        - name: application_context
-          in: query
-          required: false
-          description: Filter to indicate application context
-          schema:
-            type: string
-            default: HUBMAP
-            enum:
-              - HUBMAP
-              - SENNET
-              - hubmap
-              - sennet
-              - HuBMAP
-              - SenNet
-      responses:
-        '200':
-          description: A JSON array of the assay type name
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AssayTypePropertyInfo'
-  /assaytype/{name}: # CPK MAR 2023 - replacement for search-src endpoint of the same name
-    get:
-      operationId: assaytype_name_get
-      summary: Replacement for the same endpoint in search-api with the addition of application_context
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: AssayType name
-          schema:
-            type: string
-            example: bulk-RNA
-        - name: application_context
-          in: query
-          required: false
-          description: Filter to indicate application context
-          schema:
-            type: string
-            default: HUBMAP
-            enum:
-              - HUBMAP
-              - SENNET
-              - hubmap
-              - sennet
-              - HuBMAP
-              - SenNet
-      responses:
-        '200':
-          description: A JSON array of the assay type name
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AssayTypePropertyInfo'
-              example:
-                name: bulk-RNA
-                primary: true
-                description: Bulk RNA-seq
-                vitessce-hints: ["pyramid","anndata"]
-                contains-pii: true
-                vis-only: true
   /organs:
     get:
       operationId: get_organ_types
@@ -1028,36 +932,6 @@ paths:
           description: Unexpected error
 components:
   schemas:
-    AssayTypePropertyInfo:
-      type: object
-      description: Properties of a HuBMAP/SenNet assaytype
-      properties:
-        name:
-          type: string
-          description: assaytype hierarchy
-          example: bulk-RNA
-        primary:
-          type: boolean
-          description: Indicates whether the assay is primary (true) or derived (false)
-          example: true
-        description:
-          type: string
-          description: How datasets of the data type are named in the Data Portal.
-          example: Bulk RNA-seq
-        vitessce-hints:
-          type: array
-          description: Flags for Vitessce visualization
-          items:
-            type: string
-            example: ["pyramid","anndata"]
-        contains-pii:
-          type: string
-          description: DEPRECATED
-          example: deprecated
-        vis-only:
-          type: string
-          description: DEPRECATED
-          example: deprecated
     RuiCodeTerm:
       type: object
       description: Respoonse body for organs/by-code GET request
@@ -1146,28 +1020,6 @@ components:
         term:
           type: string
           example: Microscopy
-    AssayNameRequest: # Schema name CPK MR 2023.
-      type: object
-      description: Request body for assaytype POST request
-      properties:
-        name:
-          anyOf:
-            - type: string
-            - type: array
-              items:
-                type: string
-          description: AssayType name which can be a string or an array of strings. This is an array for downward compatibility.
-          example: [AF]
-        application_context:
-          type: string
-          default: HUBMAP
-          enum:
-            - HUBMAP
-            - SENNET
-            - hubmap
-            - sennet
-            - HuBMAP
-            - SenNet
     GeneListResponse:
       type: object
       description: High-level information on a set of genes requested by the genes endpoint.
