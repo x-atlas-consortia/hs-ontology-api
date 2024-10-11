@@ -69,33 +69,6 @@ echo | tee -a test.out
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
 
-#--------------------------------------------
-echo "TESTS FOR: assayname POST" | tee -a test.out
-echo "SIGNATURE: /assayname" | tee -a test.out
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "/assayname_POST with bulk-RNA => should return 200" | tee -a test.out
-curl --request POST \
- --url "${UBKG_URL}/assayname" \
- --header "Content-Type: application/json" \
- --data '{"name": ["bulk-RNA"]}' |tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
-echo "TESTS FOR: assaytypes GET" | tee -a test.out
-echo "SIGNATURE: /assaytypes?application_context=<context>" | tee -a test.out
-echo | tee -a test.out
-echo | tee -a test.out
-echo "/assaytype?application_context=HUBMAP GET => should return 200" | tee -a test.out
-curl --request GET \
- --url "${UBKG_URL}/assaytype?application_context=HUBMAP" \
- --header "Accept: application/json"| cut -c1-60 | tee -a test.out
-echo
-echo | tee -a test.out
-echo | tee -a test.out
-
 
 echo "TESTS FOR: assayclasses GET" | tee -a test.out
 echo "SIGNATURE: /assayclasses?application_context=<context>&process_state=<process_state>" | tee -a test.out
