@@ -5244,5 +5244,141 @@
                 "json_based"
             ]
         }
+    },
+    {
+        "rule_description": {
+            "application_context": "HUBMAP",
+            "code": "C202020",
+            "name": "EPIC dataset segmentation mask"
+        },
+        "value": {
+            "active_status": "",
+            "asssaytype": "segmentation-mask",
+            "dataset_type": {
+                "PDR_category": "",
+                "dataset_type": "Segmentation Mask",
+                "fig2": {
+                    "aggregated_assaytype": null,
+                    "category": "",
+                    "modality": ""
+                }
+            },
+            "description": "Segmentation Mask",
+            "dir_schema": "segmentation-mask-v",
+            "is_multiassay": false,
+            "measurement_assay": {
+                "codes": [],
+                "contains_full_genetic_sequences": false
+            },
+            "must_contain": [],
+            "pipeline_shorthand": "",
+            "process_state": "epic",
+            "provider": "IEC",
+            "tbl_schema": null,
+            "vitessce_hints": [
+                "segmentation_mask",
+                "is_image",
+                "pyramid"
+            ]
+        }
+    },
+    {
+        "rule_description": {
+            "application_context": "HUBMAP",
+            "code": "C202030",
+            "name": "DCWG RNAseq-geomx-with-probes"
+        },
+        "value": {
+            "active_status": "",
+            "asssaytype": "geomx-rnaseq-with-probes",
+            "dataset_type": {
+                "PDR_category": "",
+                "dataset_type": "RNAseq (with probes)",
+                "fig2": {
+                    "aggregated_assaytype": null,
+                    "category": "",
+                    "modality": ""
+                }
+            },
+            "description": "GeoMx RNAseq (with probes)",
+            "dir_schema": "rnaseq-with-probes-v",
+            "is_multiassay": false,
+            "measurement_assay": {
+                "codes": [],
+                "contains_full_genetic_sequences": true
+            },
+            "must_contain": [],
+            "pipeline_shorthand": "",
+            "process_state": "primary",
+            "provider": "IEC",
+            "tbl_schema": null,
+            "vitessce_hints": []
+        }
+    },
+    {
+        "rule_description": {
+            "application_context": "HUBMAP",
+            "code": "C202040",
+            "name": "DCWG scRNAseq-with-probes"
+        },
+        "value": {
+            "active_status": "",
+            "asssaytype": "scRNAseq-with-probes",
+            "dataset_type": {
+                "PDR_category": "",
+                "dataset_type": "RNAseq (with probes)",
+                "fig2": {
+                    "aggregated_assaytype": null,
+                    "category": "",
+                    "modality": ""
+                }
+            },
+            "description": "RNAseq (with probes)",
+            "dir_schema": "rnaseq-with-probes-v",
+            "is_multiassay": false,
+            "measurement_assay": {
+                "codes": [],
+                "contains_full_genetic_sequences": true
+            },
+            "must_contain": [],
+            "pipeline_shorthand": "",
+            "process_state": "primary",
+            "provider": "IEC",
+            "tbl_schema": null,
+            "vitessce_hints": []
+        }
+    },
+    {
+        "rule_description": {
+            "application_context": "HUBMAP",
+            "code": "C202050",
+            "name": "DCWG xenium"
+        },
+        "value": {
+            "active_status": "",
+            "asssaytype": "xenium",
+            "dataset_type": {
+                "PDR_category": "",
+                "dataset_type": "Xenium",
+                "fig2": {
+                    "aggregated_assaytype": null,
+                    "category": "",
+                    "modality": ""
+                }
+            },
+            "description": "Xenium",
+            "dir_schema": "xenium-v",
+            "is_multiassay": false,
+            "measurement_assay": {
+                "codes": [],
+                "contains_full_genetic_sequences": true
+            },
+            "must_contain": [],
+            "pipeline_shorthand": "",
+            "process_state": "primary",
+            "provider": "IEC",
+            "tbl_schema": null,
+            "vitessce_hints": []
+        }
     }
 ]
