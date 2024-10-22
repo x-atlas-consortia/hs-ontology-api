@@ -5347,5 +5347,38 @@
             "tbl_schema": null,
             "vitessce_hints": []
         }
+    },
+    {
+        "rule_description": {
+            "application_context": "HUBMAP",
+            "code": "C202050",
+            "name": "DCWG xenium"
+        },
+        "value": {
+            "active_status": "",
+            "asssaytype": "xenium",
+            "dataset_type": {
+                "PDR_category": "",
+                "dataset_type": "Xenium",
+                "fig2": {
+                    "aggregated_assaytype": null,
+                    "category": "",
+                    "modality": ""
+                }
+            },
+            "description": "Xenium",
+            "dir_schema": "xenium-v",
+            "is_multiassay": false,
+            "measurement_assay": {
+                "codes": [],
+                "contains_full_genetic_sequences": true
+            },
+            "must_contain": [],
+            "pipeline_shorthand": "",
+            "process_state": "primary",
+            "provider": "IEC",
+            "tbl_schema": null,
+            "vitessce_hints": []
+        }
     }
 ]
