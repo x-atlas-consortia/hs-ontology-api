@@ -4505,7 +4505,7 @@
                 }
             },
             "description": "2D Imaging Mass Cytometry",
-            "dir_schema": "imc-v2",
+            "dir_schema": "imc-2d-v2",
             "is_multiassay": false,
             "measurement_assay": {
                 "codes": [
@@ -5264,7 +5264,7 @@
                 }
             },
             "description": "Segmentation Mask",
-            "dir_schema": "segmentation-mask-v",
+            "dir_schema": "segmentation-mask-v2",
             "is_multiassay": false,
             "measurement_assay": {
                 "codes": [],
@@ -5301,7 +5301,7 @@
                 }
             },
             "description": "GeoMx RNAseq (with probes)",
-            "dir_schema": "rnaseq-with-probes-v",
+            "dir_schema": "rnaseq-with-probes-v2",
             "is_multiassay": false,
             "measurement_assay": {
                 "codes": [],
@@ -5334,7 +5334,7 @@
                 }
             },
             "description": "RNAseq (with probes)",
-            "dir_schema": "rnaseq-with-probes-v",
+            "dir_schema": "rnaseq-with-probes-v2",
             "is_multiassay": false,
             "measurement_assay": {
                 "codes": [],
@@ -5367,7 +5367,7 @@
                 }
             },
             "description": "Xenium",
-            "dir_schema": "xenium-v",
+            "dir_schema": "xenium-v2",
             "is_multiassay": false,
             "measurement_assay": {
                 "codes": [],
