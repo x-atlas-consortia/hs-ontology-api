@@ -46,6 +46,18 @@ paths:
           schema:
             type: string
             example: AF
+        - name: provide-hierarchy-info
+          in: query
+          required: false
+          description: optional response filter - if true, then the response will contain hierarchy information for the dataset type. The default is blank, or false.
+          schema:
+            type: string
+        - name: provide-measurement-assay
+          in: query
+          required: false
+          description: optional response filter - if true, then the response will contain information on the "measurement assay"--i.e., the codes for the assay used to generate the dataset. The default is blank, or false.
+          schema:
+            type: string
       responses:
         '200':
           description: A JSON array of assay classification objects
@@ -97,6 +109,18 @@ paths:
               - primary
               - derived
               - epic
+        - name: provide-hierarchy-info
+          in: query
+          required: false
+          description: optional response filter - if true, then the response will contain hierarchy information for the dataset type. The default is blank, or false.
+          schema:
+            type: string
+        - name: provide-measurement-assay
+          in: query
+          required: false
+          description: optional response filter - if true, then the response will contain information on the "measurement assay"--i.e., the codes for the assay used to generate the dataset. The default is blank, or false.
+          schema:
+            type: string
       responses:
         '200':
           description: An assay classification objects
