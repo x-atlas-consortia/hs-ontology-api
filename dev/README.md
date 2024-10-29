@@ -6,7 +6,7 @@ This simple, standalone service is designed for quick changes to the assay class
   - assayclasses/<assay-code>?application_context=HUBMAP
 
 ## JSON backing file and releasing to UBKG
-The [assayclasses.json file](https://github.com/x-atlas-consortia/hs-ontology-api/blob/dev-integrate/dev/assayclasses.json) file is read directly by this service to form the responses.  This file can be changed directly in GitHub (in the dev-integrate branch only) to test changes to the associated rule chain/assay class information that normally is sourced from UBKG. To develop using this service and eventaully release to UBKG follow this proceedure:
+The [assayclasses.json file](https://github.com/x-atlas-consortia/hs-ontology-api/blob/dev-integrate/dev/assayclasses.json) file is read directly by this service to form the responses.  This file can be changed directly in GitHub (in the dev-integrate branch only) to test changes to the associated rule chain/assay class information that normally is sourced from UBKG. To develop using this service and eventually release to UBKG follow this procedure:
   - Update the [assayclasses.json file](https://github.com/x-atlas-consortia/hs-ontology-api/blob/dev-integrate/dev/assayclasses.json) directly by merging changes into the `dev-integrate` branch. Test locally or using the HuBMAP DEV infrastructure where this dev service has been put in place.
   - After successful tests on the DEV infrastructure make a PR to `main` with the changes in assayclasses.json. Add Alan Simmons as a reviewer on the PR.
   - The changes will be added to UBKG and released to the UBKG DEV instance.
@@ -18,7 +18,7 @@ The [assayclasses.json file](https://github.com/x-atlas-consortia/hs-ontology-ap
 To run this service, in this directory:
   - copy instance/app.cfg.example to instance/app.cfg
   - create a python virtual environment with the contents of requirements.txt imported into the environment
-  - source/activage the virtual environment
+  - source/activate the virtual environment
   - execute `python app.py`
 The service will be available on port 8181.
 See below for instructions to run with Docker
