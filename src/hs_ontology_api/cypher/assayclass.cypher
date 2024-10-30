@@ -9,8 +9,7 @@
 // 1. whether to provide dataset type hierarchical information
 // 2. whether to provide measurement assay codes
 
-WITH '$context' AS context, '$provide_hierarchy_info' AS provide_hierarchy_info,
-'$provide_measurement_assay_codes' AS provide_measurement_assay_codes
+WITH '$context' AS context, '$provide_hierarchy_info' AS provide_hierarchy_info
 CALL
 {
         WITH context
@@ -168,46 +167,17 @@ CALL
         WHERE pRBD.CUI=CUIRBD AND r.CUI=pDT.CUI AND cDT.SAB=context
         RETURN COLLECT(DISTINCT tDT.name) AS must_contain
 }
-// measurement assay CUI
+
+// whether the assay classification contains full_genetic_sequences
 CALL
 {
-        WITH CUIRBD
-        OPTIONAL MATCH (pRBD:Concept)-[:has_measurement_assay]->(pMeas:Concept)
-        WHERE pRBD.CUI=CUIRBD
-        RETURN DISTINCT pMeas.CUI as CUIMeas
-}
-// Optional measurement codes
-CALL
-{
-        WITH CUIMeas
-        MATCH (pMeas:Concept)-[:CODE]->(cMeas:Code)-[:PT]->(tMeas:Term)
-        WHERE pMeas.CUI = CUIMeas
-        RETURN COLLECT(DISTINCT {code:cMeas.CodeID,term:tMeas.name}) AS MeasCodes
-}
-// whether the measurement assay contains full_genetic_sequences
-CALL
-{
-        WITH CUIMeas,context
+        WITH CUIRBD,context
         OPTIONAL MATCH (pRBD:Concept)-[:contains]->(ppii:Concept)
-        WHERE pRBD.CUI=CUIMeas
+        WHERE pRBD.CUI=CUIRBD
         AND ppii.CUI = context+':C004009 CUI'
         RETURN DISTINCT CASE WHEN NOT ppii.CUI IS null THEN true ELSE false END AS contains_full_genetic_sequences
 }
-// measurement assay summary
-CALL
-{
-    WITH provide_measurement_assay_codes, MeasCodes, contains_full_genetic_sequences
-    RETURN
-    CASE WHEN provide_measurement_assay_codes='True'
-    THEN
-        {
-            codes:MeasCodes,
-            contains_full_genetic_sequences:contains_full_genetic_sequences
-        }
-    ELSE
-        {contains_full_genetic_sequences:contains_full_genetic_sequences}
-    END AS measurement_assay_summary
-}
+
 // active status
 CALL
 {
@@ -217,14 +187,13 @@ CALL
         RETURN DISTINCT tStatus.name AS active_status
 }
 // Response
-// Oct 2024 - form of response driven by provide_measurement_assay parameter.
 CALL
 {
 WITH
 context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
 vitessce_hints,process_state,pipeline_shorthand,
-description,dataset_type_summary, provide_measurement_assay_codes, measurement_assay_summary,
-is_multiassay,must_contain,active_status
+description,dataset_type_summary,
+is_multiassay,must_contain,active_status, contains_full_genetic_sequences
 RETURN
 {
         rule_description:
@@ -238,7 +207,7 @@ RETURN
                 is_multiassay:is_multiassay, must_contain:must_contain,
                 active_status:active_status,
                 dataset_type:dataset_type_summary,
-                measurement_assay:measurement_assay_summary
+                contains_full_genetic_sequences:contains_full_genetic_sequences
         }
 }
 AS rule_based_dataset

@@ -60,7 +60,7 @@ def assayclasses_get(name=None):
 
     # Check for invalid parameter names.
     err = validate_query_parameter_names(parameter_name_list=['application_context', 'process_state', 'assaytype',
-                                                              'provide-hierarchy-info','provide-measurement-assay-codes'])
+                                                              'provide-hierarchy-info'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -103,17 +103,10 @@ def assayclasses_get(name=None):
     provide_hierarchy_info = convert_param_to_boolean_string('provide-hierarchy-info')
 
 
-    # Filter response for measurement assay codes.
-    err = validate_param_as_boolean('provide-measurement-assay-codes')
-    if err != 'ok':
-        return make_response(err, 400)
-    provide_measurement_assay_codes = convert_param_to_boolean_string('provide-measurement-assay-codes')
-
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = assayclasses_get_logic(
         neo4j_instance, assayclass=name, process_state=process_state, assaytype=assaytype,
-        context=application_context, provide_hierarchy_info=provide_hierarchy_info,
-        provide_measurement_assay_codes=provide_measurement_assay_codes)
+        context=application_context, provide_hierarchy_info=provide_hierarchy_info)
 
     if result is None or result == []:
         # Empty result

@@ -1283,7 +1283,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
         return fieldentities
 
 def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, process_state=None,
-                           context=None, provide_hierarchy_info=None, provide_measurement_assay_codes=None) -> dict:
+                           context=None, provide_hierarchy_info=None) -> dict:
     """
     October 2024 - filter response for hierarchical information.
 
@@ -1300,8 +1300,6 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
         :param process_state: in the enum ['primary','derived','epic']
         :param provide_hierarchy_info: "string boolean" (i.e. the word "True" or "False") indicating
                                         whether to include dataset hierarchical information in response
-        :param provide_measurement_assay_codes: "string boolean" indicating whether to include measurement assay information
-                                         in response
 
         example: if a assay class's rule has rule_description="non-DCWG primary AF" and rule code "HUBMAP:C200001", either
         "non-DCWG primary AF" or "C200001" will result in selection of the assay class. The application context is used
@@ -1316,9 +1314,8 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
     # Filter by application context.
     querytxt = querytxt.replace('$context', context)
 
-    # Oct 2024 - Filter by dataset hierarchy and measurment assay.
+    # Oct 2024 - Filter by dataset hierarchy.
     querytxt = querytxt.replace('$provide_hierarchy_info', provide_hierarchy_info)
-    querytxt = querytxt.replace('$provide_measurement_assay_codes', provide_measurement_assay_codes)
 
     # Filter by assay class
     if assayclass is not None:
