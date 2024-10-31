@@ -853,7 +853,9 @@
       "pipeline_shorthand": "Kaggle-1 Glomerulus Segmentation",
       "process_state": "derived",
       "tbl_schema": null,
-      "vitessce_hints": []
+      "vitessce_hints": [
+        "pyramid"
+      ]
     }
   },
   {
