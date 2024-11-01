@@ -131,7 +131,7 @@ CALL
                         }
                 }
         ELSE
-            {dataset_type:dataset_type}
+            dataset_type
         END AS dataset_type_summary
 }
 // description
