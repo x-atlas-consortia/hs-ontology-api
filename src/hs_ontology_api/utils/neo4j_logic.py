@@ -1282,8 +1282,11 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
 
         return fieldentities
 
-def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, process_state=None, context=None) -> dict:
+def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, process_state=None,
+                           context=None, provide_hierarchy_info=None) -> dict:
     """
+    October 2024 - filter response for hierarchical information.
+
     July 2024
         Obtains information on the assay classes (rule-based dataset "kinds") that are specified in
         the testing rules json file.
@@ -1295,6 +1298,8 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
         :param assaytype: the assaytype
         :param context: application context--i.e., HUBMAP or SENNET
         :param process_state: in the enum ['primary','derived','epic']
+        :param provide_hierarchy_info: "string boolean" (i.e. the word "True" or "False") indicating
+                                        whether to include dataset hierarchical information in response
 
         example: if a assay class's rule has rule_description="non-DCWG primary AF" and rule code "HUBMAP:C200001", either
         "non-DCWG primary AF" or "C200001" will result in selection of the assay class. The application context is used
@@ -1308,6 +1313,9 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
 
     # Filter by application context.
     querytxt = querytxt.replace('$context', context)
+
+    # Oct 2024 - Filter by dataset hierarchy.
+    querytxt = querytxt.replace('$provide_hierarchy_info', provide_hierarchy_info)
 
     # Filter by assay class
     if assayclass is not None:
@@ -1328,7 +1336,9 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
     elif assayclass is None:
         querytxt = querytxt.replace('$assaytype_filter', f"AND REPLACE(tassaytype.name,'_assaytype','') = '{assaytype}'")
     else:
+
         querytxt = querytxt.replace('$assaytype_filter','')
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 

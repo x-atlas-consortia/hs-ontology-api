@@ -5,7 +5,11 @@
 // Obtain identifiers for rule-based datasets (assay classes) for the application context.
 // The assayclass_filter allows filtering by either the UBKG code or term (rule_description)
 // for the assay class.
-WITH '$context' AS context
+// OCT 2024 - filter response content based on
+// 1. whether to provide dataset type hierarchical information
+// 2. whether to provide measurement assay codes
+
+WITH '$context' AS context, '$provide_hierarchy_info' AS provide_hierarchy_info
 CALL
 {
         WITH context
@@ -65,6 +69,7 @@ CALL
         RETURN tdsProcess.name as process_state
 }
 // dataset_type
+
 // The dataset_type concepts in HUBMAP are cross-referenced to HRAVS concepts; however, the terms for the HRAVS concepts
 // are enclosed in a list, so use the HUBMAP terms.
 CALL
@@ -106,6 +111,29 @@ CALL
         WHERE pDatasetType.CUI=CUIDatasetType AND r.CUI=pFig2category.CUI AND cFig2category.SAB=context
         RETURN DISTINCT tFig2category.name AS fig2_category
 }
+// dataset_type summary
+// Oct 2024 - content driven by provide_hierarchy_info parameter.
+CALL
+{
+    WITH dataset_type, pdr_category, fig2_aggregated_assaytype, fig2_modality, fig2_category, provide_hierarchy_info
+    RETURN
+    CASE
+        WHEN provide_hierarchy_info='True'
+        THEN
+                {
+                        dataset_type:dataset_type,
+                        PDR_category:pdr_category,
+                        fig2:
+                        {
+                                aggregated_assaytype:fig2_aggregated_assaytype,
+                                modality:fig2_modality,
+                                category:fig2_category
+                        }
+                }
+        ELSE
+            dataset_type
+        END AS dataset_type_summary
+}
 // description
 CALL
 {
@@ -139,28 +167,13 @@ CALL
         WHERE pRBD.CUI=CUIRBD AND r.CUI=pDT.CUI AND cDT.SAB=context
         RETURN COLLECT(DISTINCT tDT.name) AS must_contain
 }
-// measurement assay CUI
+
+// whether the assay classification contains full_genetic_sequences
 CALL
 {
-        WITH CUIRBD
-        OPTIONAL MATCH (pRBD:Concept)-[:has_measurement_assay]->(pMeas:Concept)
-        WHERE pRBD.CUI=CUIRBD
-        RETURN DISTINCT pMeas.CUI as CUIMeas
-}
-// Optional measurement codes
-CALL
-{
-        WITH CUIMeas
-        MATCH (pMeas:Concept)-[:CODE]->(cMeas:Code)-[:PT]->(tMeas:Term)
-        WHERE pMeas.CUI = CUIMeas
-        RETURN COLLECT(DISTINCT {code:cMeas.CodeID,term:tMeas.name}) AS MeasCodes
-}
-// whether the measurement assay contains full_genetic_sequencesi
-CALL
-{
-        WITH CUIMeas,context
+        WITH CUIRBD,context
         OPTIONAL MATCH (pRBD:Concept)-[:contains]->(ppii:Concept)
-        WHERE pRBD.CUI=CUIMeas
+        WHERE pRBD.CUI=CUIRBD
         AND ppii.CUI = context+':C004009 CUI'
         RETURN DISTINCT CASE WHEN NOT ppii.CUI IS null THEN true ELSE false END AS contains_full_genetic_sequences
 }
@@ -173,14 +186,14 @@ CALL
         WHERE pRBD.CUI=CUIRBD AND r.CUI=pStatus.CUI and cStatus.SAB=context
         RETURN DISTINCT tStatus.name AS active_status
 }
+// Response
 CALL
 {
 WITH
 context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
 vitessce_hints,process_state,pipeline_shorthand,
-description,dataset_type,pdr_category,
-fig2_aggregated_assaytype,fig2_modality,fig2_category,
-is_multiassay,must_contain,MeasCodes,contains_full_genetic_sequences,active_status
+description,dataset_type_summary,
+is_multiassay,must_contain,active_status, contains_full_genetic_sequences
 RETURN
 {
         rule_description:
@@ -193,20 +206,11 @@ RETURN
                 pipeline_shorthand:pipeline_shorthand, description:description,
                 is_multiassay:is_multiassay, must_contain:must_contain,
                 active_status:active_status,
-                dataset_type:
-                {
-                        dataset_type:dataset_type, PDR_category:pdr_category,
-                        fig2:
-                        {
-                                aggregated_assaytype:fig2_aggregated_assaytype, modality:fig2_modality, category:fig2_category
-                        }
-                },
-                measurement_assay:{
-                        codes:MeasCodes,
-                        contains_full_genetic_sequences:contains_full_genetic_sequences
-                }
+                dataset_type:dataset_type_summary,
+                contains_full_genetic_sequences:contains_full_genetic_sequences
         }
-} AS rule_based_dataset
+}
+AS rule_based_dataset
 }
 WITH rule_based_dataset
 RETURN rule_based_dataset AS rule_based_datasets
