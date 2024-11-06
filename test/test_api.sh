@@ -71,7 +71,7 @@ echo | tee -a test.out
 
 
 echo "TESTS FOR: assayclasses GET" | tee -a test.out
-echo "SIGNATURE: /assayclasses?application_context=<context>&process_state=<process_state>" | tee -a test.out
+echo "SIGNATURE: /assayclasses?application_context=<context>&process_state=<process_state>&provide_hiearchy_info=<true,false>&provide_measurement_assay_codes=<true,false>" | tee -a test.out
 echo | tee -a test.out
 echo | tee -a test.out
 echo "1. /assayclasses?application_context=x => invalid application context; should return 400" | tee -a test.out
@@ -136,6 +136,40 @@ curl --request GET \
 echo
 echo | tee -a test.out
 echo | tee -a test.out
+
+echo "9. /assayclasses/C200001 => invalid provide-hierarchy-info; should return 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/C200001?application_context=HUBMAP&provide-hierarchy-info=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "10. /assayclasses/C200001 => valid provide-hierarchy-info; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/C200001?application_context=HUBMAP&provide-hierarchy-info=true" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "11. /assayclasses/C200001 => invalid provide-measurement-assay-codes should return 400" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/C200001?application_context=HUBMAP&provide-measurement-assay-codes=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+echo "12. /assayclasses/C200001 => valid provide-measurement-assay-codes; should return 200" | tee -a test.out
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/C200001?application_context=HUBMAP&provide-measurement-assay-codes=true" \
+--header "Accept: application/json" | cut -c1-60 | tee -a test.out
+echo
+echo | tee -a test.out
+echo | tee -a test.out
+
+exit;
 
 echo "TESTS FOR: dataset-types GET" | tee -a test.out
 echo "SIGNATURE: /dataset-types?application_context" | tee -a test.out
