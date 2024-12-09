@@ -2,7 +2,7 @@
 # JAS December 2023
 from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import field_descriptions_get_logic
-from hs_ontology_api.utils.http_error_string import get_404_error_string, validate_query_parameter_names, \
+from ubkg_api.utils.http_error_string import get_404_error_string, validate_query_parameter_names, \
     validate_parameter_value_in_enum
 
 field_descriptions_blueprint = Blueprint('field-descriptions', __name__, url_prefix='/field-descriptions')
