@@ -169,8 +169,6 @@ echo
 echo | tee -a test.out
 echo | tee -a test.out
 
-exit;
-
 echo "TESTS FOR: dataset-types GET" | tee -a test.out
 echo "SIGNATURE: /dataset-types?application_context" | tee -a test.out
 echo | tee -a test.out
