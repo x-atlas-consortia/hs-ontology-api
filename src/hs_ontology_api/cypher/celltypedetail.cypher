@@ -1,4 +1,4 @@
-// Return detailed inforomation on cell types, based on a input list of AZ terms.
+// Return detailed information on cell types, based on a input list of CL codes.
 
 CALL
 // Get CUIs of concepts for cell types that match the criteria.
@@ -13,9 +13,12 @@ CALL
 WITH [$ids] AS ids
 
 // APRIL 2024 Bug fix to use CodeID instead of CODE for cases of leading zeroes in strings.
-OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code)
-WHERE CASE WHEN ids[0]<>'' THEN ANY(id in ids WHERE cCL.CodeID='CL:'+id) ELSE 1=1 END RETURN DISTINCT pCL.CUI AS CLCUI}
-
+// JANUARY 2025 Because PATO and UBERON are ingested prior to CL, some CL codes will associate with multiple concepts.
+// Use the concept that is associated with the code during the CL ingestion, which can be identified by the use of a
+// preferred term (term of relationship type PT).
+OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code)-[r:PT]->(tCL:Term)
+WHERE r.CUI = pCL.CUI
+AND CASE WHEN ids[0]<>'' THEN ANY(id in ids WHERE cCL.CodeID='CL:'+id) ELSE 1=1 END RETURN DISTINCT pCL.CUI AS CLCUI}
 CALL
 {
 
@@ -68,6 +71,9 @@ ORDER BY CLID, ret_value
 
 UNION
 
+// January 2025 - expand to include mappings from STELLAR and DeepCellType annotations. All references to 'AZ' and 'Azimuth' should
+// be considered references to an annotation.
+
 // Cell types - Azimuth/UBERON organ list
 // The Azimuth ontology:
 // 1. Assigns AZ cell codes to AZ organ codes.
@@ -86,16 +92,17 @@ CALL
 	WITH CLCUI
 	OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),
 	(pCL:Concept)-[:CODE]->(cAZ:Code)-[rAZ]->(tAZ:Term)
-	WHERE pCL.CUI=CLCUI AND rCL.CUI=pCL.CUI AND cCL.SAB='CL' AND cAZ.SAB='AZ'
+	WHERE pCL.CUI=CLCUI AND rCL.CUI=pCL.CUI AND cCL.SAB='CL'
+	AND cAZ.SAB IN['AZ','STELLAR','DCT']
 	RETURN DISTINCT cCL.CodeID as CLID,cAZ.CodeID AS AZID
 }
 //Use the AZ codes to map to concepts that have located_in relationships with AZ organ codes.
 //The AZ organ codes are cross-referenced to UBERON codes. Limit the located_in relationships to those from AZ.
 CALL
 {   WITH AZID
-    OPTIONAL MATCH (cAZ:Code)<-[:CODE]-(pAZ:Concept)-[rAZUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
-    WHERE rAZUB.SAB='AZ' AND rUB.CUI=pUB.CUI AND cAZ.CodeID=AZID AND cUB.SAB='UBERON'
-    RETURN cUB.CodeID+'|'+ tUB.name + '' as UBERONID
+    MATCH (cAZ:Code)<-[:CODE]-(pAZ:Concept)-[rAZUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
+    WHERE rAZUB.SAB IN ['AZ','STELLAR','DCT'] AND rUB.CUI=pUB.CUI AND cAZ.CodeID=AZID AND cUB.SAB='UBERON'
+    RETURN cUB.CodeID+'|'+ tUB.name + '|' + rAZUB.SAB as UBERONID
 }
 WITH CLID,UBERONID
 RETURN DISTINCT CLID, 'cell_types_organ' as ret_key, apoc.text.join(COLLECT(DISTINCT UBERONID),",")  AS ret_value
