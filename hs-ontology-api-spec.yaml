@@ -1395,7 +1395,7 @@ components:
                     example: multimerin-1
         organs:
           type: array
-          description: Organs associated with the cell type, based on relationships in the Human Resource Atlas and Azimuth
+          description: Organs associated with the cell type, based on relationships in the Human Resource Atlas and various annotations (including Azimuth and STELLAR)
           items:
             type: object
             properties:
@@ -1411,6 +1411,10 @@ components:
                 type: string
                 description: Name (preferred term) for organ in source
                 example: heart
+              annotation:
+                type: string
+                description: SAB of the cell type annotation
+                example: AZ
     FieldDescriptionsResponse:
       type: object
       description: Descriptions for ingest metadata fields
