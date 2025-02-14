@@ -9,3 +9,16 @@ ROWLIMIT=1000
 # Maximum size of payload, in bytes
 # 9437184 bytes = 9 MB, less than the 10 MB payload limit for the AWS API gateway.
 PAYLOADLIMIT = 9437184
+
+# AWS credentials for access such as S3 and presigned URLs
+# https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html
+# This is new IAM user hubmap-api-s3-prod created on 10/3/2024
+AWS_ACCESS_KEY_ID = 'YOUR AWS ACCESS KEY'
+AWS_SECRET_ACCESS_KEY = 'YOUR SECRET ACCESS KEY'
+AWS_S3_BUCKET_NAME = 'YOUR S3 BUCKET NAME'
+AWS_S3_OBJECT_PREFIX = 'PREFIX IN FRONT OF OBJECT NAMES'
+AWS_OBJECT_URL_EXPIRATION_IN_SECS = 60*60 # 1 hour
+# Large response threshold, as determined by len() for the character set, above
+# which responses will be stashed in an S3 bucket and a pre-signed URL
+# returned in the response to avoid the AWS Gateway 10Mb constraint
+LARGE_RESPONSE_THRESHOLD = 9*(2**20) + 900*(2**10) #9.9Mb
