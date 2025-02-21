@@ -3,12 +3,6 @@ from flask import Flask
 from pathlib import Path
 from ubkg_api.app import UbkgAPI, logger
 
-# October 2024 deprecated
-# from src.hs_ontology_api.routes.deprecated.assaytype.assaytype_controller import assaytype_blueprint
-# from src.hs_ontology_api.routes.deprecated.assayname import assayname_blueprint
-
-# July 2024 deprecated datasets
-# from src.hs_ontology_api.routes.deprecated.datasets.datasets_controller import datasets_blueprint
 from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
 from hs_ontology_api.routes.relationships.relationships_controller import relationships_blueprint
 from hs_ontology_api.routes.valueset.valueset_controller import valueset_blueprint
@@ -33,26 +27,23 @@ from hs_ontology_api.routes.fieldentities.fieldentities_controller import field_
 from hs_ontology_api.routes.assayclasses.assayclasses_controller import assayclasses_blueprint
 from hs_ontology_api.routes.datasettypes.datasettypes_controller import datasettypes_blueprint
 
-# Cells API client
-# May 2024 deprecated
-# from hs_ontology_api.utils.cellsclient import OntologyCellsClient
-
-
 def make_flask_config():
+    """
+    Used to override the "native" app.cfg for the ubkg-api instantiated by the child API with
+    values from the child API.
+    """
     temp_flask_app = Flask(__name__,
                       instance_path=path.join(path.abspath(path.dirname(__file__)), 'hs_ontology_api/instance'),
                       instance_relative_config=True)
     temp_flask_app.config.from_pyfile('app.cfg')
     return temp_flask_app.config
 
+# -------- START
 
-app = UbkgAPI(make_flask_config(), Path(__file__).absolute().parent.parent).app
-
-# October 2024
-# app.register_blueprint(assaytype_blueprint)
-# app.register_blueprint(assayname_blueprint)
-# July 2024 - deprecating datasets
-#app.register_blueprint(datasets_blueprint)
+# Overwrite the ubkg-api's app configuration with the configuration from hs-ontology-api.
+cfg = make_flask_config()
+app = UbkgAPI(cfg, Path(__file__).absolute().parent.parent).app
+app.config = cfg
 
 app.register_blueprint(organs_blueprint)
 app.register_blueprint(relationships_blueprint)
@@ -76,13 +67,6 @@ app.register_blueprint(field_entities_blueprint)
 # July 2024
 app.register_blueprint(assayclasses_blueprint)
 app.register_blueprint(datasettypes_blueprint)
-
-
-# Instantiate a Cells API client.
-# May 2024 Deprecated
-# cellsurl = make_flask_config().get('CELLSURL')
-# app.cells_client = OntologyCellsClient(cellsurl)
-
 
 ####################################################################################################
 ## For local development/testing
