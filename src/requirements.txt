@@ -3,7 +3,7 @@ Flask==3.0.3
 Werkzeug==3.0.3
 
 #git+https://github.com/x-atlas-consortia/ubkg-api.git@dev-integrate
-ubkg-api==2.1.10
+ubkg-api==2.2.0
 
 neo4j==5.15.0
 
@@ -18,3 +18,6 @@ numpy==1.23.5
 argparse==1.4.0
 datatest==0.11.1
 deepdiff==6.7.1
+
+# for S3 worker
+boto3==1.36.17

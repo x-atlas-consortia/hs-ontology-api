@@ -240,3 +240,52 @@ hs-ontology-api-spec.yaml conforms to [Swagger OpenAPI](https://swagger.io/speci
 You will need to specify:
 1. Paths that correspond to your endpoint routes.
 2. Schemas that correspond to the responses from endpoints.
+
+# Optional Timeout and Payload Size Features
+As a Flask application, the hs-ontology-api can be deployed in various environments.
+
+When deployed behind a server gateway, such as AWS API Gateway, the gateway may impose constraints
+on timeout or response payload size. For example, AWS API Gateway has a timeout of 29 seconds and
+a maximum response payload of 10 MB.
+
+The ubkg-api will return detailed explanations for timeout, instead of relying on the 
+sometimes ambiguous messages from the gateway (e.g., a HTTP 500).
+
+An instance of hs-ontology-api can override the default timeout in its app.cfg file.
+To enable custom management of timeout and payload size, specify values in the **app.cfg** file, as shown below.
+
+```commandline
+
+# Maximum duration for the execution of timeboxed queries to prevent service timeout, in seconds
+# The AWS API gateway timeout is 29 seconds.
+TIMEOUT=28
+```
+# Optional S3 redirection for large payloads
+The ubkg-api can redirect large payloads to an AWS S3 bucket. 
+When the response from an endpoint exceeds a certain size, the ubkg-api will return a URL that points to the file in 
+the S3 bucket.
+
+To enable S3 redirection, specify values in the **app.cfg** file.
+```commandline
+# Large response threshold, as determined by the length of the response (payload).
+# Responses with payload sizes that exceed the threshold will be handled in one of the
+# following ways:
+# 1. If the threshold is 0, then the response will be passed without any additional processing.
+# 2. If the threshold is nonzero and S3 redirection is not enabled, the API will return
+#    a custom HTTP 403 response.
+# 3. If the threshold is nonzero and S3 redirection is enabled, the API will stash the
+#    response in a file in an S3 bucket and return a pre-signed URL pointing to the
+#    stashed file.
+# Setting the threshold to 9.9MB avoids triggering a HTTP 500 from an AWS API Gateway's hard
+# 10 MB payload limit
+LARGE_RESPONSE_THRESHOLD = 9*(2**20) + 900*(2**10) #9.9Mb
+
+# OPTIONAL AWS credentials for S3 redirection. If there are no "AWS_*" keys, the
+# API will return the default HTTP 403 exception.
+# https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html
+AWS_ACCESS_KEY_ID = 'AWS_ACCESS_KEY_ID'
+AWS_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY'
+AWS_S3_BUCKET_NAME = 'AWS_S3_BUCKET_NAME'
+AWS_S3_OBJECT_PREFIX = 'AWS_S3_OBJECT_PREFIX'
+AWS_OBJECT_URL_EXPIRATION_IN_SECS = 60*60 # 1 hour
+```
