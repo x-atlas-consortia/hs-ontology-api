@@ -75,7 +75,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No assay classes matching parameters
+          description: No assay classes matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unknown error
       tags:
@@ -136,7 +136,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No assay classes matching parameters
+          description: No assay classes matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unknown error
       tags:
@@ -185,7 +185,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters
+          description: No dataset types matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unknown error
       tags:
@@ -239,7 +239,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters
+          description: No dataset types matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unknown error
       tags:
@@ -278,6 +278,8 @@ paths:
           description: Missing parameter; invalid parameter value
         '403':
           description: The response size exceeds a limit set by the server.
+        '404':
+          description: No organs matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unknown error
       tags:
@@ -316,6 +318,8 @@ paths:
           description: Missing parameter; invalid parameter value
         '403':
           description: The response size exceeds a limit set by the server.
+        '404':
+          description: No organs matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unknown error
       tags:
@@ -350,7 +354,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: Nothing found for gene target symbol *target_symbol*.
+          description: Nothing found for gene target symbol *target_symbol*. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unknown error
       tags:
@@ -400,6 +404,8 @@ paths:
           description: Missing parameter; invalid parameter value
         '403':
           description: The response size exceeds a limit set by the server.
+        '404':
+          description: No valuesets found for specified parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
       tags:
         - other
   /genes-info:
@@ -445,7 +451,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
+          description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unexpected error
       tags:
@@ -478,7 +484,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No information for gene with HGNC identifier *id*.
+          description: No information for gene with HGNC identifier *id*. This includes cases in which the query runtime exceeded a timeout configured in the server.
         '5XX':
           description: Unexpected error
       tags:
