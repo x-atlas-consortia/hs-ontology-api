@@ -72,6 +72,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No assay classes matching parameters
         '5XX':
@@ -131,6 +133,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No assay classes matching parameters
         '5XX':
@@ -178,6 +182,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No dataset types matching parameters
         '5XX':
@@ -230,6 +236,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No dataset types matching parameters
         '5XX':
@@ -264,6 +272,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTermRuiCode'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '5XX':
+          description: Unknown error
       tags:
         - organs
   /organs/by-code:
@@ -296,6 +312,12 @@ paths:
                   $ref: '#/components/schemas/RuiCodeTerm'
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '5XX':
+          description: Unknown error
       tags:
         - organs
   /relationships/gene/{target_symbol}:
@@ -323,6 +345,10 @@ paths:
                 symbol-alias: ["EMILIN4", "GPIa*", "ECM"]
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: Nothing found for gene target symbol *target_symbol*.
         '5XX':
@@ -370,6 +396,10 @@ paths:
                   $ref: '#/components/schemas/SabCodeTerm'
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
       tags:
         - other
   /genes-info:
@@ -412,6 +442,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter--e.g., *genes_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
         '5XX':
@@ -441,6 +473,10 @@ paths:
                   $ref: '#/components/schemas/GeneDetailResponse'
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No information for gene with HGNC identifier *id*.
         '5XX':
@@ -487,6 +523,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter--e.g., *proteins_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB identifiers that start with the string specified in the *starts_with* parameter.
         '5XX':
@@ -516,6 +554,10 @@ paths:
                   $ref: '#/components/schemas/ProteinDetailResponse'
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No information for protein with UniProtKB identifier *id*.
         '5XX':
@@ -562,6 +604,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter--e.g., *celltypes_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
         '5XX':
@@ -591,6 +635,10 @@ paths:
                   $ref: '#/components/schemas/CellTypeDetailResponse'
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No information for cell type with Cell Ontology identifier *id*.
         '5XX':
@@ -622,6 +670,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid *source* parameter (i.e., not CEDAR or HMFIELD); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field descriptions (with list of parameters, if specified)
         '5XX':
@@ -660,6 +710,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid *source* parameter (i.e., not CEDAR or HMFIELD); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No descriptions (with list of parameters, if specified)
         '5XX':
@@ -707,6 +759,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field-type associations (with list of parameters, if specified)
         '5XX':
@@ -761,6 +815,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description:  Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field-type associations (with list of parameters, if specified)
         '5XX':
@@ -792,7 +848,9 @@ paths:
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
-          description:  Invalid parameter
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field types (with list of parameters, if specified)
         '5XX':
@@ -840,6 +898,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description:  Invalid value for parameter (e.g., *source* not HMFIELD or CEDAR); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field entities (with list of parameters, if specified)
         '5XX':
@@ -894,6 +954,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description:  Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field entities (with list of parameters, if specified)
         '5XX':
@@ -923,6 +985,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
         '5XX':
@@ -958,7 +1022,9 @@ paths:
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
-          description: Invalid parameter
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
         '5XX':
@@ -997,6 +1063,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter; invalid value for *source*
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: no field to schema relationships found (for the set of parameters, if specified)
         '5XX':
@@ -1042,6 +1110,8 @@ paths:
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter; invalid value for *source*
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: no field to schema relationships found (for the set of parameters, if specified)
         '5XX':
