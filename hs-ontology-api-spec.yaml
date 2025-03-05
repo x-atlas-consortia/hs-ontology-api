@@ -9,6 +9,13 @@ info:
 servers:
   - url: https://ontology.api.hubmapconsortium.org/
     description: Production server
+tags:
+  - name: assay classifications
+  - name: dataset types
+  - name: organs
+  - name: biological entities
+  - name: ingestion metadata
+  - name: other
 paths:
   /assayclasses:
     get:
@@ -67,6 +74,8 @@ paths:
           description: No assay classes matching parameters
         '5XX':
           description: Unknown error
+      tags:
+        - assay classifications
   /assayclasses/{class}:
     get:
       operationId: assayclass_name_get
@@ -122,6 +131,8 @@ paths:
           description: No assay classes matching parameters
         '5XX':
           description: Unknown error
+      tags:
+        - assay classifications
   /dataset-types:
     get:
       operationId: datasettypes_get
@@ -165,6 +176,8 @@ paths:
           description: No dataset types matching parameters
         '5XX':
           description: Unknown error
+      tags:
+        - dataset types
   /dataset-types/{name}:
     get:
       operationId: datasettypes_name_get
@@ -213,6 +226,8 @@ paths:
           description: No dataset types matching parameters
         '5XX':
           description: Unknown error
+      tags:
+        - dataset types
   /organs:
     get:
       operationId: get_organ_types
@@ -241,6 +256,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTermRuiCode'
+      tags:
+        - organs
   /organs/by-code:
     get:
       operationId: get_organ_by_code
@@ -269,6 +286,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RuiCodeTerm'
+      tags:
+        - organs
   /relationships/gene/{target_symbol}:
     get:
       operationId: relationships_for_gene_target_symbol_get
@@ -296,6 +315,8 @@ paths:
           description: Nothing found for gene target symbol *target_symbol*.
         '5XX':
           description: Unknown error
+      tags:
+        - other
   /valueset:
     get:
       operationId: valueset_get
@@ -335,6 +356,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTerm'
+      tags:
+        - other
   /genes-info:
     get:
       operationId: genes_info_get
@@ -377,6 +400,8 @@ paths:
           description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /genes/{id}:
     get:
       operationId: genes_get
@@ -402,6 +427,8 @@ paths:
           description: No information for gene with HGNC identifier *id*.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /proteins-info:
     get:
       operationId: protein_info_get
@@ -444,6 +471,8 @@ paths:
           description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB identifiers that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /proteins/{id}:
     get:
       operationId: proteins_get
@@ -469,6 +498,8 @@ paths:
           description: No information for protein with UniProtKB identifier *id*.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /celltypes-info:
     get:
       operationId: celltypes_info_get
@@ -511,6 +542,8 @@ paths:
           description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /celltypes/{id}:
     get:
       operationId: celltypes_get
@@ -536,6 +569,8 @@ paths:
           description: No information for cell type with Cell Ontology identifier *id*.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /field-descriptions:
     get:
       operationId: field_descriptions_get
@@ -563,6 +598,8 @@ paths:
           description: No field descriptions (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-descriptions/{name}:
     get:
       operationId: field_descriptions_name_get
@@ -597,6 +634,8 @@ paths:
           description: No descriptions (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-types:
     get:
       operationId: field_types_get
@@ -640,6 +679,8 @@ paths:
           description: No field-type associations (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-types/{name}:
     get:
       operationId: field_types_name_get
@@ -690,6 +731,9 @@ paths:
           description: No field-type associations (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
+
   /field-types-info:
     get:
       operationId: field_types_indo_get
@@ -717,6 +761,8 @@ paths:
           description: No field types (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-entities:
     get:
       operationId: field_entities_get
@@ -760,6 +806,8 @@ paths:
           description: No field entities (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-entities/{name}:
     get:
       operationId: field_entities_name_get
@@ -810,6 +858,8 @@ paths:
           description: No field entities (with list of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-assays:
     get:
       operationId: field_assays_get
@@ -835,6 +885,8 @@ paths:
           description: no field to assay relationships found (for the set of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-assays/{name}:
     get:
       operationId: field_assays_name_get
@@ -867,6 +919,8 @@ paths:
           description: no field to assay relationships found (for the set of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-schemas:
     get:
       operationId: field_schemas_get
@@ -901,6 +955,8 @@ paths:
           description: no field to schema relationships found (for the set of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-schemas/{name}:
     get:
       operationId: field_schemas_name_get
@@ -942,6 +998,8 @@ paths:
           description: no field to schema relationships found (for the set of parameters, if specified)
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
 components:
   schemas:
     RuiCodeTerm:
