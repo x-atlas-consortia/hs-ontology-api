@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: HubMAP/SenNet Ontology API (hs-ontology-api)
-  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a [UBKG](https://ubkg.docs.xconsortia.org/) instance with content from the [HuBMAP/SenNet context](https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code.
+  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a [UBKG](https://ubkg.docs.xconsortia.org/) instance with content from the [HuBMAP/SenNet context](https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code. To prevent exceeding service timeouts or payload limits, some endpoints are throttled in both execution time and in the size of its response payload--e.g., to a maximum execution time of 29 seconds and a maximum payload of 9.9 MB.
   version: 2.2.0
   contact:
     name: GitHub repository
@@ -75,7 +75,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No assay classes matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No assay classes matching parameters.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
       tags:
@@ -136,7 +138,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No assay classes matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No assay classes matching parameters.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
       tags:
@@ -185,7 +189,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No dataset types matching parameters.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
       tags:
@@ -239,7 +245,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No dataset types matching parameters.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
       tags:
@@ -279,7 +287,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No organs matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No organs matching parameters.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
       tags:
@@ -319,7 +329,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No organs matching parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No organs matching parameters.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
       tags:
@@ -354,7 +366,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: Nothing found for gene target symbol *target_symbol*. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: Nothing found for gene target symbol *target_symbol*.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
       tags:
@@ -405,7 +419,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No valuesets found for specified parameters. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No valuesets found for specified parameters.
+        '408':
+          description: The query run time exceeded the specified timeout.
       tags:
         - other
   /genes-info:
@@ -451,7 +467,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -484,7 +502,9 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No information for gene with HGNC identifier *id*. This includes cases in which the query runtime exceeded a timeout configured in the server.
+          description: No information for gene with HGNC identifier *id*.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -533,6 +553,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB identifiers that start with the string specified in the *starts_with* parameter.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -566,6 +588,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No information for protein with UniProtKB identifier *id*.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -614,6 +638,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -647,6 +673,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No information for cell type with Cell Ontology identifier *id*.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -680,6 +708,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field descriptions (with list of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -720,6 +750,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No descriptions (with list of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -769,6 +801,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field-type associations (with list of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -825,6 +859,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field-type associations (with list of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -859,6 +895,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field types (with list of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -908,6 +946,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field entities (with list of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -964,6 +1004,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field entities (with list of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -995,6 +1037,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -1033,6 +1077,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -1073,6 +1119,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: no field to schema relationships found (for the set of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
@@ -1120,6 +1168,8 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: no field to schema relationships found (for the set of parameters, if specified)
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
       tags:
