@@ -377,7 +377,7 @@ paths:
           description: the code of the parent concept in the SAB (local ontology)
           schema:
             type: string
-            example: C000530
+            example: C003041
         - name: child_sabs
           in: query
           required: true
