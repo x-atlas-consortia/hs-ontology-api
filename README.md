@@ -251,6 +251,8 @@ a maximum response payload of 10 MB.
 The ubkg-api will return detailed explanations for timeout, instead of relying on the 
 sometimes ambiguous messages from the gateway (e.g., a HTTP 500).
 
+## Code required
+### app.cfg
 An instance of hs-ontology-api can override the default timeout in its app.cfg file.
 To enable custom management of timeout and payload size, specify values in the **app.cfg** file, as shown below.
 
@@ -260,11 +262,38 @@ To enable custom management of timeout and payload size, specify values in the *
 # The AWS API gateway timeout is 29 seconds.
 TIMEOUT=28
 ```
+
+### Endpoint function code
+To validate timeout, use a try/exception block in the 
+code in the **neo4j_logic.py** in the *utils* folder.
+
+Example:
+```commandline
+# Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                # process records
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
+
+    return <your records>
+```
+
 # Optional S3 redirection for large payloads
 The ubkg-api can redirect large payloads to an AWS S3 bucket. 
 When the response from an endpoint exceeds a certain size, the ubkg-api will return a URL that points to the file in 
 the S3 bucket.
 
+## Coding required
+### app.cfg
 To enable S3 redirection, specify values in the **app.cfg** file.
 ```commandline
 # Large response threshold, as determined by the length of the response (payload).
@@ -288,4 +317,18 @@ AWS_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY'
 AWS_S3_BUCKET_NAME = 'AWS_S3_BUCKET_NAME'
 AWS_S3_OBJECT_PREFIX = 'AWS_S3_OBJECT_PREFIX'
 AWS_OBJECT_URL_EXPIRATION_IN_SECS = 60*60 # 1 hour
+```
+
+### route logic
+Add the following import to the controller:
+```commandline
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
+```
+
+Send the result of the query to payload validation:
+```commandline
+    result = <call to function in neo4j_logic.py>
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)
 ```
