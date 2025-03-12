@@ -2,8 +2,8 @@ Flask==3.0.3
 # Flask depends on Werkzeug...
 Werkzeug==3.0.3
 
-git+https://github.com/x-atlas-consortia/ubkg-api.git@jas_validate_all_queries_timeout_payload
-#ubkg-api==2.2.0
+#git+https://github.com/x-atlas-consortia/ubkg-api.git@jas_validate_all_queries_timeout_payload
+ubkg-api==2.2.0
 
 neo4j==5.15.0
 
