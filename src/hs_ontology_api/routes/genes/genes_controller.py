@@ -2,7 +2,9 @@
 # JAS September 2023
 from flask import Blueprint, jsonify, current_app, make_response
 from hs_ontology_api.utils.neo4j_logic import genedetail_get_logic
-
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 genes_blueprint = Blueprint('genes', __name__, url_prefix='/genes')
 
@@ -28,4 +30,7 @@ def genes_id_expand_get(id=None):
     if result is None or result == []:
         # Empty result
         return make_response(f"No information for gene with HGNC identifier {id}.", 404)
-    return jsonify(result)
+
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)

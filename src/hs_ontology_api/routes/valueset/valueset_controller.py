@@ -1,6 +1,9 @@
 from flask import Blueprint, jsonify, current_app, request
 
 from hs_ontology_api.utils.neo4j_logic import valueset_get_logic
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 valueset_blueprint = Blueprint('valueset_hs', __name__, url_prefix='/valueset')
 
@@ -28,4 +31,8 @@ def valueset_get():
     if parent_code is None:
         return jsonify(f"Invalid parent_code ({parent_code}) specified"), 400
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(valueset_get_logic(neo4j_instance, parent_sab, parent_code, child_sabs))
+
+    result = valueset_get_logic(neo4j_instance, parent_sab, parent_code, child_sabs)
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)

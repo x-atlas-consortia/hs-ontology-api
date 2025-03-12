@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, current_app, make_response
 
 from hs_ontology_api.utils.neo4j_logic import relationships_for_gene_target_symbol_get_logic
-
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 relationships_blueprint = Blueprint('relationships', __name__, url_prefix='/relationships')
 
@@ -21,4 +23,7 @@ def relationships_for_gene_target_symbol_get(target_symbol):
         resp = make_response(jsonify({"message": f"Nothing found for gene target symbol: {target_symbol}"}), 404)
         resp.headers['Content-Type'] = 'application/json'
         return resp
-    return jsonify(result)
+
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)

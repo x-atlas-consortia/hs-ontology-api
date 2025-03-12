@@ -3,7 +3,9 @@
 from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import proteinlist_get_logic,proteinlist_count_get_logic
 import math
-
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 proteinsinfo_blueprint = Blueprint('proteins-info', __name__, url_prefix='/proteins-info')
 
 @proteinsinfo_blueprint.route('', methods=['GET'])
@@ -68,5 +70,12 @@ def proteinslist() -> list[str]:
 
     # Obtain results.
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(proteinlist_get_logic(neo4j_instance, page=page, total_pages=total_pages, proteins_per_page=proteins_per_page,
-                                      starts_with=starts_with, protein_count=protein_count))
+    result = proteinlist_get_logic(neo4j_instance,
+                                   page=page,
+                                   total_pages=total_pages,
+                                   proteins_per_page=proteins_per_page,
+                                   starts_with=starts_with,
+                                   protein_count=protein_count)
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)
