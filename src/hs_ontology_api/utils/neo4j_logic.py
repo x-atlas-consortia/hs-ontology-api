@@ -870,7 +870,7 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with.lower()}"' \
 
-    querytxt = query.replace('$starts_with_clause', starts_with_clause)
+    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
 
     # March 2025
     # Set timeout for query based on value in app.cfg.

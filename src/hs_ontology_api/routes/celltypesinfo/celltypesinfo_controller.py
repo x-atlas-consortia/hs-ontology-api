@@ -4,8 +4,10 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import celltypelist_count_get_logic, celltypelist_get_logic
 import math
 
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 celltypesinfo_blueprint = Blueprint('celltypes-info', __name__, url_prefix='/celltypes-info')
-
 
 @celltypesinfo_blueprint.route('', methods=['GET'])
 def celltypeslist() -> list[str]:
@@ -72,8 +74,12 @@ def celltypeslist() -> list[str]:
 
     # Obtain results.
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(celltypelist_get_logic(neo4j_instance, page=page,
-                                          total_pages=total_pages,
-                                          cell_types_per_page=cell_types_per_page,
-                                          starts_with=starts_with,
-                                          cell_type_count=cell_type_count))
+
+    # March 2025
+    # Redirect to S3 if large.
+    result = celltypelist_get_logic(neo4j_instance, page=page,
+                                  total_pages=total_pages,
+                                  cell_types_per_page=cell_types_per_page,
+                                  starts_with=starts_with,
+                                  cell_type_count=cell_type_count)
+    return redirect_if_large(resp=result)

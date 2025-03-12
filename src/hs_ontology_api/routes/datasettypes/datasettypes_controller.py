@@ -3,6 +3,9 @@ from flask import Blueprint, jsonify, current_app, make_response,request
 from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
                                               validate_parameter_value_in_enum, validate_required_parameters)
 from hs_ontology_api.utils.neo4j_logic import datasettypes_get_logic
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 datasettypes_blueprint = Blueprint('datasettypes_hs', __name__, url_prefix='/dataset-types')
 
@@ -64,7 +67,11 @@ def datasettypes_get(name=None):
                                                  f"specified parameters")
         return make_response(err, 404)
 
+    # March 2025
+    # Result is either a list with one element or a single item.
+    # Redirect to S3 if large.
     if len(result) == 1:
-        return jsonify(result[0])
+        resp = result[0]
     else:
-        return jsonify(result)
+        resp = result
+    return redirect_if_large(resp=result)

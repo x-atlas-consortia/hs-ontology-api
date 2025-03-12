@@ -4,7 +4,9 @@ from ubkg_api.utils.http_error_string import (get_404_error_string, validate_que
                                               validate_parameter_value_in_enum, validate_required_parameters)
 from hs_ontology_api.utils.neo4j_logic import assayclasses_get_logic
 
-from urllib.parse import urlencode
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 assayclasses_blueprint = Blueprint('assayclasses_hs', __name__, url_prefix='/assayclasses')
 
@@ -114,7 +116,11 @@ def assayclasses_get(name=None):
                                                  f"specified parameters")
         return make_response(err, 404)
 
+    # March 2025
+    # The result is either a list with one element or a single item.
+    # Redirect to S3 if payload is large.
     if len(result) == 1:
-        return jsonify(result[0])
+        resp = result[0]
     else:
-        return jsonify(result)
+        resp = result
+    return redirect_if_large(resp=resp)

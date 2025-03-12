@@ -4,7 +4,9 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import field_entities_get_logic
 from ubkg_api.utils.http_error_string import get_404_error_string,validate_query_parameter_names, \
     validate_parameter_value_in_enum
-
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 field_entities_blueprint = Blueprint('field-entities', __name__, url_prefix='/field-entities')
 
@@ -52,8 +54,10 @@ def field_entities_get(name=None):
         if type is not None:
             err = err + ' Call field-types-info for a list of available field data types.'
         return make_response(err, 404)
-    return jsonify(result)
 
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)
 
 @field_entities_blueprint.route('', methods=['GET'])
 def field_entities_expand_get():

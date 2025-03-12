@@ -4,6 +4,9 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import field_schemas_get_logic
 from ubkg_api.utils.http_error_string import get_404_error_string, validate_query_parameter_names, \
     validate_parameter_value_in_enum
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 field_schemas_blueprint = Blueprint('field-schemas', __name__, url_prefix='/field-schemas')
 
@@ -36,7 +39,10 @@ def field_schemas_get(name=None):
         # Empty result
         err = get_404_error_string(prompt_string='No field schema associations')
         return make_response(err, 404)
-    return jsonify(result)
+
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)
 
 
 @field_schemas_blueprint.route('', methods=['GET'])
