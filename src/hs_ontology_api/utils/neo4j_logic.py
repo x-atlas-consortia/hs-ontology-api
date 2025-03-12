@@ -508,37 +508,46 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'genedetail.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
 
-    query = query.replace('$ids', f'\'{gene_id}\'')
+    querytxt = querytxt.replace('$ids', f'\'{gene_id}\'')
+
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        # Build response object.
-        for record in recds:
-            try:
-                genedetail: GeneDetail = \
-                    GeneDetail(hgnc_id=record.get('hgnc_id'),
-                               approved_symbol=record.get('approved_symbol'),
-                               approved_name=record.get('approved_name'),
-                               previous_symbols=record.get('previous_symbols'),
-                               previous_names=record.get('previous_names'),
-                               alias_symbols=record.get('alias_symbols'),
-                               alias_names=record.get('alias_names'),
-                               references=record.get('references'),
-                               summaries=record.get('summaries'),
-                               cell_types_code=record.get('cell_types_code'),
-                               cell_types_code_name=record.get('cell_types_code_name'),
-                               cell_types_code_definition=record.get('cell_types_code_definition'),
-                               cell_types_codes_organ=record.get('cell_types_codes_organ'),
-                               cell_types_code_source=record.get('cell_types_codes_source')).serialize()
+            # Build response object.
+            for record in recds:
+                try:
+                    genedetail: GeneDetail = \
+                        GeneDetail(hgnc_id=record.get('hgnc_id'),
+                                   approved_symbol=record.get('approved_symbol'),
+                                   approved_name=record.get('approved_name'),
+                                   previous_symbols=record.get('previous_symbols'),
+                                   previous_names=record.get('previous_names'),
+                                   alias_symbols=record.get('alias_symbols'),
+                                   alias_names=record.get('alias_names'),
+                                   references=record.get('references'),
+                                   summaries=record.get('summaries'),
+                                   cell_types_code=record.get('cell_types_code'),
+                                   cell_types_code_name=record.get('cell_types_code_name'),
+                                   cell_types_code_definition=record.get('cell_types_code_definition'),
+                                   cell_types_codes_organ=record.get('cell_types_codes_organ'),
+                                   cell_types_code_source=record.get('cell_types_codes_source')).serialize()
 
-                genedetails.append(genedetail)
+                    genedetails.append(genedetail)
 
-            except KeyError:
-                pass
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
 
     return genedetails
 
@@ -556,23 +565,33 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'geneslist_count.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
     starts_with_clause = ''
     if starts_with != '':
         # Escape apostrophes and double quotes.
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f'AND toUpper(tGene.name) STARTS WITH "{starts_with.upper()}"'
-    query = query.replace('$starts_with_clause', starts_with_clause)
+    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
+
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        for record in recds:
-            try:
-                gene_count = record.get('genelistcount')
-            except KeyError:
-                pass
+            for record in recds:
+                try:
+                    gene_count = record.get('genelistcount')
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
+
     return gene_count
 
 
@@ -596,7 +615,7 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'geneslist.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
 
     # The query is parameterized with variables $skiprows and $limitrows.
     # Calculate variable values from parameters.
@@ -617,30 +636,39 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f'AND toUpper(map["approved_symbol"][0]) STARTS WITH "{starts_with.upper()}"'
 
-    query = query.replace('$starts_with_clause', starts_with_clause)
-    query = query.replace('$skiprows', str(skiprows))
-    query = query.replace('$limitrows', str(genes_per_page))
+    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
+    querytxt = querytxt.replace('$skiprows', str(skiprows))
+    querytxt = querytxt.replace('$limitrows', str(genes_per_page))
 
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        genes: [GeneListDetail] = []
-        # Build the list of gene details for this page.
-        for record in recds:
-            try:
-                gene: GeneListDetail = \
+            genes: [GeneListDetail] = []
+            # Build the list of gene details for this page.
+            for record in recds:
+                try:
+                    gene: GeneListDetail = \
                     GeneListDetail(hgnc_id=record.get('hgnc_id'),
                                    approved_symbol=record.get('approved_symbol'),
                                    approved_name=record.get('approved_name'),
                                    summary=record.get('description')).serialize()
-                genes.append(gene)
-            except KeyError:
-                pass
-        # Use the list of gene details with the page to build a genelist object.
-        genelist: GeneList = GeneList(page=page, total_pages=total_pages, genes_per_page=genes_per_page, genes=genes,
-                                      starts_with=starts_with, gene_count=gene_count).serialize()
+                    genes.append(gene)
+                except KeyError:
+                    pass
+            # Use the list of gene details with the page to build a genelist object.
+            genelist: GeneList = GeneList(page=page, total_pages=total_pages, genes_per_page=genes_per_page,
+                                          genes=genes, starts_with=starts_with, gene_count=gene_count).serialize()
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
+
     return genelist
 
 
@@ -664,7 +692,7 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'proteinslist.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
 
     # The query is parameterized with variables $skiprows and $limitrows.
     # Calculate variable values from parameters.
@@ -687,31 +715,42 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
                              f' OR toLower(map["entry_name"][0]) STARTS WITH "{starts_with.lower()}" ' \
                              f' OR toLower(map["recommended_name"][0]) STARTS WITH "{starts_with.lower()}" )' # \
                              # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
-    query = query.replace('$starts_with_clause', starts_with_clause)
-    query = query.replace('$skiprows', str(skiprows))
-    query = query.replace('$limitrows', str(proteins_per_page))
+    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
+    querytxt = querytxt.replace('$skiprows', str(skiprows))
+    querytxt = querytxt.replace('$limitrows', str(proteins_per_page))
 
+    # If the starts_with parameter is specified, indicate in the response that the search is case-insensitive.
     if starts_with != '':
         starts_with = f'{starts_with} (case-insensitive)'
 
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        proteins: [ProteinListDetail] = []
-        # Build the list of gene details for this page.
-        for record in recds:
-            try:
-                protein: ProteinListDetail = \
+            proteins: [ProteinListDetail] = []
+            # Build the list of gene details for this page.
+            for record in recds:
+                try:
+                    protein: ProteinListDetail = \
                     ProteinListDetail(uniprotkb_id=record.get('id'), recommended_name=record.get('recommended_name'),
                                       entry_name=record.get('entry_name'), synonyms=record.get('synonyms')).serialize()
-                proteins.append(protein)
-            except KeyError:
-                pass
-        # Use the list of protein details with the page to build a ProteinList object.
-        proteinlist: ProteinList = ProteinList(page=page, total_pages=total_pages, proteins_per_page=proteins_per_page,
+                    proteins.append(protein)
+                except KeyError:
+                    pass
+            # Use the list of protein details with the page to build a ProteinList object.
+            proteinlist: ProteinList = ProteinList(page=page, total_pages=total_pages, proteins_per_page=proteins_per_page,
                                                proteins=proteins, starts_with=starts_with,
                                                protein_count=protein_count).serialize()
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
+
     return proteinlist
 
 
@@ -728,7 +767,7 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'proteinslist_count.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
     starts_with_clause = ''
     if starts_with != '':
         # Check for recommended_name, entry_name, or one of the list of symbols.
@@ -740,17 +779,27 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
                              f' OR toLower(map["recommended_name"][0]) STARTS WITH "{starts_with.lower()}") ' \
                              f' OR ANY (n in map["synonyms"] WHERE n[0].name STARTS WITH "{starts_with.lower()}")'
 
-    query = query.replace('$starts_with_clause', starts_with_clause)
+    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
+
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        for record in recds:
-            try:
-                protein_count = record.get('proteinlistcount')
-            except KeyError:
-                pass
+            for record in recds:
+                try:
+                    protein_count = record.get('proteinlistcount')
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
+
     return protein_count
 
 
@@ -766,26 +815,36 @@ def proteindetail_get_logic(neo4j_instance, protein_id: str) -> List[ProteinDeta
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'proteindetail.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
 
-    query = query.replace('$ids', f'\'{protein_id}\'')
+    querytxt = querytxt.replace('$ids', f'\'{protein_id}\'')
+
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        # Build response object.
-        for record in recds:
-            try:
-                proteindetail: ProteinDetail = \
+            # Build response object.
+            for record in recds:
+                try:
+                    proteindetail: ProteinDetail = \
                     ProteinDetail(uniprotkb_id=record.get('id'), recommended_name=record.get('recommended_name'),
                                   entry_name=record.get('entry_name'), synonyms=record.get('synonyms'),
                                   description=record.get('description')).serialize()
 
-                proteindetails.append(proteindetail)
+                    proteindetails.append(proteindetail)
 
-            except KeyError:
-                pass
+                except KeyError:
+                    pass
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
 
     return proteindetails
 
@@ -803,7 +862,7 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'celltypeslist_count.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
     starts_with_clause = ''
     if starts_with != '':
         # Check for preferred term or synonym.
@@ -811,17 +870,27 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with.lower()}"' \
 
-    query = query.replace('$starts_with_clause', starts_with_clause)
+    querytxt = query.replace('$starts_with_clause', starts_with_clause)
+
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        for record in recds:
-            try:
-                celltype_count = record.get('celltypelistcount')
-            except KeyError:
-                pass
+            for record in recds:
+                try:
+                    celltype_count = record.get('celltypelistcount')
+                except KeyError:
+                    pass
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
 
     return celltype_count
 
@@ -969,14 +1038,14 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
     # Load annotated Cypher query from the cypher directory.
 
     queryfile = 'fielddescriptions.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
 
     # Allow for filtering on field name.
     if field_name is None:
         field_filter = f' AND {identity_filter}'
     else:
         field_filter = f" AND tField.name = '{field_name}'"
-    query = query.replace('$field_filter', field_filter)
+    querytxt = querytxt.replace('$field_filter', field_filter)
 
     # Allow for filtering on description source
     if definition_source is None:
@@ -986,25 +1055,35 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
     else:
         source_filter = " AND d.SAB IN ['HMFIELD', 'CEDAR'] "
 
-    query = query.replace('$source_filter', source_filter)
+    querytxt = querytxt.replace('$source_filter', source_filter)
+
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        record_count = 0
-        # Build response object.
-        for record in recds:
-            try:
-                fielddescription: FieldDescription = \
+            record_count = 0
+            # Build response object.
+            for record in recds:
+                try:
+                    fielddescription: FieldDescription = \
                     FieldDescription(code_ids=record.get('code_ids'),
                                      name=record.get('identifier'),
                                      descriptions=record.get('defs')).serialize()
 
-                fielddescriptions.append(fielddescription)
-                record_count = record_count + 1
-            except KeyError:
-                pass
+                    fielddescriptions.append(fielddescription)
+                    record_count = record_count + 1
+                except KeyError:
+                    pass
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
 
     return fielddescriptions
 
@@ -1112,7 +1191,7 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'fieldtypelist.cypher'
-    query = loadquerystring(queryfile)
+    querytxt = loadquerystring(queryfile)
 
     # Allow for filtering on type source.
     if type_source is None:
@@ -1121,22 +1200,32 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
         type_source_filter = f" AND cType.SAB = '{type_source}'"
     else:
         type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
-    query = query.replace('$type_source_filter', type_source_filter)
+    querytxt = querytxt.replace('$type_source_filter', type_source_filter)
+
+    # March 2025
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
-        recds: neo4j.Result = session.run(query)
+        try:
+            recds: neo4j.Result = session.run(query)
 
-        # Build response object.
-        for record in recds:
-            try:
-                fieldtypedetail: FieldTypeDetail = \
-                    FieldTypeDetail(type_detail=record.get('type'), is_mapped=False).serialize()
+            # Build response object.
+            for record in recds:
+                try:
+                    fieldtypedetail: FieldTypeDetail = \
+                    FieldTypeDetail(type_detail=record.get('type'),
+                                    is_mapped=False).serialize()
 
-                fieldtypes.append(fieldtypedetail)
+                    fieldtypes.append(fieldtypedetail)
 
-            except KeyError:
-                pass
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise RequestTimeout
 
     return fieldtypes
 

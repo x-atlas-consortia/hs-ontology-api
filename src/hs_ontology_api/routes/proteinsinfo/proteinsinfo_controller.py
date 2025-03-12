@@ -51,7 +51,6 @@ def proteinslist() -> list[str]:
     total_pages = str(math.ceil(int(protein_count) / int(proteins_per_page)))
 
     # Translation for cases "last" or "first"
-    print(f'total_pages={total_pages}')
     if page == 'last':
         page = str(int(total_pages))
     if page == 'first':
