@@ -314,7 +314,10 @@ the hs-ontology-api's HTTP 403 error code message provides more detail than does
 
 The hs-ontology-api can also work around a gateway payload limit by redirect large payloads to an AWS S3 bucket. 
 The hs-ontology-api will return a URL that points to the file in 
-the S3 bucket.
+the S3 bucket. The URL is "pre-signed": consumers can simply
+"get" the URL to download the file locally.
+
+If S3 redirection is not configured, the hs-ontology-api will return a simple HTTP 403 response.
 
 The hs-ontology-api inherits the payload validation and 
 S3 redirection features from the ubkg-api.
