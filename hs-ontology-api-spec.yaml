@@ -76,7 +76,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No assay classes matching parameters.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
@@ -139,7 +139,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No assay classes matching parameters.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
@@ -246,7 +246,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No dataset types matching parameters.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
@@ -288,7 +288,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No organs matching parameters.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
@@ -330,7 +330,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No organs matching parameters.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
@@ -367,7 +367,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: Nothing found for gene target symbol *target_symbol*.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
@@ -420,7 +420,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No valuesets found for specified parameters.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
       tags:
         - other
@@ -468,7 +468,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -503,7 +503,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No information for gene with HGNC identifier *id*.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -553,7 +553,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB identifiers that start with the string specified in the *starts_with* parameter.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -588,7 +588,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No information for protein with UniProtKB identifier *id*.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -638,7 +638,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -673,7 +673,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No information for cell type with Cell Ontology identifier *id*.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -708,7 +708,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field descriptions (with list of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -750,7 +750,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No descriptions (with list of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -801,7 +801,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field-type associations (with list of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -859,7 +859,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field-type associations (with list of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -895,7 +895,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field types (with list of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -946,7 +946,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field entities (with list of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -1004,7 +1004,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No field entities (with list of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -1037,7 +1037,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -1077,7 +1077,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -1119,7 +1119,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: no field to schema relationships found (for the set of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
@@ -1168,7 +1168,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: no field to schema relationships found (for the set of parameters, if specified)
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
