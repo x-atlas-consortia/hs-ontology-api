@@ -33,6 +33,9 @@ def valueset_get():
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
 
     result = valueset_get_logic(neo4j_instance, parent_sab, parent_code, child_sabs)
+    # March 2025 This endpoint is consumed by applications, such as SenNet, that may assume
+    # a response of [] for no data instead of a formatted HTTP 404 error.
+
     # March 2025
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)

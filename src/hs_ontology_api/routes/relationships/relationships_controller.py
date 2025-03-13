@@ -20,6 +20,9 @@ def relationships_for_gene_target_symbol_get(target_symbol):
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = relationships_for_gene_target_symbol_get_logic(neo4j_instance, target_symbol)
     if result is None:
+        # The use case for this endpoint is the AVR application. For possible downward compatibility issues,
+        # maintain this formatting of response instead of using the get_404_error_string function from
+        # the ubkg-api.
         resp = make_response(jsonify({"message": f"Nothing found for gene target symbol: {target_symbol}"}), 404)
         resp.headers['Content-Type'] = 'application/json'
         return resp

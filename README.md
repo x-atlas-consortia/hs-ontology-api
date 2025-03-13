@@ -269,6 +269,8 @@ code in the **neo4j_logic.py** in the *utils* folder.
 
 Example:
 ```commandline
+from werkzeug.exceptions import GatewayTimeout
+
 # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -280,9 +282,9 @@ Example:
                 # process records
 
         except neo4j.exceptions.ClientError as e:
-            # If the error is from a timeout, raise a HTTP 408.
+            # If the error is from a timeout, raise a HTTP 504.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return <your records>
 ```

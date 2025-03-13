@@ -7,7 +7,7 @@ from typing import List
 import os
 
 # Mar 2025 for handling configurable timeouts
-from werkzeug.exceptions import RequestTimeout
+from werkzeug.exceptions import GatewayTimeout
 
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
@@ -88,7 +88,7 @@ def get_organ_types_logic(neo4j_instance, sab):
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
         return result
 
@@ -156,7 +156,7 @@ def relationships_for_gene_target_symbol_get_logic(neo4j_instance, target_symbol
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return result
 
@@ -253,7 +253,7 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return sabcodeterms
 
@@ -547,7 +547,7 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return genedetails
 
@@ -590,7 +590,7 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return gene_count
 
@@ -667,7 +667,7 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return genelist
 
@@ -749,7 +749,7 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return proteinlist
 
@@ -798,7 +798,7 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return protein_count
 
@@ -844,7 +844,7 @@ def proteindetail_get_logic(neo4j_instance, protein_id: str) -> List[ProteinDeta
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return proteindetails
 
@@ -890,7 +890,7 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return celltype_count
 
@@ -963,7 +963,7 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
         # Use the list of gene details with the page to build a genelist object.
         celltypelist: CelltypeList = CelltypeList(page=page,
@@ -1017,7 +1017,7 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return celltypedetails
 
@@ -1083,7 +1083,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return fielddescriptions
 
@@ -1169,7 +1169,7 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return fieldtypes
 
@@ -1225,7 +1225,7 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return fieldtypes
 
@@ -1286,7 +1286,7 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assaytype=None) -> d
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
         return resp
 
@@ -1358,7 +1358,7 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
         return fieldschemas
 
@@ -1442,7 +1442,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
         return fieldentities
 
@@ -1519,7 +1519,7 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return assayclasses
 
@@ -1575,6 +1575,6 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise RequestTimeout
+                raise GatewayTimeout
 
     return datasettypes
