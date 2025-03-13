@@ -118,6 +118,17 @@ Various methods of testing endpoint URLs are possible, including:
 3. A Python script using **Requests** or **pytest**
 4. Executing directly in the browser. This method is suitable for GET endpoints.
 
+# ubkg-api feature inheritance
+The hs-onotology-api inherits features of the ubkg-api parent, including:
+- error messages as JSON objects instead of strings
+- optional validation for timeout
+- optional validation for response payload size
+- custom error handlers for cases of
+  - HTTP 404 (no data)
+  - HTTP 500 (server error)
+  - HTTP 504 (server timeout)
+Some ubkg-api features are optional--i.e., functions can be imported.
+
 # Adding new endpoints
 Each endpoint in hs-ontology-api involves:
 - One or more functions in the **_functional script_** (**neo4j_logic.py**). The usual use case is a parameterized function that prepares a Cypher query against the target neo4j instance.
@@ -241,19 +252,23 @@ You will need to specify:
 1. Paths that correspond to your endpoint routes.
 2. Schemas that correspond to the responses from endpoints.
 
-# Optional Timeout and Payload Size Features
-As a Flask application, the hs-ontology-api can be deployed in various environments.
+# Optional timeout validation feature
+The hs-ontology-api can be deployed in various environments.
 
 When deployed behind a server gateway, such as AWS API Gateway, the gateway may impose constraints
 on timeout or response payload size. For example, AWS API Gateway has a timeout of 29 seconds and
-a maximum response payload of 10 MB.
+a maximum response payload of 10 MB. 
 
-The ubkg-api will return detailed explanations for timeout, instead of relying on the 
-sometimes ambiguous messages from the gateway (e.g., a HTTP 500).
+The hs-ontology-api can be configured to enforce its own timeout that
+occurs before an actual gateway timeout, essentially acting as a proxy for 
+the gateway. 
+The hs-ontology-api's HTTP 504 timeout message will return detailed 
+explanations for the timeout.
+
+The hs-ontology-api inherits the timeout validation feature from the ubkg-api.
 
 ## Code required
 ### app.cfg
-An instance of hs-ontology-api can override the default timeout in its app.cfg file.
 To enable custom management of timeout and payload size, specify values in the **app.cfg** file, as shown below.
 
 ```commandline
@@ -289,10 +304,20 @@ from werkzeug.exceptions import GatewayTimeout
     return <your records>
 ```
 
-# Optional S3 redirection for large payloads
-The ubkg-api can redirect large payloads to an AWS S3 bucket. 
-When the response from an endpoint exceeds a certain size, the ubkg-api will return a URL that points to the file in 
+# Payload size validation with optional S3 redirection
+APIs in environments employing an AWS API gateway have limits on
+the size of response payloads. The current default AWS API gateway limit on payloads is 10 MB.
+
+The hs-ontology-api can be configured to check the size of response payloads. This feature can
+be used to prevent triggering of the actual gateway error. In addition,
+the hs-ontology-api's HTTP 403 error code message provides more detail than does the message from the gateway.
+
+The hs-ontology-api can also work around a gateway payload limit by redirect large payloads to an AWS S3 bucket. 
+The hs-ontology-api will return a URL that points to the file in 
 the S3 bucket.
+
+The hs-ontology-api inherits the payload validation and 
+S3 redirection features from the ubkg-api.
 
 ## Coding required
 ### app.cfg
