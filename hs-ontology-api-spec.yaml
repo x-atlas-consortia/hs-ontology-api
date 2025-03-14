@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: HubMAP/SenNet Ontology API (hs-ontology-api)
-  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a [UBKG](https://ubkg.docs.xconsortia.org/) instance with content from the [HuBMAP/SenNet context](https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code.
+  description: The HuBMAP/SenNet Ontology API contains endpoints for querying a [UBKG](https://ubkg.docs.xconsortia.org/) instance with content from the [HuBMAP/SenNet context](https://ubkg.docs.xconsortia.org/contexts/#hubmapsennet-context). The hs-ontology-api imports the [ubkg-api](https://smart-api.info/ui/96e5b5c0b0efeef5b93ea98ac2794837), which encapsulates both basic connectivity to a UBKG instance and generic endpoint code. To prevent exceeding service timeouts or payload limits, some endpoints are throttled in both execution time and in the size of its response payload--e.g., to a maximum execution time of 29 seconds and a maximum payload of 9.9 MB.
   version: 2.2.0
   contact:
     name: GitHub repository
@@ -9,6 +9,13 @@ info:
 servers:
   - url: https://ontology.api.hubmapconsortium.org/
     description: Production server
+tags:
+  - name: assay classifications
+  - name: dataset types
+  - name: organs
+  - name: biological entities
+  - name: ingestion metadata
+  - name: other
 paths:
   /assayclasses:
     get:
@@ -61,12 +68,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AssayClass'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
-          description: No assay classes matching parameters
+          description: No assay classes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
+      tags:
+        - assay classifications
   /assayclasses/{class}:
     get:
       operationId: assayclass_name_get
@@ -116,12 +131,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssayClass'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
-          description: No assay classes matching parameters
+          description: No assay classes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
+      tags:
+        - assay classifications
   /dataset-types:
     get:
       operationId: datasettypes_get
@@ -159,12 +182,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DatasetType'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters
+          description: No dataset types matching parameters.
+        '408':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
+      tags:
+        - dataset types
   /dataset-types/{name}:
     get:
       operationId: datasettypes_name_get
@@ -207,12 +238,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DatasetType'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters
+          description: No dataset types matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
+      tags:
+        - dataset types
   /organs:
     get:
       operationId: get_organ_types
@@ -241,6 +280,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTermRuiCode'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No organs matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - organs
   /organs/by-code:
     get:
       operationId: get_organ_by_code
@@ -269,6 +322,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/RuiCodeTerm'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No organs matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - organs
   /relationships/gene/{target_symbol}:
     get:
       operationId: relationships_for_gene_target_symbol_get
@@ -292,10 +359,20 @@ paths:
                 symbol-approved: ["MMRN1"]
                 symbol-previous: ["MMRN"]
                 symbol-alias: ["EMILIN4", "GPIa*", "ECM"]
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: Nothing found for gene target symbol *target_symbol*.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
+      tags:
+        - other
   /valueset:
     get:
       operationId: valueset_get
@@ -314,7 +391,7 @@ paths:
           description: the code of the parent concept in the SAB (local ontology)
           schema:
             type: string
-            example: C000530
+            example: C003041
         - name: child_sabs
           in: query
           required: true
@@ -335,6 +412,18 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SabCodeTerm'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No valuesets found for specified parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+      tags:
+        - other
   /genes-info:
     get:
       operationId: genes_info_get
@@ -371,12 +460,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/GeneListResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter--e.g., *genes_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No genes that satisfied the criteria were found. This usually means that there are no genes with HGNC approved symbols that start with the string specified in the *starts_with* parameter.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /genes/{id}:
     get:
       operationId: genes_get
@@ -398,10 +495,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/GeneDetailResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No information for gene with HGNC identifier *id*.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /proteins-info:
     get:
       operationId: protein_info_get
@@ -438,12 +545,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ProteinListResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter--e.g., *proteins_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No proteins that satisfied the criteria were found. This usually means that there are no proteins with UniprotKB identifiers that start with the string specified in the *starts_with* parameter.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /proteins/{id}:
     get:
       operationId: proteins_get
@@ -465,10 +580,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ProteinDetailResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No information for protein with UniProtKB identifier *id*.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /celltypes-info:
     get:
       operationId: celltypes_info_get
@@ -505,12 +630,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CellTypeListResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter--e.g., *celltypes_per_page* is either non-numeric or a negative number; *page* is something other than a non-negative number or the words 'first' or 'last'
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No cell types that satisfied the criteria were found. This usually means that there are no cell types with names that start with the string specified in the *starts_with* parameter.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /celltypes/{id}:
     get:
       operationId: celltypes_get
@@ -532,10 +665,20 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/CellTypeDetailResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No information for cell type with Cell Ontology identifier *id*.
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - biological entities
   /field-descriptions:
     get:
       operationId: field_descriptions_get
@@ -557,12 +700,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldDescriptionsResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid *source* parameter (i.e., not CEDAR or HMFIELD); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field descriptions (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-descriptions/{name}:
     get:
       operationId: field_descriptions_name_get
@@ -591,12 +742,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldDescriptionsResponseSingle'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid *source* parameter (i.e., not CEDAR or HMFIELD); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No descriptions (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-types:
     get:
       operationId: field_types_get
@@ -634,12 +793,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldTypesResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field-type associations (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-types/{name}:
     get:
       operationId: field_types_name_get
@@ -684,12 +851,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldTypesResponseSingle'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description:  Invalid value for parameter (e.g., *mapping_source* not HMFIELD or CEDAR); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field-type associations (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
+
   /field-types-info:
     get:
       operationId: field_types_indo_get
@@ -711,12 +887,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldTypesInfoResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
-          description:  Invalid parameter
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field types (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-entities:
     get:
       operationId: field_entities_get
@@ -754,12 +938,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldEntitiesResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description:  Invalid value for parameter (e.g., *source* not HMFIELD or CEDAR); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field entities (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-entities/{name}:
     get:
       operationId: field_entities_name_get
@@ -804,12 +996,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldEntitiesResponseSingle'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description:  Invalid value for parameter (e.g., *source* not HMFIELD or HUBMAP); invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: No field entities (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-assays:
     get:
       operationId: field_assays_get
@@ -829,12 +1029,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldAssaysResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-assays/{name}:
     get:
       operationId: field_assays_name_get
@@ -861,12 +1069,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldAssaysResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
-          description: Invalid parameter
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: no field to assay relationships found (for the set of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-schemas:
     get:
       operationId: field_schemas_get
@@ -895,12 +1111,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldSchemasResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter; invalid value for *source*
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: no field to schema relationships found (for the set of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
   /field-schemas/{name}:
     get:
       operationId: field_schemas_name_get
@@ -936,12 +1160,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FieldSchemasResponseSingle'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
           description: Invalid parameter; invalid value for *source*
+        '403':
+          description: The response size exceeds a limit set by the server.
         '404':
           description: no field to schema relationships found (for the set of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unexpected error
+      tags:
+        - ingestion metadata
 components:
   schemas:
     RuiCodeTerm:

@@ -3,6 +3,9 @@ from flask import Blueprint, jsonify, current_app, make_response,request
 from hs_ontology_api.utils.neo4j_logic import get_organ_types_logic
 from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
                                               validate_parameter_value_in_enum, validate_required_parameters)
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 organs_blueprint = Blueprint('organs_hs', __name__, url_prefix='/organs')
 
@@ -26,7 +29,10 @@ def get_organ_types():
     application_context = application_context.upper()
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    return jsonify(get_organ_types_logic(neo4j_instance, application_context.upper()))
+    result = get_organ_types_logic(neo4j_instance, application_context.upper())
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)
 
 
 @organs_blueprint.route('by-code', methods=['GET'])
@@ -52,7 +58,10 @@ def get_organ_by_code():
     result: dict = {}
     for item in data:
         result[item['rui_code']] = item['term'].strip()
-    return jsonify(result)
+
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)
 
 
 
