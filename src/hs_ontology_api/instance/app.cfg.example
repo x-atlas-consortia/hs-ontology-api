@@ -1,9 +1,9 @@
 SERVER='bolt://ubkg-neo4j:7687'
 USERNAME='neo4j'
 PASSWORD='abcd1234'
-# Maximum duration for the execution of timeboxed queries to prevent service timeout, in milliseconds
+# Maximum duration for the execution of timeboxed queries to prevent service timeout, in seconds
 # The AWS API gateway timeout is 29 seconds.
-TIMEOUT=28000
+TIMEOUT=28
 
 # Large response threshold, as determined by the length of the response (payload).
 # Responses with payload sizes that exceed the threshold will be handled in one of the
