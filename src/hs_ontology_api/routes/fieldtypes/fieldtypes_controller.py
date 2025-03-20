@@ -4,7 +4,9 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import field_types_get_logic
 from ubkg_api.utils.http_error_string import get_404_error_string, validate_query_parameter_names, \
     validate_parameter_value_in_enum
-
+# March 2025
+# S3 redirect functions
+from ubkg_api.utils.s3_redirect import redirect_if_large
 
 field_types_blueprint = Blueprint('field-types', __name__, url_prefix='/field-types')
 
@@ -49,10 +51,13 @@ def field_types_get(name=None):
         # Empty result
         err = get_404_error_string(prompt_string='No field type associations')
         if type is not None:
-            err = err + ' Call the field-types-info endpoint for a list of available field data types. ' \
+            err['message'] = err['message'] + ' Call the field-types-info endpoint for a list of available field data types. ' \
                         'Refer to the SmartAPI documentation for this endpoint for more information.'
         return make_response(err, 404)
-    return jsonify(result)
+
+    # March 2025
+    # Redirect to S3 if payload is large.
+    return redirect_if_large(resp=result)
 
 
 @field_types_blueprint.route('', methods=['GET'])

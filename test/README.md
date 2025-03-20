@@ -33,12 +33,16 @@ works with a compiled package version of ubkg-api, it is better to test ubkg-api
 endpoints in a development ubkg-api instance; once the ubkg-api endpoint is validated, the 
 ubkg-api package can be recompiled for use by the hs-ontology-api.
 
-To test hs-ontology-api endpoints, use the **test_api.s**h script in this folder. 
-The script writes output to the test.out file, which is ignored by git.
+To test hs-ontology-api endpoints, use the **hs-ontology-api-unit-test.sh** script in this folder. 
+The script writes output to a file named *hs-ontology-api-unit-test.out*, which is ignored by git.
 
 #### Gateway: integration testing
 Because the API gateway manages the endpoint URLs of all components of a UBKG API instance, it
 is often necessary to test the union of endpoint URLs. This is not a functional test of a particular endpoint; 
 instead, it is an integration test of the gateway configuration.
 
-To test the gateway for the HuBMAP/SenNet UBKG API deployment, use the **test_gateway.sh** script in this folder.
+To test the gateway for the HuBMAP/SenNet UBKG API deployment, use the **hs-ontology-api-system-test.sh** script in this folder.
+The script writes to a file named *hs-ontology-api-system-test.out*, which is ignored by GitHub.
+
+The system test script executes the superset of endpoints--i.e., all endpoint in both the 
+hs-ontology-api and the ubkg-api.
