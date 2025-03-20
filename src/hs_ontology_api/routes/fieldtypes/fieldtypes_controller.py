@@ -51,7 +51,7 @@ def field_types_get(name=None):
         # Empty result
         err = get_404_error_string(prompt_string='No field type associations')
         if type is not None:
-            err = err + ' Call the field-types-info endpoint for a list of available field data types. ' \
+            err['message'] = err['message'] + ' Call the field-types-info endpoint for a list of available field data types. ' \
                         'Refer to the SmartAPI documentation for this endpoint for more information.'
         return make_response(err, 404)
 

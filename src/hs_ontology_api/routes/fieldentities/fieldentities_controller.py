@@ -52,7 +52,7 @@ def field_entities_get(name=None):
         # Empty result
         err = get_404_error_string(prompt_string='No field type associations')
         if type is not None:
-            err = err + ' Call field-types-info for a list of available field data types.'
+            err['message'] = err['message'] + ' Call field-types-info for a list of available field data types.'
         return make_response(err, 404)
 
     # March 2025
