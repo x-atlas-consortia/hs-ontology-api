@@ -1578,3 +1578,61 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
                 raise GatewayTimeout
 
     return datasettypes
+
+def pathway_get_logic(neo4j_instance, geneids: str, pathwayid: str,
+                      pathwayname_startswith: str, eventtypes: str) -> List[GeneDetail]:
+    """
+    March 2025
+    Returns detailed information on the set of Reactome pathway events that
+    have specified genes as participants.
+
+    :param neo4j_instance: instance of neo4j connection
+    :param geneids: optional filter: set of HGNC identifiers
+    :param pathwayid: optional filter: Reactome stable id for an event
+    :param pathwayname_startswith: optional filter: partial name for a Reactome event
+                                   to be used in 'starts with' queries
+    :param eventtypes: optional filter: list of Reactome event types
+
+    """
+
+    events:[dict] = []
+    # Load query.
+    querytxt = loadquerystring('pathwayevents_with_genes.cypher')
+
+    # Pass parameters to query.
+    if geneids is None:
+        querytxt = querytxt.replace('$ids','')
+    else:
+        querytxt = querytxt.replace('$ids', geneids)
+    if pathwayid is None:
+        querytxt = querytxt.replace('$pathwayid','')
+    else:
+        querytxt = querytxt.replace('$pathwayid', pathwayid)
+    if pathwayname_startswith is None:
+        querytxt = querytxt.replace('$pathwayname','')
+    else:
+        querytxt = querytxt.replace('$pathwayname', pathwayname_startswith)
+    if eventtypes is None:
+        querytxt = querytxt.replace('$eventtypes','')
+    else:
+        querytxt = querytxt.replace('$eventtypes', eventtypes)
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                resp = record.get('response')
+                try:
+                    events.append(resp)
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    return events
