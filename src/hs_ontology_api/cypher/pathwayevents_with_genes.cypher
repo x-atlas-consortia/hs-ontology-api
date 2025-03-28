@@ -30,7 +30,7 @@
 // Input filters
 // The calling function will populate the input filters.
 // Gene identifiers
-WITH [$ids] AS geneids,
+WITH [$geneids] AS geneids,
 //WITH [''] AS geneids,
 //WITH ['EGFR'] AS geneids,
 
@@ -128,8 +128,8 @@ CALL
 	// Apply optional pathway filters.
  	MATCH (tEvent:Term)<-[rEvent:PT]-(cEvent:Code{SAB:'REACTOME'})<-[:CODE]-(pEvent)-[:isa{SAB:'REACTOME'}]->(pEventType:Concept)-[:CODE]->	(cEventType:Code{SAB:'REACTOME_VS'})-[rEventType:PT]->(tEventType:Term)
 	WHERE CASE
-		WHEN eventtypes[0]<>'' THEN ANY (eventtype IN eventtypes WHERE tEventType.name=eventtype)
-		ELSE ANY (eventtype IN ['TopLevelPathway','Pathway'] WHERE tEventType.name=eventtype) END
+		WHEN eventtypes[0]<>'' THEN ANY (eventtype IN eventtypes WHERE toLower(tEventType.name)=toLower(eventtype))
+		ELSE toLower(tEventType.name) IN ['toplevelpathway','pathway'] END
 	AND CASE
 		WHEN pathwayid<>'' THEN cEvent.CODE=pathwayid ELSE 1=1 END
 	AND CASE
@@ -144,6 +144,6 @@ WITH EventType,EventName,EventCode,{type:EventType, code:EventCode,description:E
 ORDER BY EventType DESC, EventName
 // Collect events.
 WITH COLLECT(DISTINCT event) AS events,COUNT(DISTINCT event) AS EventCount
-WITH COLLECT(DISTINCT {count:EventCount,events:events}) AS events
-RETURN {events:events} AS response
+//WITH COLLECT(DISTINCT {count:EventCount,events:events}) AS events
+RETURN {count:EventCount,events:events} AS response
 

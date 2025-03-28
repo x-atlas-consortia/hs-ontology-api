@@ -15,6 +15,7 @@ tags:
   - name: organs
   - name: biological entities
   - name: ingestion metadata
+  - name: pathways
   - name: other
 paths:
   /assayclasses:
@@ -1174,6 +1175,54 @@ paths:
           description: Unexpected error
       tags:
         - ingestion metadata
+  /pathways/with-genes:
+    get:
+      operationId: pathways_with_genes_get
+      summary: Obtains set of Reactome pathway events that have specified genes as participants
+      parameters:
+        - name: geneids
+          in: query
+          required: false
+          description: optional filter - list of HGNC identifiers. Identifiers can be HGNC IDs, symbols, or alternate symbols. Can be either a comma-delimited list (?geneids=A,B) or multiple single values (?geneids=A&geneids=B)
+          schema:
+            type: string
+            example: EGFR
+        - name: pathwayid
+          in: query
+          required: false
+          description: optional filter - Reactome stable ID for a pathway event.
+          schema:
+            type: string
+            example: R-HSA-74160
+        - name: pathwaynamestartswith
+          in: query
+          required: false
+          description: starting portion of a pathway event name string
+          schema:
+            type: string
+            example: A
+      responses:
+        '200':
+          description: Reactome pathway events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayEvent'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: no events that match parameters
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - pathways
+
 components:
   schemas:
     RuiCodeTerm:
@@ -2099,3 +2148,29 @@ components:
                   type: string
                   description: whether the dataset type is for an EPIC dataset
                   example: false
+    PathwayEvent:
+      type: object
+      description: a set of Reactome pathway events
+      properties:
+        count:
+          type: number
+          description: number of Reactome pathway events
+          example: 420
+        events:
+          type: array
+          description: Reactome Pathway events
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Reactome stable ID for the pathway event
+                example: R-HSA-1640170
+              description:
+                type: string
+                description: pathway event description
+                example: Cell Cycle
+              type:
+                type: string
+                description: Reactome event type
+                example: TopLevelPathway

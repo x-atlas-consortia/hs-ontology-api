@@ -32,6 +32,11 @@ from hs_ontology_api.models.fieldschema import FieldSchema
 from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
 from hs_ontology_api.models.fieldentity import FieldEntity
 
+# Mar 2025
+# Until the ubkg-api is refactored so that format_list_for_query function is in
+# a utility module, import from the ubkg-api's common_neo4j_logic module.
+from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
+
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.INFO)
@@ -1579,8 +1584,8 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
 
     return datasettypes
 
-def pathway_get_logic(neo4j_instance, geneids: str, pathwayid: str,
-                      pathwayname_startswith: str, eventtypes: str) -> List[GeneDetail]:
+def pathway_get_logic(neo4j_instance, geneids=None, pathwayid=None,
+                      pathwayname_startswith=None, eventtypes=None) -> List[GeneDetail]:
     """
     March 2025
     Returns detailed information on the set of Reactome pathway events that
@@ -1600,22 +1605,31 @@ def pathway_get_logic(neo4j_instance, geneids: str, pathwayid: str,
     querytxt = loadquerystring('pathwayevents_with_genes.cypher')
 
     # Pass parameters to query.
+    # geneids is, in general, a list.
+
     if geneids is None:
-        querytxt = querytxt.replace('$ids','')
+        geneidsjoin = f"['']"
     else:
-        querytxt = querytxt.replace('$ids', geneids)
+        geneidsjoin = format_list_for_query(listquery=geneids, doublequote=False)
+    querytxt = querytxt.replace('$geneids', geneidsjoin)
+
     if pathwayid is None:
-        querytxt = querytxt.replace('$pathwayid','')
+        querytxt = querytxt.replace('$pathwayid',"''")
     else:
-        querytxt = querytxt.replace('$pathwayid', pathwayid)
+        querytxt = querytxt.replace('$pathwayid', f"'{pathwayid}'")
+
     if pathwayname_startswith is None:
-        querytxt = querytxt.replace('$pathwayname','')
+        querytxt = querytxt.replace('$pathwayname',"''")
     else:
-        querytxt = querytxt.replace('$pathwayname', pathwayname_startswith)
+        querytxt = querytxt.replace('$pathwayname', f"'{pathwayname_startswith}'")
+
+    # eventtypes is, in general, a list.
     if eventtypes is None:
-        querytxt = querytxt.replace('$eventtypes','')
+        eventtypesjoin = f"['']"
     else:
-        querytxt = querytxt.replace('$eventtypes', eventtypes)
+        eventtypesjoin = format_list_for_query(listquery=eventtypes, doublequote=False)
+
+    querytxt = querytxt.replace('$eventtypes', eventtypesjoin)
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
@@ -1635,4 +1649,6 @@ def pathway_get_logic(neo4j_instance, geneids: str, pathwayid: str,
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    return events
+    # The return should be a list with only one element.
+    if len(events)>0:
+        return events[0]

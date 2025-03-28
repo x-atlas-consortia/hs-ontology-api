@@ -36,29 +36,29 @@ def pathways_with_genes_route_function_get():
     if err != 'ok':
         return make_response(err, 400)
 
-    geneids = request.args.get('geneids')
+    # The geneids parameter is, in general, a list of HGNC identifiers.
+
+    geneids = parameter_as_list(param_name='geneids')
     pathwayid = request.args.get('pathwayid')
     pathwayname_startswith = request.args.get('pathwayname-startswith')
 
     # Check for valid event type categories.
-    # The parameter can be a list.
+    # The eventtypes parameter is, in general, a list.
     eventtypes = parameter_as_list(param_name='eventtypes')
-    # Reactome event types
+    # Reactome event types, in lowercase.
     val_enum=['toplevelpathway',
               'pathway',
+              'reaction',
               'blackboxevent',
               'polymerisation',
               'depolymerisation']
     if eventtypes is not None:
         for eventtype in eventtypes:
-            # Normalize to British spelling.
+            # Normalize to the British spelling used in Reactome.
             e = eventtype.lower().replace('z','s')
-            err = validate_query_parameter_names(param_name='eventtypes', param_value=e, enum_list=val_enum)
+            err = validate_parameter_value_in_enum(param_name='eventtypes', param_value=e, enum_list=val_enum)
             if err != 'ok':
                 return make_response(err, 400)
-
-    # Convert back to string for query.
-    eventtypes = request.args.get('eventtypes')
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = pathway_get_logic(neo4j_instance,
@@ -67,7 +67,12 @@ def pathways_with_genes_route_function_get():
                                pathwayname_startswith=pathwayname_startswith,
                                eventtypes=eventtypes)
 
-    if result is None or result == []:
+    iserr = result is None or result == []
+    if not iserr:
+        count = result.get('count')
+        iserr = count == 0
+
+    if iserr:
         # Empty result
         err = get_404_error_string(prompt_string=f"No results for "
                                                  f"specified parameters")
