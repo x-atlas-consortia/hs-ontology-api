@@ -1183,7 +1183,7 @@ paths:
         - name: geneids
           in: query
           required: false
-          description: optional filter - list of HGNC identifiers. Identifiers can be HGNC IDs, symbols, or alternate symbols. Can be either a comma-delimited list (?geneids=A,B) or multiple single values (?geneids=A&geneids=B)
+          description: optional filter - list of HGNC identifiers. Identifiers can be HGNC IDs, symbols, or alternate symbols. Can be either a comma-delimited list (?geneids=A,B) or multiple single values (?geneids=A&geneids=B).
           schema:
             type: string
             example: EGFR
@@ -1197,10 +1197,17 @@ paths:
         - name: pathwaynamestartswith
           in: query
           required: false
-          description: starting portion of a pathway event name string
+          description: optional filter - starting portion of a pathway event name string
           schema:
             type: string
             example: A
+        - name: eventtypes
+          in: query
+          required: false
+          description: optional filter - case-insensitive list of Reactome pathway event types. Available event types are toplevelpathway; pathway; reaction; blackboxevent; polymerisation; and depolymerisation. Can be either a comma-delimited list or multiple single values. If no values provided, the default is (toplevelpathway,pathway).
+          schema:
+            type: string
+            example: toplevelpathway
       responses:
         '200':
           description: Reactome pathway events
@@ -1222,7 +1229,6 @@ paths:
           description: Unexpected error
       tags:
         - pathways
-
 components:
   schemas:
     RuiCodeTerm:
