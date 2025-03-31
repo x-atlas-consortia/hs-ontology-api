@@ -270,6 +270,15 @@ echo | tee -a $testout
 #--------------------------------------------
 echo "hs-ontology-api endpoints"
 echo
+
+echo "/pathways/with-genes" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
 echo "/assayclasses" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/assayclasses?application_context=HUBMAP" \
