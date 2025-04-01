@@ -159,6 +159,12 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
+echo "TESTS FOR: pathways/<id>/participants GET" | tee -a $testout
+echo "SIGNATURE: /pathways/<id>/participants?>&sabs=<list>&featuretypes=<list>" | tee -a $testout
+echo | tee -a $testout
+echo | tee -a $testout
+
+
 echo "TESTS FOR: assayclasses GET" | tee -a $testout
 echo "SIGNATURE: /assayclasses?application_context=<context>&process_state=<process_state>&provide_hiearchy_info=<true,false>&provide_measurement_assay_codes=<true,false>" | tee -a $testout
 echo | tee -a $testout

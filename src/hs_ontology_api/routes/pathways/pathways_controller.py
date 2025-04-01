@@ -106,7 +106,7 @@ def pathways_participants_function_get(id=None):
 
     # Validate parameters.
     # Check for invalid parameter names.
-    err = validate_query_parameter_names(parameter_name_list=['sabs','feature_types'])
+    err = validate_query_parameter_names(parameter_name_list=['sabs','featuretypes'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -123,12 +123,12 @@ def pathways_participants_function_get(id=None):
             if err != 'ok':
                 return make_response(err, 400)
 
-    feature_types = parameter_as_list(param_name='feature_types')
+    featuretypes = parameter_as_list(param_name='featuretypes')
     val_enum = ['gene','transcript']
-    if feature_types is not None:
-        for feature_type in feature_types:
+    if featuretypes is not None:
+        for feature_type in featuretypes:
             f = feature_type.lower()
-            err = validate_parameter_value_in_enum(param_name='feature_types', param_value= f,
+            err = validate_parameter_value_in_enum(param_name='featuretypes', param_value= f,
                                                    enum_list=val_enum)
             if err != 'ok':
                 return make_response(err, 400)
@@ -137,7 +137,7 @@ def pathways_participants_function_get(id=None):
     result = pathway_participants_get_logic(neo4j_instance,
                                             pathwayid=id,
                                             sabs=sabs,
-                                            feature_types=feature_types)
+                                            featuretypes=featuretypes)
 
     iserr = result is None or result == []
     if not iserr:

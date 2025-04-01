@@ -30,8 +30,8 @@ $pathwayid AS pathwayid,
 //'Cell' AS pathwayid,
 
 // ENSEMBl feature types--e.g., transcripts or genes
-['gene'] AS default_feature_types,
-[$feature_types] AS feature_types
+['gene'] AS default_featuretypes,
+[$featuretypes] AS featuretypes
 
 //Get CUI for the pathway(s).
 CALL
@@ -80,7 +80,7 @@ CALL
 	RETURN
 		cParticipant.SAB AS ParticipantSAB,
 		tSymbol.name AS ParticipantSymbol,
-		{id:cParticipant.CODE,symbol:tSymbol.name,description:tDescription.name,feature_type:'n/a'} as participant
+		{id:cParticipant.CODE,symbol:tSymbol.name,description:tDescription.name,featuretype:'n/a'} as participant
 
 	UNION
 	//participants from UNIPROTKB or CHEBI
@@ -92,24 +92,24 @@ CALL
 	RETURN
 		cParticipant.SAB AS ParticipantSAB,
 		cParticipant.CODE AS ParticipantSymbol,
-		{id:cParticipant.CODE,symbol:cParticipant.CODE,description:tParticipant.name,feature_type:'n/a'} AS participant
+		{id:cParticipant.CODE,symbol:cParticipant.CODE,description:tParticipant.name,featuretype:'n/a'} AS participant
 
 	UNION
 	// participants from ENSEMBL, which can include both transcripts and genes
 
-	WITH PathwayCUI,ParticipantCUI,feature_types,default_feature_types
+	WITH PathwayCUI,ParticipantCUI,featuretypes,default_featuretypes
 	MATCH (tFeature:Term)<-[:PT]-(cFeature:Code{SAB:'GENCODE_VS'})<-[:CODE]-(pFeature:Concept)<-[rFeature:is_feature_type]-(pParticipant:Concept{CUI:ParticipantCUI})-[:CODE]->(cParticipant:Code)-[r]-(tParticipant:Term)
 	WHERE cParticipant.SAB IN ['ENSEMBL']
 	AND type(r) IN ['PT','PT_GENCODE']
 	AND CASE
-		WHEN feature_types[0]<>'' THEN ANY(f in feature_types WHERE toLower(tFeature.name)=toLower(f))
-		ELSE ANY(f in default_feature_types WHERE toLower(tFeature.name)=toLower(f))
+		WHEN featuretypes[0]<>'' THEN ANY(f in featuretypes WHERE toLower(tFeature.name)=toLower(f))
+		ELSE ANY(f in default_featuretypes WHERE toLower(tFeature.name)=toLower(f))
 		END
 	AND r.CUI=pParticipant.CUI
 	RETURN
 		cParticipant.SAB AS ParticipantSAB,
 		cParticipant.CODE AS ParticipantSymbol,
-		{id:cParticipant.CODE,symbol:cParticipant.CODE,description:tParticipant.name,feature_type:tFeature.name} AS participant
+		{id:cParticipant.CODE,symbol:cParticipant.CODE,description:tParticipant.name,featuretype:tFeature.name} AS participant
 
 }
 WITH sabs,defaultsabs,ParticipantSAB,ParticipantSymbol,PathwayCUI, PathwayCode,PathwayName, PathwayType, participant

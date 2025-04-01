@@ -1248,7 +1248,7 @@ paths:
           schema:
             type: string
             example: HGNC
-        - name: feature_types
+        - name: featuretypes
           in: query
           required: false
           description: optional filter that applies only when sabs includes ENSEMBL - case-insensitive list of ENSEMBL feature types as specified by GENCODE. Accepted values are "gene", "transcript". Can be either a comma-delimited list or multiple single values. If no values provided, the default is "gene".
@@ -2270,7 +2270,7 @@ components:
                     symbol:
                       type: string
                       description: For HGNC participants, the HGNC symbol; otherwise, the id
-                    feature_type:
+                    featuretype:
                       type: string
                       description: For ENSEMBL participants, the GENCODE feature type; otherwise, "n/a"
                       example: n/a

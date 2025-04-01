@@ -1654,7 +1654,7 @@ def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=
         return events[0]
 
 def pathway_participants_get_logic(neo4j_instance, pathwayid=None, sabs=None,
-                                   feature_types=None) -> List[dict]:
+                                   featuretypes=None) -> List[dict]:
     """
     March 2025
     Returns detailed information on the set of Reactome pathway events that
@@ -1665,7 +1665,7 @@ def pathway_participants_get_logic(neo4j_instance, pathwayid=None, sabs=None,
                                        1. Reactome stable id
                                        2. Leading characters of the event name
     :param sabs: optional filter: list of SABs for participants
-    :param feature_types: optional filter - list of feature types for ENSEMBL participants.
+    :param featuretypes: optional filter - list of feature types for ENSEMBL participants.
                                             The available feature types are from GENCODE, and
                                             are:
                                             1. gene
@@ -1692,11 +1692,11 @@ def pathway_participants_get_logic(neo4j_instance, pathwayid=None, sabs=None,
 
     querytxt = querytxt.replace('$sabs', sabsjoin)
 
-    if feature_types is None:
-        feature_typesjoin = f"['']"
+    if featuretypes is None:
+        featuretypesjoin = f"['']"
     else:
-        feature_typesjoin = format_list_for_query(listquery=feature_types, doublequote=False)
-    querytxt = querytxt.replace('$feature_types', feature_typesjoin)
+        featuretypesjoin = format_list_for_query(listquery=featuretypes, doublequote=False)
+    querytxt = querytxt.replace('$featuretypes', featuretypesjoin)
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
