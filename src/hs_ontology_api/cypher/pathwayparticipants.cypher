@@ -86,9 +86,9 @@ CALL
 	//participants from UNIPROTKB or CHEBI
 	WITH PathwayCUI,ParticipantCUI
 	MATCH (pParticipant:Concept{CUI:ParticipantCUI})-[:CODE]->(cParticipant:Code)-[r]-(tParticipant:Term)
-	WHERE cParticipant.SAB IN ['UNIPROTKB','CHEBI']
+	WHERE cParticipant.SAB IN ['UNIPROTKB','CHEBI','OMIM','ENTREZ']
 	AND type(r) IN ['PT','PT_GENCODE']
-	AND r.CUI=pParticipant.CUI
+	//AND r.CUI=pParticipant.CUI
 	RETURN
 		cParticipant.SAB AS ParticipantSAB,
 		cParticipant.CODE AS ParticipantSymbol,

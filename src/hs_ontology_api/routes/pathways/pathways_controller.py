@@ -117,7 +117,9 @@ def pathways_participants_function_get(id=None):
     val_enum = ['HGNC',
                 'UNIPROTKB',
                 'ENSEMBL',
-                'CHEBI']
+                'CHEBI',
+                'OMIM',
+                'ENTREZ']
     if sabs is not None:
         for sab in sabs:
             s = sab.upper()

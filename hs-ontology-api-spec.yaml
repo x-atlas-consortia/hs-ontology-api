@@ -1244,7 +1244,7 @@ paths:
         - name: sabs
           in: query
           required: false
-          description: optional filter - case-insensitive list of participant source vocabularies (HGNC for genes; UNIPROTKB for proteins; CHEBI for biomolecules; ENSEMBL for genes and transcripts). Can be either a comma-delimited list or multiple single values. If no values provided, the default is "HGNC".
+          description: optional filter - case-insensitive list of participant source vocabularies. Available SABs include HGNC for genes; UNIPROTKB for proteins; CHEBI for biomolecules; ENSEMBL for genes and transcripts; OMIM for genes; ENTREZ for genes. Can be either a comma-delimited list or multiple single values. If no values provided, the default is "HGNC".
           schema:
             type: string
             example: HGNC
