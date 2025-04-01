@@ -38,7 +38,9 @@ def pathways_with_genes_function_get():
 
     geneids = parameter_as_list(param_name='geneids')
     pathwayid = request.args.get('pathwayid')
-    pathwayname_startswith = request.args.get('pathwayname-startswith').lstrip()
+    pathwayname_startswith = request.args.get('pathwayname-startswith')
+    if pathwayname_startswith is not None:
+        pathwayname_startswith = pathwayname_startswith.lstrip()
 
     # Check for valid event type categories.
     # The eventtypes parameter is, in general, a list.

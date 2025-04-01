@@ -164,6 +164,53 @@ echo "SIGNATURE: /pathways/<id>/participants?>&sabs=<list>&featuretypes=<list>" 
 echo | tee -a $testout
 echo | tee -a $testout
 
+echo "1. /pathways/R-HSA-8953897X/participants => should return 404" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-6803403X/participants" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "2. /pathways/R-HSA-8953897/participants => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "3. /pathways/R-HSA-8953897/participants?sabs=X => should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants?sabs=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "4. /pathways/R-HSA-8953897/participants?sabs=HGNC => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants?sabs=HGNC" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "5. /pathways/R-HSA-8953897/participants?sabs=ENSEMBL&featuretypes=x => should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants?sabs=ENSEMBL&featuretypes=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "6. /pathways/R-HSA-8953897/participants?sabs=ENSEMBL&featuretypes=gene => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants?sabs=ENSEMBL&featuretypes=gene" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
 
 echo "TESTS FOR: assayclasses GET" | tee -a $testout
 echo "SIGNATURE: /assayclasses?application_context=<context>&process_state=<process_state>&provide_hiearchy_info=<true,false>&provide_measurement_assay_codes=<true,false>" | tee -a $testout
