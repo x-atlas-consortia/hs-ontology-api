@@ -1584,8 +1584,8 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
 
     return datasettypes
 
-def pathway_get_logic(neo4j_instance, geneids=None, pathwayid=None,
-                      pathwayname_startswith=None, eventtypes=None) -> List[GeneDetail]:
+def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=None,
+                      pathwayname_startswith=None, eventtypes=None) -> List[dict]:
     """
     March 2025
     Returns detailed information on the set of Reactome pathway events that
@@ -1652,3 +1652,69 @@ def pathway_get_logic(neo4j_instance, geneids=None, pathwayid=None,
     # The return should be a list with only one element.
     if len(events)>0:
         return events[0]
+
+def pathway_participants_get_logic(neo4j_instance, pathwayid=None, sabs=None,
+                                   feature_types=None) -> List[dict]:
+    """
+    March 2025
+    Returns detailed information on the set of Reactome pathway events that
+    have specified genes as participants.
+
+    :param neo4j_instance: instance of neo4j connection
+    :param pathwayid: required filter: Reactome event identifier, which can be:
+                                       1. Reactome stable id
+                                       2. Leading characters of the event name
+    :param sabs: optional filter: list of SABs for participants
+    :param feature_types: optional filter - list of feature types for ENSEMBL participants.
+                                            The available feature types are from GENCODE, and
+                                            are:
+                                            1. gene
+                                            2. transcript
+
+    """
+
+    participants:[dict] = []
+
+    # Load query.
+    querytxt = loadquerystring('pathwayparticipants.cypher')
+
+    # Pass parameters to query.
+
+    if pathwayid is None:
+        querytxt = querytxt.replace('$pathwayid',"''")
+    else:
+        querytxt = querytxt.replace('$pathwayid', f"'{pathwayid}'")
+
+    if sabs is None:
+        sabsjoin = f"['']"
+    else:
+        sabsjoin = format_list_for_query(listquery=sabs, doublequote=False)
+
+    querytxt = querytxt.replace('$sabs', sabsjoin)
+
+    if feature_types is None:
+        feature_typesjoin = f"['']"
+    else:
+        feature_typesjoin = format_list_for_query(listquery=feature_types, doublequote=False)
+    querytxt = querytxt.replace('$feature_types', feature_typesjoin)
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                resp = record.get('response')
+                try:
+                    participants.append(resp)
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    if len(participants) > 0:
+        return participants[0]

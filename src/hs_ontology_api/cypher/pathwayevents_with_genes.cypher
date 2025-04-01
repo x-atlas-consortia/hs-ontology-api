@@ -144,6 +144,5 @@ WITH EventType,EventName,EventCode,{type:EventType, code:EventCode,description:E
 ORDER BY EventType DESC, EventName
 // Collect events.
 WITH COLLECT(DISTINCT event) AS events,COUNT(DISTINCT event) AS EventCount
-//WITH COLLECT(DISTINCT {count:EventCount,events:events}) AS events
 RETURN {count:EventCount,events:events} AS response
 
