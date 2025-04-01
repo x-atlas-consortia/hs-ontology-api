@@ -1229,6 +1229,53 @@ paths:
           description: Unexpected error
       tags:
         - pathways
+  /pathways/{id}/partcipants:
+    get:
+      operationId: pathways_participants_get
+      summary: Obtains sets of participants in specified Reactome pathway events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: identifier for a set of Reactome pathway events--either a single Reactome Stable ID or the leading characters of an event name
+          schema:
+            type: string
+            example: R-HSA-74160
+        - name: sabs
+          in: query
+          required: false
+          description: optional filter - case-insensitive list of participant source vocabularies (HGNC for genes; UNIPROTKB for proteins; CHEBI for biomolecules; ENSEMBL for genes and transcripts). Can be either a comma-delimited list or multiple single values. If no values provided, the default is "HGNC".
+          schema:
+            type: string
+            example: HGNC
+        - name: feature_types
+          in: query
+          required: false
+          description: optional filter that applies only when sabs includes ENSEMBL - case-insensitive list of ENSEMBL feature types as specified by GENCODE. Accepted values are "gene", "transcript". Can be either a comma-delimited list or multiple single values. If no values provided, the default is "gene".
+          schema:
+            type: string
+            example: gene
+      responses:
+        '200':
+          description: participants in the Reactome pathway events, grouped by SAB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayParticipant'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: no events that match parameters
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - pathways
 components:
   schemas:
     RuiCodeTerm:
@@ -2180,3 +2227,50 @@ components:
                 type: string
                 description: Reactome event type
                 example: TopLevelPathway
+    PathwayParticipant:
+      type: object
+      description: sets of participants involved in a specified set of Reactome pathway events
+      properties:
+        count:
+          type: number
+          description: number of Reactome pathway events
+          example: 1
+        type:
+          type: string
+          description: Reactome event type for event
+          example: Pathway
+        sabs:
+          type: array
+          description: set of participant references (e.g., HGNC, UNIPROTKB)
+          items:
+            type: object
+            properties:
+              SAB:
+                type: string
+                description: Source ABbreviation for the participant reference
+                example: HGNC
+              count:
+                type: number
+                description: count of participants
+                example: 100
+              participants:
+                type: array
+                description: set of participants in a SAB
+                items:
+                  type: object
+                  properties:
+                    description:
+                      type: string
+                      description: For HGNC participants, the HGNC official name; otherwise, the preferred description
+                      example: activating transcription factor 3
+                    id:
+                      type: string
+                      description: Code for the participant in the SAB--e.g., the HGNC ID
+                      example: 785
+                    symbol:
+                      type: string
+                      description: For HGNC participants, the HGNC symbol; otherwise, the id
+                    feature_type:
+                      type: string
+                      description: For ENSEMBL participants, the GENCODE feature type; otherwise, "n/a"
+                      example: n/a

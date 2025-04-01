@@ -80,7 +80,7 @@ CALL
 	RETURN
 		cParticipant.SAB AS ParticipantSAB,
 		tSymbol.name AS ParticipantSymbol,
-		{id:cParticipant.CODE,symbol:tSymbol.name,description:tDescription.name} as participant
+		{id:cParticipant.CODE,symbol:tSymbol.name,description:tDescription.name,feature_type:'n/a'} as participant
 
 	UNION
 	//participants from UNIPROTKB or CHEBI
@@ -92,7 +92,7 @@ CALL
 	RETURN
 		cParticipant.SAB AS ParticipantSAB,
 		cParticipant.CODE AS ParticipantSymbol,
-		{id:cParticipant.CODE,symbol:cParticipant.CODE,description:tParticipant.name} AS participant
+		{id:cParticipant.CODE,symbol:cParticipant.CODE,description:tParticipant.name,feature_type:'n/a'} AS participant
 
 	UNION
 	// participants from ENSEMBL, which can include both transcripts and genes
@@ -128,4 +128,4 @@ WITH PathwayCode,PathwayName,PathwayType,COLLECT(DISTINCT {SAB:ParticipantSAB,co
 ORDER BY PathwayType DESC, PathwayName
 WITH COLLECT({code:PathwayCode,name:PathwayName,type:PathwayType,sabs:pathwaysabs}) AS pathways,
 COUNT(DISTINCT PathwayCode) as pathwaycount
-RETURN {count:pathwaycount,pathways:pathways} AS response
+RETURN {count:pathwaycount,events:pathways} AS response
