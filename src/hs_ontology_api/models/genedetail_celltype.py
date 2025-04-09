@@ -71,7 +71,8 @@ class GeneDetailCellType(Model):
 
         # Each organ reference code will be expanded to a "reference" JSON object with additional key/value pairs
         listret = []
-        if organs is None:
+        # March 2025 expanded to account for case of empty organs list.
+        if organs is None or organs == ['']:
             return []
 
         for organ in organs:

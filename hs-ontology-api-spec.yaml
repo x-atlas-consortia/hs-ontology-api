@@ -15,6 +15,7 @@ tags:
   - name: organs
   - name: biological entities
   - name: ingestion metadata
+  - name: pathways
   - name: other
 paths:
   /assayclasses:
@@ -190,7 +191,7 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No dataset types matching parameters.
-        '408':
+        '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
           description: Unknown error
@@ -1174,6 +1175,107 @@ paths:
           description: Unexpected error
       tags:
         - ingestion metadata
+  /pathways/with-genes:
+    get:
+      operationId: pathways_with_genes_get
+      summary: Obtains set of Reactome pathway events that have specified genes as participants
+      parameters:
+        - name: geneids
+          in: query
+          required: false
+          description: optional filter - list of HGNC identifiers. Identifiers can be HGNC IDs, symbols, or alternate symbols. Can be either a comma-delimited list (?geneids=A,B) or multiple single values (?geneids=A&geneids=B).
+          schema:
+            type: string
+            example: EGFR
+        - name: pathwayid
+          in: query
+          required: false
+          description: optional filter - Reactome stable ID for a pathway event.
+          schema:
+            type: string
+            example: R-HSA-74160
+        - name: pathwaynamestartswith
+          in: query
+          required: false
+          description: optional filter - starting portion of a pathway event name string
+          schema:
+            type: string
+            example: A
+        - name: eventtypes
+          in: query
+          required: false
+          description: optional filter - case-insensitive list of Reactome pathway event types. Available event types are toplevelpathway; pathway; reaction; blackboxevent; polymerisation; and depolymerisation. Can be either a comma-delimited list or multiple single values. If no values provided, the default is (toplevelpathway,pathway).
+          schema:
+            type: string
+            example: toplevelpathway
+      responses:
+        '200':
+          description: Reactome pathway events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayEvent'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: no events that match parameters
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - pathways
+  /pathways/{id}/participants:
+    get:
+      operationId: pathways_participants_get
+      summary: Obtains sets of participants in specified Reactome pathway events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: identifier for a set of Reactome pathway events--either a single Reactome Stable ID or the leading characters of an event name
+          schema:
+            type: string
+            example: R-HSA-74160
+        - name: sabs
+          in: query
+          required: false
+          description: optional filter - case-insensitive list of participant source vocabularies. Available SABs include HGNC for genes; UNIPROTKB for proteins; CHEBI for biomolecules; ENSEMBL for genes and transcripts; OMIM for genes; ENTREZ for genes. Can be either a comma-delimited list or multiple single values. If no values provided, the default is "HGNC".
+          schema:
+            type: string
+            example: HGNC
+        - name: featuretypes
+          in: query
+          required: false
+          description: optional filter that applies only when sabs includes ENSEMBL - case-insensitive list of ENSEMBL feature types as specified by GENCODE. Accepted values are "gene", "transcript". Can be either a comma-delimited list or multiple single values. If no values provided, the default is "gene".
+          schema:
+            type: string
+            example: gene
+      responses:
+        '200':
+          description: participants in the Reactome pathway events, grouped by SAB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PathwayParticipant'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: no events that match parameters
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - pathways
 components:
   schemas:
     RuiCodeTerm:
@@ -2099,3 +2201,76 @@ components:
                   type: string
                   description: whether the dataset type is for an EPIC dataset
                   example: false
+    PathwayEvent:
+      type: object
+      description: a set of Reactome pathway events
+      properties:
+        count:
+          type: number
+          description: number of Reactome pathway events
+          example: 420
+        events:
+          type: array
+          description: Reactome Pathway events
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Reactome stable ID for the pathway event
+                example: R-HSA-1640170
+              description:
+                type: string
+                description: pathway event description
+                example: Cell Cycle
+              type:
+                type: string
+                description: Reactome event type
+                example: TopLevelPathway
+    PathwayParticipant:
+      type: object
+      description: sets of participants involved in a specified set of Reactome pathway events
+      properties:
+        count:
+          type: number
+          description: number of Reactome pathway events
+          example: 1
+        type:
+          type: string
+          description: Reactome event type for event
+          example: Pathway
+        sabs:
+          type: array
+          description: set of participant references (e.g., HGNC, UNIPROTKB)
+          items:
+            type: object
+            properties:
+              SAB:
+                type: string
+                description: Source ABbreviation for the participant reference
+                example: HGNC
+              count:
+                type: number
+                description: count of participants
+                example: 100
+              participants:
+                type: array
+                description: set of participants in a SAB
+                items:
+                  type: object
+                  properties:
+                    description:
+                      type: string
+                      description: For HGNC participants, the HGNC official name; otherwise, the preferred description
+                      example: activating transcription factor 3
+                    id:
+                      type: string
+                      description: Code for the participant in the SAB--e.g., the HGNC ID
+                      example: 785
+                    symbol:
+                      type: string
+                      description: For HGNC participants, the HGNC symbol; otherwise, the id
+                    featuretype:
+                      type: string
+                      description: For ENSEMBL participants, the GENCODE feature type; otherwise, "n/a"
+                      example: n/a
