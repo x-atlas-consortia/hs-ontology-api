@@ -1229,7 +1229,7 @@ paths:
           description: Unexpected error
       tags:
         - pathways
-  /pathways/{id}/partcipants:
+  /pathways/{id}/participants:
     get:
       operationId: pathways_participants_get
       summary: Obtains sets of participants in specified Reactome pathway events
