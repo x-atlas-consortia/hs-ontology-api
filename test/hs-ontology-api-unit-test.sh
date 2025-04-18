@@ -75,6 +75,142 @@ echo | tee -a $testout
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
 
+echo "TESTS FOR: pathways/with-genes GET" | tee -a $testout
+echo "SIGNATURE: /pathways/with-genes?geneids=<list>&pathwayid=<pathwayid>&pathwaynamestartswith=<string>&eventtypes=<list>" | tee -a $testout
+echo | tee -a $testout
+echo | tee -a $testout
+echo "1. /pathways/with-genes => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "2. /pathways/with-genes?geneids=EGFR => valid with gene; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?geneids=EGFR" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "3. /pathways/with-genes?geneids=EGFR,BRCA1 => valid with list of genes; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?geneids=EGFR,BRCA1" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "4. /pathways/with-genes?geneids=EGFR&geneids=BRCA1 => valid with list of genes; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?geneids=EGFR&geneids=BRCA1" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "5. /pathways/with-genes?pathwayid=R-HSA-74160 => valid parameter; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?pathwayid=R-HSA-74160" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "6. /pathways/with-genes?pathwayname-startswith=AT => valid parameter; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?pathwayname-startswith=AT" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "7. /pathways/with-genes?eventtypes=reaction => valid parameter; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?eventtypes=reaction" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "8. /pathways/with-genes?eventtypes=x => invalid parameter value; should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?eventtypes=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "9. /pathways/with-genes?geneids=x => should return 404" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?geneids=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "10. /pathways/with-genes?test=x => should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/with-genes?test=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "TESTS FOR: pathways/<id>/participants GET" | tee -a $testout
+echo "SIGNATURE: /pathways/<id>/participants?>&sabs=<list>&featuretypes=<list>" | tee -a $testout
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "1. /pathways/R-HSA-8953897X/participants => should return 404" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-6803403X/participants" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "2. /pathways/R-HSA-8953897/participants => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "3. /pathways/R-HSA-8953897/participants?sabs=X => should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants?sabs=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "4. /pathways/R-HSA-8953897/participants?sabs=HGNC => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants?sabs=HGNC" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "5. /pathways/R-HSA-8953897/participants?sabs=ENSEMBL&featuretypes=x => should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants?sabs=ENSEMBL&featuretypes=x" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "6. /pathways/R-HSA-8953897/participants?sabs=ENSEMBL&featuretypes=gene => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/pathways/R-HSA-8953897/participants?sabs=ENSEMBL&featuretypes=gene" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
 
 echo "TESTS FOR: assayclasses GET" | tee -a $testout
 echo "SIGNATURE: /assayclasses?application_context=<context>&process_state=<process_state>&provide_hiearchy_info=<true,false>&provide_measurement_assay_codes=<true,false>" | tee -a $testout
