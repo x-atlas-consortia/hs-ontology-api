@@ -83,6 +83,7 @@ def get_organ_types_logic(neo4j_instance, sab):
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
+    print(querytxt)
     with neo4j_instance.driver.session() as session:
         try:
             recds: neo4j.Result = session.run(query)
