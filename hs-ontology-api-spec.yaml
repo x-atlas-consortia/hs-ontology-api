@@ -1310,6 +1310,10 @@ components:
           type: string
           description: Two letter organ code
           example: "UT"
+        rui_supported:
+          type: boolean
+          description: whether the organ is supported in the Registration User Interfce (RUI)
+          example: true
         organ_uberon:
           type: string
           description: UBERON or FMA code.
