@@ -21,12 +21,23 @@ CALL
 	WHERE pOrgan.CUI=OrganCUI AND cOrgan.SAB IN ['UBERON']
 	AND r2.CUI=pOrgan.CUI RETURN cOrgan.CodeID AS OrganUBERON
 }
-// Obtain FMA codes.
+// Obtain FMA codes for cases in which HuBMAP organs have higher resolution than UBERON--e.g, left bronchus.
+// Some CUIs are mapped to multiple FMA codes, so hard-coded mappings are necessary, including
+// Left mammary gland (later designation)
+// Left breast (earlier designation)
+// Right mammary gland (later designation)
+// Right breast (earlier designation)
 CALL
 {
 	WITH OrganCUI OPTIONAL MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term)
 	WHERE pOrgan.CUI=OrganCUI AND cOrgan.SAB IN ['FMA']
-	AND r2.CUI=pOrgan.CUI RETURN CASE WHEN pOrgan.CUI= 'C0222601' THEN 'FMA:57991' WHEN pOrgan.CUI='C0222600' THEN 'FMA:57987' ELSE cOrgan.CodeID END AS OrganFMA
+	AND r2.CUI=pOrgan.CUI
+	RETURN CASE
+	    WHEN pOrgan.CUI= 'C0222601' THEN 'FMA:57991'
+	    WHEN pOrgan.CUI='C0222600' THEN 'FMA:57987'
+	    WHEN pOrgan.CUI='C5886936' THEN 'FMA:57991'
+	    WHEN pOrgan.CUI='C5886935' THEN 'FMA:57987'
+	    ELSE cOrgan.CodeID END AS OrganFMA
 }
 // RUI codes are property nodes linked to organ nodes.
 CALL
@@ -36,7 +47,7 @@ CALL
 }
 // Organ categories
 // April 2025 fix to account for: 1. new ingestion workflow for UBERON, for which term relationships
-// are PT_UBERON_BASE instead of PT_UBERON 2. multiple code-CUI mappings for category codes
+// are PT_UBERON_BASE instead of PT 2. multiple code-CUI mappings for category codes
 CALL
 {
    WITH OrganCUI
