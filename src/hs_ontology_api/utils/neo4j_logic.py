@@ -1634,7 +1634,6 @@ def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
-    print(query)
     with neo4j_instance.driver.session() as session:
         try:
             recds: neo4j.Result = session.run(query)
