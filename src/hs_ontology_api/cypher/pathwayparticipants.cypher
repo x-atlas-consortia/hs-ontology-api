@@ -40,7 +40,8 @@ CALL
 	MATCH (tPathwayType:Term)<-[rPathwayType:PT]-(cPathwayType:Code{SAB:'REACTOME_VS'})<-[:CODE]-(pPathwayType:Concept)-[:inverse_isa{SAB:'REACTOME'}]->(pPathway:Concept)-[:CODE]->(cPathway:Code {SAB:'REACTOME'})-[rPathway:PT]->(tPathway:Term)
 	WHERE rPathway.CUI=pPathway.CUI
 	AND rPathwayType.CUI=pPathwayType.CUI
-	AND (cPathway.CODE=pathwayid OR tPathway.name STARTS WITH pathwayid)
+	// May 2025 case insensitive
+	AND (cPathway.CODE=pathwayid OR lower(tPathway.name) STARTS WITH lower(pathwayid))
 	RETURN pPathway.CUI AS PathwayCUI,cPathway.CODE as PathwayCode, tPathway.name AS PathwayName,tPathwayType.name AS PathwayType
 }
 

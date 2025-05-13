@@ -133,7 +133,8 @@ CALL
 	AND CASE
 		WHEN pathwayid<>'' THEN cEvent.CODE=pathwayid ELSE 1=1 END
 	AND CASE
-		WHEN pathwayname<>'' THEN tEvent.name STARTS WITH pathwayname ELSE 1=1 END
+	// May 2025 case insensitive
+		WHEN pathwayname<>'' THEN lower(tEvent.name) STARTS WITH lower(pathwayname) ELSE 1=1 END
 	AND rEvent.CUI=pEvent.CUI
 	RETURN cEvent.CODE AS EventCode, tEvent.name AS EventName, tEventType.name AS EventType
 }
