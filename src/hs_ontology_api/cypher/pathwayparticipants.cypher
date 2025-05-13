@@ -41,7 +41,7 @@ CALL
 	WHERE rPathway.CUI=pPathway.CUI
 	AND rPathwayType.CUI=pPathwayType.CUI
 	// May 2025 case insensitive
-	AND (cPathway.CODE=pathwayid OR lower(tPathway.name) STARTS WITH lower(pathwayid))
+	AND (cPathway.CODE=pathwayid OR toLower(tPathway.name) STARTS WITH toLower(pathwayid))
 	RETURN pPathway.CUI AS PathwayCUI,cPathway.CODE as PathwayCode, tPathway.name AS PathwayName,tPathwayType.name AS PathwayType
 }
 
