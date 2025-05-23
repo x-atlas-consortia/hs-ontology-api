@@ -1585,7 +1585,7 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
     return datasettypes
 
 def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=None,
-                      pathwayname_startswith=None, eventtypes=None) -> List[dict]:
+                      pathwaynamestartswith=None, eventtypes=None) -> List[dict]:
     """
     March 2025
     Returns detailed information on the set of Reactome pathway events that
@@ -1594,7 +1594,7 @@ def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=
     :param neo4j_instance: instance of neo4j connection
     :param geneids: optional filter: set of HGNC identifiers
     :param pathwayid: optional filter: Reactome stable id for an event
-    :param pathwayname_startswith: optional filter: partial name for a Reactome event
+    :param pathwaynamestartswith: optional filter: partial name for a Reactome event
                                    to be used in 'starts with' queries
     :param eventtypes: optional filter: list of Reactome event types
 
@@ -1618,10 +1618,10 @@ def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=
     else:
         querytxt = querytxt.replace('$pathwayid', f"'{pathwayid}'")
 
-    if pathwayname_startswith is None:
+    if pathwaynamestartswith is None:
         querytxt = querytxt.replace('$pathwayname',"''")
     else:
-        querytxt = querytxt.replace('$pathwayname', f"'{pathwayname_startswith}'")
+        querytxt = querytxt.replace('$pathwayname', f"'{pathwaynamestartswith}'")
 
     # eventtypes is, in general, a list.
     if eventtypes is None:
