@@ -29,7 +29,7 @@ def pathways_with_genes_function_get():
     # Check for invalid parameter names.
     err = validate_query_parameter_names(parameter_name_list=['geneids',
                                                               'pathwayid',
-                                                              'pathwayname-startswith',
+                                                              'pathwaynamestartswith',
                                                               'eventtypes'])
     if err != 'ok':
         return make_response(err, 400)
@@ -38,9 +38,9 @@ def pathways_with_genes_function_get():
 
     geneids = parameter_as_list(param_name='geneids')
     pathwayid = request.args.get('pathwayid')
-    pathwayname_startswith = request.args.get('pathwayname-startswith')
-    if pathwayname_startswith is not None:
-        pathwayname_startswith = pathwayname_startswith.lstrip()
+    pathwaynamestartswith = request.args.get('pathwaynamestartswith')
+    if pathwaynamestartswith is not None:
+        pathwaynamestartswith = pathwaynamestartswith.lstrip()
 
     # Check for valid event type categories.
     # The eventtypes parameter is, in general, a list.
@@ -64,7 +64,7 @@ def pathways_with_genes_function_get():
     result = pathway_events_with_genes_get_logic(neo4j_instance,
                                geneids=geneids,
                                pathwayid=pathwayid,
-                               pathwayname_startswith=pathwayname_startswith,
+                               pathwaynamestartswith=pathwaynamestartswith,
                                eventtypes=eventtypes)
 
     iserr = result is None or result == []

@@ -1197,7 +1197,7 @@ paths:
         - name: pathwaynamestartswith
           in: query
           required: false
-          description: optional filter - starting portion of a pathway event name string
+          description: case-insensitive optional filter - starting portion of a pathway event name string
           schema:
             type: string
             example: A
@@ -1237,7 +1237,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: identifier for a set of Reactome pathway events--either a single Reactome Stable ID or the leading characters of an event name
+          description: identifier for a set of Reactome pathway events--either a single Reactome Stable ID or the case-insensitive leading characters of an event name
           schema:
             type: string
             example: R-HSA-74160
