@@ -125,7 +125,7 @@ CALL
     AND rUB.CUI=pUB.CUI
     AND cMap.CodeID=mapID
     AND cUB.SAB='PAZ'
-    RETURN cUB.CodeID+'|'+ tUB.name + '|' + '' as UBERONID
+    RETURN cUB.CodeID+'|'+ tUB.name + '|' + 'PAZ' as UBERONID
 }
 
 WITH CLID,UBERONID
@@ -142,8 +142,8 @@ WITH CLID,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 WHERE CLID IS NOT NULL
 RETURN CLID,
 map['cell_types_name'] AS cell_types_code_name,
-//map['cell_types_definition'] AS cell_types_definition,
-//map['cell_types_genes'] AS cell_types_genes,
+map['cell_types_definition'] AS cell_types_definition,
+map['cell_types_genes'] AS cell_types_genes,
 map['cell_types_organ'] AS cell_types_organs
 
 order by CLID
