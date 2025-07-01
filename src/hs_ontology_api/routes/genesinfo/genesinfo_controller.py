@@ -7,6 +7,10 @@ import math
 # S3 redirect functions
 from ubkg_api.utils.s3_redirect import redirect_if_large
 
+from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
+                                              validate_parameter_value_in_enum, validate_required_parameters)
+
+
 genesinfo_blueprint = Blueprint('genes-info', __name__, url_prefix='/genes-info')
 
 @genesinfo_blueprint.route('', methods=['GET'])
@@ -17,6 +21,12 @@ def geneslist() -> list[str]:
     # Obtain a list of genes that the Cells API identifies as being in datasets.
     # Until the response from the Cells API improves, use the UBKG.
     # return jsonify(ontcells.genes_from_cells())
+
+    # JUNE 2025 - Validation
+    # Check for invalid parameter names.
+    err = validate_query_parameter_names(parameter_name_list=['page','genes_per_page', 'starts_with'])
+    if err != 'ok':
+        return make_response(err, 400)
 
     # Obtain parameters.
     page = request.args.get('page')
