@@ -4,6 +4,10 @@ from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import celltypelist_count_get_logic, celltypelist_get_logic
 import math
 
+from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
+                                              validate_parameter_value_in_enum, validate_required_parameters)
+
+
 # March 2025
 # S3 redirect functions
 from ubkg_api.utils.s3_redirect import redirect_if_large
@@ -17,6 +21,12 @@ def celltypeslist() -> list[str]:
     # Obtain a list of cell types that the Cells API identifies as being in datasets.
     # Until the response from the Cells API improves, use the UBKG.
     # return jsonify(ontcells.genes_from_cells())
+
+    # JUNE 2025 - Validation
+    # Check for invalid parameter names.
+    err = validate_query_parameter_names(parameter_name_list=['page','celltypes_per_page','starts_with'])
+    if err != 'ok':
+        return make_response(err, 400)
 
     # Obtain parameters.
     page = request.args.get('page')

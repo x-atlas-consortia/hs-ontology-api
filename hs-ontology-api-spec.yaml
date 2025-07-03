@@ -1460,7 +1460,7 @@ components:
                 example: endothelial cell of lymphatic vessel
               organs:
                 type: array
-                description: Array of organs associated with the cell type, based on relationships in the Human Resource Atlas and Azimuth
+                description: Array of organs (or organ levels, for PAZ) associated with the cell type, based on relationships in the Human Resource Atlas and various cell annotations, including Azimuth; STELLAR; and Pan Organ Azimuth (PAZ)
                 items:
                   type: object
                   properties:
@@ -1733,7 +1733,7 @@ components:
                     example: multimerin-1
         organs:
           type: array
-          description: Organs associated with the cell type, based on relationships in the Human Resource Atlas and various annotations (including Azimuth and STELLAR)
+          description: Organs (or organ levels, for PAZ) associated with the cell type, based on relationships in the Human Resource Atlas and various annotations (including Azimuth, STELLAR, and Pan Organ Azimuth, or PAZ)
           items:
             type: object
             properties:

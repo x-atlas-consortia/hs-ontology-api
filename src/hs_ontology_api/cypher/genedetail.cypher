@@ -119,23 +119,52 @@ ORDER BY hgnc_id, ret_value
 
 UNION
 
-// Cell types - CL code|Azimuth organ list
-// The Azimuth ontology:
-// 1. Assigns AZ cell codes to AZ organ codes.
-// 2. Assigns CL codes as cross-references to AZ codes.
-// 3. Assigns UBERON codes as cross-references to AZ organ codes.
-//
-// To get organ information, map gene to cell type to organ location.
+// JUNE 2025 - ANNOTATION MAPPINGS TO CELL ONTOLOGY AND UBERON
+// Revised:
+// 1. To include Azimuth, STELLAR, DeepCellType, and Pan Organ Azimuth
+// 2. To account for use of UBERON base ontology instead of UBERON
+
+// Each annotation mapping:
+// 1. Assigns annotation cell codes to annotation organ codes.
+// 2. Assigns CL codes as cross-references to annotation cell codes.
+// 3. Assigns UBERON codes as cross-references to annotation organ codes.
+
+// In addition, Pan Organ Azimuth organizes annotations by "organ level".
+
 // APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
+
 WITH GeneCUI
-//First, get Azimuth Codes that are cross-referenced to CL codes. For the case of a CL code being cross-referenced to multiple AZ codes, only one AZ code gets the "preferred" cross-reference to the CL code; however, all AZ codes have a cross-reference to the CL code, so do not check on rAZ.CUI=pCL.CUI.
+//First, get annotation mapping codes that are cross-referenced to CL codes. For the case of a CL code being cross-referenced to multiple codes from an annotation mapping, only one code gets the "preferred" cross-reference to the CL code; however, all codes of an annotation mapping have a cross-reference to the CL code, so do not check on the CUI value of the term relationship.
 CALL
 {WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term), (pCL:Concept)-[:CODE]->(cAZ:Code)-[rAZ]->(tAZ:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND cAZ.SAB='AZ' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,cCL.CodeID as CLID,cAZ.CodeID AS AZID}
-//Use the AZ codes to map to concepts that have located_in relationships with AZ organ codes. The AZ organ codes are cross-referenced to UBERON codes. Limit the located_in relationships to those from AZ.
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term), (pCL:Concept)-[:CODE]->(cMap:Code)-[rMap]->(tMap:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND cMap.SAB IN['AZ','STELLAR','DCT','PAZ'] RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,cCL.CodeID as CLID,cMap.CodeID AS mapID}
+
+//Use the annotation mapping codes to map to concepts that have located_in relationships with annotation mapping organ codes.
+//The mapping organ codes are cross-referenced to UBERON codes.
+// Limit the located_in relationships to those from annotation maps.
+// For PAZ and downward compatibility, overload the organ code with the PAZ "organ_level" code.
+
 CALL
-{WITH AZID
-OPTIONAL MATCH (cAZ:Code)<-[:CODE]-(pAZ:Concept)-[rAZUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term) WHERE rAZUB.SAB='AZ' AND rUB.CUI=pUB.CUI AND cAZ.CodeID=AZID AND cUB.SAB='UBERON' RETURN cUB.CodeID+'*'+ tUB.name + '' as UBERONID
+{
+	WITH mapID
+    MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB]->(tUB:Term)
+    WHERE rMapUB.SAB IN['AZ','STELLAR','DCT']
+    AND rUB.CUI=pUB.CUI
+    AND cMap.CodeID=mapID
+    AND cUB.SAB='UBERON'
+    AND TYPE(rUB) STARTS WITH 'PT'
+    RETURN cUB.CodeID+'*'+ tUB.name + '' as UBERONID
+
+	UNION
+
+	WITH mapID
+	MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:has_organ_level]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
+    WHERE rMapUB.SAB ='PAZ'
+    AND rUB.CUI=pUB.CUI
+    AND cMap.CodeID=mapID
+    AND cUB.SAB='PAZ'
+    RETURN cUB.CodeID+'*'+ tUB.name + '' as UBERONID
+
 }
 
 WITH hgnc_id, 'cell_types_organ' as ret_key, CLID,UBERONID, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",") AS ret_value

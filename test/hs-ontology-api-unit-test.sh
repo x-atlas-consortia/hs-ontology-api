@@ -512,7 +512,7 @@ echo | tee -a $testout
 echo | tee -a $testout
 
 echo "TESTS FOR: proteins GET" | tee -a $testout
-echo "SIGNATURE: /genes/<UniProtKB symbol>" | tee -a $testout
+echo "SIGNATURE: /proteins/<UniProtKB symbol>" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
@@ -526,29 +526,29 @@ echo | tee -a $testout
 echo | tee -a $testout
 
 echo "TESTS FOR: celltypes-info GET" | tee -a $testout
-echo "SIGNATURE: /celltypesinfo?page=<page>&cell_types_per_page=<number>&starts_with=<characters>" | tee -a $testout
+echo "SIGNATURE: /celltypesinfo?page=<page>&celltypes_per_page=<number>&starts_with=<characters>" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "1. /celltypes-info?page=1&proteins_per_page=3 => should return 200" | tee -a $testout
+echo "1. /celltypes-info?page=1&celltypes_per_page=3 => should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/celltypes-info?page=1&proteins_per_page=3" \
+ --url "${UBKG_URL}/celltypes-info?page=1&celltypes_per_page=3" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "2. /celltypes-info?page=last&proteins_per_page=3 => should return 200" | tee -a $testout
+echo "2. /celltypes-info?page=last&celltypes_per_page=3 => should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/celltypes-info?page=last&proteins_per_page=3" \
+ --url "${UBKG_URL}/celltypes-info?page=last&celltypes_per_page=3" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "2. /celltypes-info?proteins_per_page=3&starts_with=B => should return 200" | tee -a $testout
+echo "2. /celltypes-info?celltypes_per_page=3&starts_with=B => should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/celltypes-info?proteins_per_page=3&starts_with=B" \
+ --url "${UBKG_URL}/celltypes-info?celltypes_per_page=3&starts_with=B" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout

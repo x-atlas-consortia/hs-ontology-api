@@ -8,6 +8,9 @@ import math
 from ubkg_api.utils.s3_redirect import redirect_if_large
 proteinsinfo_blueprint = Blueprint('proteins-info', __name__, url_prefix='/proteins-info')
 
+from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
+                                              validate_parameter_value_in_enum, validate_required_parameters)
+
 @proteinsinfo_blueprint.route('', methods=['GET'])
 def proteinslist() -> list[str]:
 
@@ -15,6 +18,12 @@ def proteinslist() -> list[str]:
 
     # Obtain a list of proteins that the Cells API identifies as being in datasets.
     # Until the response from the Cells API improves, use the UBKG.
+
+    # JUNE 2025 - Validation
+    # Check for invalid parameter names.
+    err = validate_query_parameter_names(parameter_name_list=['page','proteins_per_page', 'starts_with'])
+    if err != 'ok':
+        return make_response(err, 400)
 
     # Obtain parameters.
     page = request.args.get('page')

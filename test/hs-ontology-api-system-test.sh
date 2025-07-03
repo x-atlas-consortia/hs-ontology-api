@@ -365,9 +365,9 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "/celltypes-info?page=1&proteins_per_page=3" | tee -a $testout
+echo "/celltypes-info?page=1&celltypes_per_page=3" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/celltypes-info?page=1&proteins_per_page=3" \
+ --url "${UBKG_URL}/celltypes-info?page=1&celltypes_per_page=3" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout
