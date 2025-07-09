@@ -71,39 +71,59 @@ ORDER BY CLID, ret_value
 
 UNION
 
-// January 2025 - expand to include mappings from STELLAR and DeepCellType annotations. All references to 'AZ' and 'Azimuth' should
-// be considered references to an annotation.
+// JUNE 2025 - ANNOTATION MAPPINGS TO CELL ONTOLOGY AND UBERON
+// Revised:
+// 1. To include Azimuth, STELLAR, DeepCellType, and Pan Organ Azimuth
+// 2. To account for use of UBERON base ontology instead of UBERON
 
-// Cell types - Azimuth/UBERON organ list
-// The Azimuth ontology:
-// 1. Assigns AZ cell codes to AZ organ codes.
-// 2. Assigns CL codes as cross-references to AZ codes.
-// 3. Assigns UBERON codes as cross-references to AZ organ codes.
-//
-// To get cell type to organ location maps:
+// Each annotation mapping:
+// 1. Assigns annotation cell codes to annotation organ codes.
+// 2. Assigns CL codes as cross-references to annotation cell codes.
+// 3. Assigns UBERON codes as cross-references to annotation organ codes.
 
-// First, get all Azimuth codes that are cross-referenced to CL codes.
-// For the case of a CL code being cross-referenced to multiple AZ codes, only one AZ code gets the "preferred"
-// cross-reference to the CL code (via concept mapping); however, all of the AZ codes still have a cross-reference to the CL code.
+// In addition, Pan Organ Azimuth organizes annotations by "organ level".
+
+// Algorithm:
+
+// 1. Get all annotation cell type codes that are cross-referenced to CL codes.
+// For the case of a CL code being cross-referenced to multiple codes from a mapping, only one of the codes gets the "preferred"
+// cross-reference to the CL code (via concept mapping); however, all of the mapped codes still have a cross-reference to the CL code.
 
 WITH CLCUI
 CALL
 {
-	WITH CLCUI
-	OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),
-	(pCL:Concept)-[:CODE]->(cAZ:Code)-[rAZ]->(tAZ:Term)
-	WHERE pCL.CUI=CLCUI AND rCL.CUI=pCL.CUI AND cCL.SAB='CL'
-	AND cAZ.SAB IN['AZ','STELLAR','DCT']
-	RETURN DISTINCT cCL.CodeID as CLID,cAZ.CodeID AS AZID
+        WITH CLCUI
+        OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),
+        (pCL:Concept)-[:CODE]->(cMap:Code)-[rMap]->(tMap:Term)
+        WHERE pCL.CUI=CLCUI AND rCL.CUI=pCL.CUI AND cCL.SAB='CL'
+        AND cMap.SAB IN['AZ','STELLAR','DCT','PAZ']
+        RETURN DISTINCT cCL.CodeID as CLID,cMap.CodeID AS mapID
 }
-//Use the AZ codes to map to concepts that have located_in relationships with AZ organ codes.
-//The AZ organ codes are cross-referenced to UBERON codes. Limit the located_in relationships to those from AZ.
+// 2. Use the annotation cell codes to map to concepts that have located_in relationships with annotation organ codes.
+// Annotation organ codes are cross-referenced to UBERON codes. Limit the located_in relationships to those from annotation maps.
+
+WITH CLID,mapID
 CALL
-{   WITH AZID
-    MATCH (cAZ:Code)<-[:CODE]-(pAZ:Concept)-[rAZUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
-    WHERE rAZUB.SAB IN ['AZ','STELLAR','DCT'] AND rUB.CUI=pUB.CUI AND cAZ.CodeID=AZID AND cUB.SAB='UBERON'
-    RETURN cUB.CodeID+'|'+ tUB.name + '|' + rAZUB.SAB as UBERONID
+{   WITH mapID
+    MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB]->(tUB:Term)
+    WHERE rMapUB.SAB IN ['AZ','STELLAR','DCT']
+    AND rUB.CUI=pUB.CUI
+    AND cMap.CodeID=mapID
+    AND cUB.SAB='UBERON'
+    AND TYPE(rUB) STARTS WITH 'PT'
+    RETURN cUB.CodeID+'|'+ tUB.name + '|' + rMapUB.SAB as UBERONID
+
+    UNION
+    WITH mapID
+
+    MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:has_organ_level]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
+    WHERE rMapUB.SAB ='PAZ'
+    AND rUB.CUI=pUB.CUI
+    AND cMap.CodeID=mapID
+    AND cUB.SAB='PAZ'
+    RETURN cUB.CodeID+'|'+ tUB.name + '|' + 'PAZ' as UBERONID
 }
+
 WITH CLID,UBERONID
 RETURN DISTINCT CLID, 'cell_types_organ' as ret_key, apoc.text.join(COLLECT(DISTINCT UBERONID),",")  AS ret_value
 ORDER BY CLID, apoc.text.join(COLLECT(DISTINCT UBERONID),",")
