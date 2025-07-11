@@ -526,7 +526,7 @@ echo | tee -a $testout
 echo | tee -a $testout
 
 echo "TESTS FOR: celltypes-info GET" | tee -a $testout
-echo "SIGNATURE: /celltypesinfo?page=<page>&celltypes_per_page=<number>&starts_with=<characters>" | tee -a $testout
+echo "SIGNATURE: /celltypes-info?page=<page>&celltypes_per_page=<number>&starts_with=<characters>" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
@@ -556,7 +556,7 @@ echo | tee -a $testout
 
 # Test for celltypes endpoint.
 echo "TESTS FOR: celltypes GET" | tee -a $testout
-echo "SIGNATURE: /celltypesinfo/<CL code>" | tee -a $testout
+echo "SIGNATURE: /celltypes/<CL code>" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
