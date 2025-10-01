@@ -1,6 +1,4 @@
 Flask==3.0.3
-# Flask depends on Werkzeug...
-Werkzeug==3.0.3
 
 #git+https://github.com/x-atlas-consortia/ubkg-api.git@dev-integrate
 ubkg-api==2.2.2
