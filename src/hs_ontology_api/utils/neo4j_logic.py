@@ -904,7 +904,7 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
                            starts_with: str, cell_type_count: str) -> List[CelltypeList]:
 
     """
-    Returns information on HGNC genes.
+    Returns information on Cell Ontology cell types.
     Intended to support a Data Portal landing page featuring a high-level
     list with pagination features.
 
@@ -1026,6 +1026,37 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
 
     return celltypedetails
 
+def celltype_get_logic(neo4j_instance, searchids:list[str]) -> list:
+    # OCTOBER 2025
+    """
+
+    :param neo4j_instance: Neo4j connector
+    :param searchids: list of Cell Ontology IDs (strings of integers, left-padded with zeroes)
+    """
+
+    result = []
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $sab.
+    queryfile = 'celltype.cypher'
+    querytxt = loadquerystring(queryfile)
+    ids = format_list_for_query(listquery=searchids)
+    querytxt = querytxt.replace('$ids', ids)
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+            for recd in recds:
+                result.append(recd.get('celltype'))
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+        return result[0]
 
 def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[FieldDescription]:
     """
@@ -1718,3 +1749,24 @@ def pathway_participants_get_logic(neo4j_instance, pathwayid=None, sabs=None,
 
     if len(participants) > 0:
         return participants[0]
+
+def format_list_for_query(listquery: list[str], doublequote: bool = False) -> str:
+    """
+    Converts a list of string values into a comma-delimited, delimited string for use in a Cypher query clause.
+    :param listquery: list of string values
+    :param doublequote: flag to set the delimiter.
+
+    The default is a single quote; however, when a query
+    is the argument for the apoc.timebox function, the delimiter should be double quote.
+
+    Example:
+        listquery: ['SNOMEDCT_US', 'HGNC']
+        return:
+            doublequote = False: "'SNOMEDCT_US', 'HGNC'"
+            doublequote = True: '"SNOMEDCT_US","HGNC"'
+
+    """
+    if doublequote:
+        return ', '.join('"{0}"'.format(s) for s in listquery)
+    else:
+        return ', '.join("'{0}'".format(s) for s in listquery)

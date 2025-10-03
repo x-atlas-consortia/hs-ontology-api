@@ -1,4 +1,5 @@
 // Return detailed information on cell types, based on a input list of CL codes.
+// Used by the celltypes/<id>/detail route.
 
 CALL
 // Get CUIs of concepts for cell types that match the criteria.

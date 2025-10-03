@@ -645,10 +645,45 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
-  /celltypes/{id}:
+  /celltypes/{ids}:
     get:
       operationId: celltypes_get
-      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID).
+      summary: Return information on a set of cell types specified by a list of Cell Ontology IDs
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          description: a comma-delimited list of integer Cell Ontology IDs. Integers without leading zeroes will be padded to 7 digits--e.g., 235 will become 0000235.
+          schema:
+            type: string
+            example: 2138,236
+      responses:
+        '200':
+          description: reference information on the cell types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CellTypeResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No information for cell type with Cell Ontology identifiers *id*.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - biological entities
+  /celltypes/{id}/detail:
+    get:
+      operationId: celltypes_detail_get
+      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID), including marker associations (via the Human Resource Atlas) and annotation mappings (from Azimuth, STELLAR, etc.)
       parameters:
         - name: id
           in: path
@@ -1753,6 +1788,26 @@ components:
                 type: string
                 description: SAB of the cell type annotation
                 example: AZ
+    CellTypeResponse:
+      type: object
+      description: Reference information on a cell type requested by the celltypes endpoint
+      properties:
+        cell_type:
+          type: object
+          description: cell type identifiers
+          properties:
+            id:
+              type: string
+              description: Cell Ontology code
+              example: CL:0002138
+            name:
+              type: string
+              description: Preferred term for the cell type from Cell Ontology
+              example: endothelial cell of lymphatic vessel
+            definition:
+              type: string
+              description: Definition of the cell type from Cell Ontology
+              example: A endothelial cell of a lymphatic vessel. The border of…
     FieldDescriptionsResponse:
       type: object
       description: Descriptions for ingest metadata fields
