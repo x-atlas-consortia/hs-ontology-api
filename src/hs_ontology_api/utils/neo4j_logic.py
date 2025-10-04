@@ -1040,10 +1040,13 @@ def celltype_get_logic(neo4j_instance, searchids:list[str]) -> list:
     queryfile = 'celltype.cypher'
     querytxt = loadquerystring(queryfile)
     ids = format_list_for_query(listquery=searchids)
+    print(ids)
     querytxt = querytxt.replace('$ids', ids)
+    print(querytxt)
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
 
     with neo4j_instance.driver.session() as session:
         try:
@@ -1749,24 +1752,3 @@ def pathway_participants_get_logic(neo4j_instance, pathwayid=None, sabs=None,
 
     if len(participants) > 0:
         return participants[0]
-
-def format_list_for_query(listquery: list[str], doublequote: bool = False) -> str:
-    """
-    Converts a list of string values into a comma-delimited, delimited string for use in a Cypher query clause.
-    :param listquery: list of string values
-    :param doublequote: flag to set the delimiter.
-
-    The default is a single quote; however, when a query
-    is the argument for the apoc.timebox function, the delimiter should be double quote.
-
-    Example:
-        listquery: ['SNOMEDCT_US', 'HGNC']
-        return:
-            doublequote = False: "'SNOMEDCT_US', 'HGNC'"
-            doublequote = True: '"SNOMEDCT_US","HGNC"'
-
-    """
-    if doublequote:
-        return ', '.join('"{0}"'.format(s) for s in listquery)
-    else:
-        return ', '.join("'{0}'".format(s) for s in listquery)

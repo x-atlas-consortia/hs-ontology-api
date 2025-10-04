@@ -38,13 +38,14 @@ def celltypes_id_get(ids=None):
 
     listids = ids.split(',')
     clids = []
-    # Validate ids. Pad with zeroes to 7 characters.
+    # Pad numeric ids with zeroes to 7 characters.
     for i in listids:
         if i.isnumeric():
             clids.append(f'{int(i):07d}')
         else:
-            err = get_404_error_string(prompt_string=f'Invalid Cell Ontology ID: {i}')
-            return make_response(err, 404)
+            clids.append(i)
+            #err = get_404_error_string(prompt_string=f'Invalid Cell Ontology ID: {i}')
+            #return make_response(err, 404)
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = celltype_get_logic(neo4j_instance, clids)
