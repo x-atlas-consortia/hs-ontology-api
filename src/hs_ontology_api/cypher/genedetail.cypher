@@ -1,6 +1,6 @@
 // GENE DETAIL
 // Return detailed information on a gene, based on a input list of HGNC identifiers.
-// Used by the gene endpoint.
+// Used by the genes/id/detail endpoint.
 
 CALL
 

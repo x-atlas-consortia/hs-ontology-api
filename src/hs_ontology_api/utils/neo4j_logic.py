@@ -556,6 +556,38 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
+def gene_get_logic(neo4j_instance, geneids: str) -> list:
+    """
+    OCTOBER 2025
+    Returns reference information on a set of gene ids.
+    :param neo4j_instance: neo4j client
+    :param gene_ids: comma-delimited set of gene identifiers
+    """
+    result = []
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $sab.
+    queryfile = 'gene.cypher'
+    querytxt = loadquerystring(queryfile)
+    ids = format_list_for_query(listquery=geneids)
+    querytxt = querytxt.replace('$ids', ids)
+
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+    print(querytxt)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+            for recd in recds:
+                result.append(recd.get('genes'))
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+        return result[0]
 
 def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     """
@@ -986,7 +1018,7 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
     :param cl_id: Cell Ontology identifier
     """
     # response list
-    celltypedetails: [GeneDetail] = []
+    celltypedetails: [CelltypeDetail] = []
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
@@ -1027,11 +1059,15 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
     return celltypedetails
 
 def celltype_get_logic(neo4j_instance, searchids:list[str]) -> list:
-    # OCTOBER 2025
     """
-
+    OCTOBER 2025
+    Returns a list of reference information on a set of cell type identifiers
     :param neo4j_instance: Neo4j connector
-    :param searchids: list of Cell Ontology IDs (strings of integers, left-padded with zeroes)
+    :param searchids: comma-delimited list of identifiers.
+                      If an identifier is an integer, assume that the integer is a CL ID, and
+                      format as a 7-digit integer string, padded with zeroes.
+                      If an identifier is a string, assume that the query should return
+                      cell types with terms that include the string.
     """
 
     result = []
@@ -1040,13 +1076,10 @@ def celltype_get_logic(neo4j_instance, searchids:list[str]) -> list:
     queryfile = 'celltype.cypher'
     querytxt = loadquerystring(queryfile)
     ids = format_list_for_query(listquery=searchids)
-    print(ids)
     querytxt = querytxt.replace('$ids', ids)
-    print(querytxt)
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
-
 
     with neo4j_instance.driver.session() as session:
         try:

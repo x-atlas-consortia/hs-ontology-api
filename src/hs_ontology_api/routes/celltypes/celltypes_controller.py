@@ -44,8 +44,6 @@ def celltypes_id_get(ids=None):
             clids.append(f'{int(i):07d}')
         else:
             clids.append(i)
-            #err = get_404_error_string(prompt_string=f'Invalid Cell Ontology ID: {i}')
-            #return make_response(err, 404)
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = celltype_get_logic(neo4j_instance, clids)
