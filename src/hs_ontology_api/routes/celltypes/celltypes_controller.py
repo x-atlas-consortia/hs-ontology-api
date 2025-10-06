@@ -9,19 +9,28 @@ from ubkg_api.utils.http_error_string import get_404_error_string
 
 celltypes_blueprint = Blueprint('celltypes', __name__, url_prefix='/celltypes')
 
-@celltypes_blueprint.route('/<clid>/detail', methods=['GET'])
-def celltypes_id_detail_expand_get(clid=None):
+@celltypes_blueprint.route('/<ids>/detail', methods=['GET'])
+def celltypes_id_detail_expand_get(ids=None):
     """Returns detailed information on a single cell type.
 
     :rtype: Union[List[CellTypeDetail]]
 
     """
 
+    listids = ids.split(',')
+    clids = []
+    # Pad numeric ids with zeroes to 7 characters.
+    for i in listids:
+        if i.isnumeric():
+            clids.append(f'{int(i):07d}')
+        else:
+            clids.append(i)
+
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    result = celltypedetail_get_logic(neo4j_instance, clid)
+    result = celltypedetail_get_logic(neo4j_instance, clids)
     if result is None or result == []:
         # Empty result
-        err = get_404_error_string(prompt_string=f'No cell types with Cell Ontology identifier')
+        err = get_404_error_string(prompt_string=f'No cell types with Cell Ontology identifiers')
         return make_response(err, 404)
 
     # March 2025

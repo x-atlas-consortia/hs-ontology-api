@@ -2,6 +2,8 @@
 // Return reference information (terms, definitions) on cell types, based on a input list of CL codes or search.
 // Used by the celltypes/<id> endpoint.
 
+// Returns as JSON.
+
 CALL
 // Get CUIs of concepts for cell types that match the criteria.
 
