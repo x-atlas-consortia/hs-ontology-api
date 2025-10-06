@@ -691,7 +691,7 @@ paths:
           description: a comma-delimited list of integer Cell Ontology IDs. Integers without leading zeroes will be padded to 7 digits--e.g., 235 will become 0000235.
           schema:
             type: string
-            example: 2138,236
+            example: 2138,0000236,fibroblast
       responses:
         '200':
           description: reference information on the cell types
@@ -720,13 +720,13 @@ paths:
       operationId: celltypes_detail_get
       summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID), including marker associations (via the Human Resource Atlas) and annotation mappings (from Azimuth, STELLAR, etc.)
       parameters:
-        - name: id
+        - name: ids
           in: path
           required: true
-          description: Cell Ontology ID
+          description: a comma-delimited list of integer Cell Ontology IDs. Integers without leading zeroes will be padded to 7 digits--e.g., 235 will become 0000235.
           schema:
             type: string
-            example: 0002138
+            example: 2138,0000236,fibroblast
       responses:
         '200':
           description: detailed information on the cell type specified by a Cell Ontology identifier.
