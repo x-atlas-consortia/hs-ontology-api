@@ -3,6 +3,8 @@
 // Refactored:
 // 1. Annotation-related maps to CL take advantage of reduced ingests of UBERON and PATO.
 // 2. Returns as JSON
+
+
 // Return detailed information on a gene, based on a input list of HGNC identifiers.
 // Used by the genes endpoint.
 

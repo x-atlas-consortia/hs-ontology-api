@@ -263,6 +263,7 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
     return sabcodeterms
 
 def __subquery_dataset_synonym_property(sab: str, cuialias: str, returnalias: str, collectvalues: bool) -> str:
+    # OCTOBER 2025 TO BE DEPRECATED AND REMOVED
     # JAS FEB 2023
     # Returns a subquery to obtain a "synonym" relationship property. See __query_dataset_info for an explanation.
 
@@ -296,6 +297,7 @@ def __subquery_dataset_synonym_property(sab: str, cuialias: str, returnalias: st
 def __subquery_dataset_relationship_property(sab: str, cuialias: str, rel_string: str, returnalias: str,
                                              isboolean: bool = False, collectvalues: bool = False,
                                              codelist: List[str] = []) -> str:
+    # OCTOBER 2025 TO BE DEPRECATED AND REMOVED
     # JAS FEB 2023
     # Returns a subquery to obtain a "relationship property". See __query_dataset_info for an explanation.
 
@@ -361,6 +363,7 @@ def __subquery_dataset_relationship_property(sab: str, cuialias: str, rel_string
 
 
 def __subquery_data_type_info(sab: str) -> str:
+    # OCTOBER 2025 - TO BE DEPRECATED AND REMOVED
     # JAS FEB 2023
     # Returns a Cypher subquery that obtains concept CUI and preferred term strings for the Dataset Data Type
     # codes in an application context. Dataset Data Type codes are in a hierarchy with a root entity with code
@@ -386,6 +389,7 @@ def __subquery_data_type_info(sab: str) -> str:
 
 
 def __subquery_dataset_cuis(sab: str, cuialias: str, returnalias: str) -> str:
+    # OCTOBER 2025 - TO BE DEPRECATED AND REMOVED
     # JAS FEB 2023
     # Returns a Cypher subquery that obtains concept CUIs for Dataset concepts in the application context.
     # The use case is that the concepts are related to the data_set CUIs passed in the cuialias parameter.
@@ -409,6 +413,8 @@ def __subquery_dataset_cuis(sab: str, cuialias: str, returnalias: str) -> str:
 
 
 def query_cypher_dataset_info(sab: str) -> str:
+
+    # OCTOBER 2025 - TO BE DEPRECATED AND REMOVED.
     # JAS FEB 2023
     # Returns a Cypher query string that will return property information on the datasets in an application
     # context (SAB in the KG), keyed by the data_type.
@@ -503,7 +509,7 @@ def query_cypher_dataset_info(sab: str) -> str:
 
 def genedetail_get_logic_old(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     """
-    DEPRECATED. TO BE REMOVED WITH GenDetail
+    DEPRECATED. TO BE REMOVED WITH GeneDetail.
     Returns detailed information on a gene, based on an HGNC identifer.
     :param neo4j_instance: instance of neo4j connection
     :param gene_id: HGNC identifier for a gene
