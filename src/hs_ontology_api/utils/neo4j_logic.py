@@ -501,8 +501,9 @@ def query_cypher_dataset_info(sab: str) -> str:
     return qry
 
 
-def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
+def genedetail_get_logic_old(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     """
+    DEPRECATED. TO BE REMOVED WITH GenDetail
     Returns detailed information on a gene, based on an HGNC identifer.
     :param neo4j_instance: instance of neo4j connection
     :param gene_id: HGNC identifier for a gene
@@ -571,10 +572,39 @@ def gene_get_logic(neo4j_instance, geneids: str) -> list:
     ids = format_list_for_query(listquery=geneids)
     querytxt = querytxt.replace('$ids', ids)
 
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+            for recd in recds:
+                result.append(recd.get('genes'))
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+        return result[0]
+def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
+    """
+    OCTOBER 2025
+    Returns detailed information on a set of gene ids.
+    :param neo4j_instance: neo4j client
+    :param gene_ids: comma-delimited set of gene identifiers
+    """
+    result = []
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $sab.
+    queryfile = 'genedetail.cypher'
+    querytxt = loadquerystring(queryfile)
+    ids = format_list_for_query(listquery=geneids)
+    querytxt = querytxt.replace('$ids', ids)
+
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
-    print(querytxt)
 
     with neo4j_instance.driver.session() as session:
         try:

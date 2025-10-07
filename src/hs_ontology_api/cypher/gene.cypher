@@ -65,6 +65,7 @@ WITH hgnc_id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 
 WITH hgnc_id,
 	{
+	    hgnc_id:hgnc_id,
 		approved_name:map['approved_name'][0],
 		approved_symbol:map['approved_symbol'][0],
 		previous_symbols:map['previous_symbols'],

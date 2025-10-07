@@ -715,7 +715,7 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
-  /celltypes/{id}/detail:
+  /celltypes/{ids}/detail:
     get:
       operationId: celltypes_detail_get
       summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID), including marker associations (via the Human Resource Atlas) and annotation mappings (from Azimuth, STELLAR, etc.)

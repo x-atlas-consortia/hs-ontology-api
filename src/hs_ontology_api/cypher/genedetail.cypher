@@ -1,6 +1,10 @@
-// GENE DETAIL
+// GENES detail
+// OCTOBER 2025
+// Refactored:
+// 1. Annotation-related maps to CL take advantage of reduced ingests of UBERON and PATO.
+// 2. Returns as JSON
 // Return detailed information on a gene, based on a input list of HGNC identifiers.
-// Used by the genes/id/detail endpoint.
+// Used by the genes endpoint.
 
 CALL
 
@@ -19,7 +23,7 @@ CALL
 
 // If no criteria are specified, return information on all HGNC genes.
 
-//WITH ['60','MMRN1'] AS ids
+//WITH ['MMRN1'] AS ids
 
 // The calling function in neo4j_logic.py will replace $ids.
 WITH [$ids] AS ids
@@ -61,143 +65,86 @@ UNION
 
 // RefSeq summaries, with backslashes in text replaced with forward slashes
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:DEF]->(dGene:Definition) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND dGene.SAB='REFSEQ' RETURN toInteger(cGene.CODE) AS hgnc_id, 'summary' AS ret_key, replace(dGene.DEF,'\\','/') AS ret_value
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:DEF]->(dGene:Definition) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND dGene.SAB='REFSEQ'
+RETURN toInteger(cGene.CODE) AS hgnc_id, 'summary' AS ret_key, replace(dGene.DEF,'\\','/') AS ret_value
 ORDER BY hgnc_id,ret_key
 
-// CELL TYPE INFORMATION
-// Gene to cell type mappings are from the Human Reference Atlas (HRA).
-// Cell type information is flattened because a gene can associate with multiple cell types.
-// Properties of cell type (from Cell Ontology) except for code are optional.
-// Each property will be a list keyed with the CL code--e.g., CL:code1|property,CL:code2|property
-// A script can split the lists in each of the cell_type fields and find all properties for a particular CL
-
 UNION
 
-//Cell types - CL Codes
-// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
+// Cell type assertions from HRA
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND rCL.CUI=pCL.CUI  RETURN toInteger(cGene.CODE) AS hgnc_id, 'cell_types_code' AS  ret_key, cCL.CodeID AS ret_value
-ORDER BY  hgnc_id,ret_key,ret_value
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL:PT]->(tCL:Term),
+			(pCL:Concept)-[:DEF]->(dCL:Definition)
+WHERE pGene.CUI=GeneCUI
+	AND cGene.SAB='HGNC'
+	AND cCL.SAB='CL'
+	AND rCL.CUI=pCL.CUI
+WITH toInteger(cGene.CODE) AS hgnc_id, cCL.CodeID AS CLID, tCL.name AS CLname, COLLECT(DISTINCT dCL.DEF)[0] AS CLdefinition, pCL.CUI AS CLCUI
 
-UNION
+// Organ assertions from annotations.
+// FIRST, Get all annotation cell type codes that are cross-referenced to CL codes.
+// For the case of a CL code being cross-referenced to multiple codes from a mapping, only one of the codes gets the "preferred"
+// cross-reference to the CL code (via concept mapping); however, all of the mapped codes still have a cross-reference to the CL code.
 
-// Cell types - CL Code|preferred term
-// CL codes can be ingested as part of the ingestion of other ontologies in UBKG (e.g. UBERON).
-// A CL code may have multiple terms of type "PT".
-// If a CL code was ingested as part of CL, then there will be a PT code; if not, then there may be one or more terms of type PT_SAB--e.g.,  PT_UBERON is the preferred term for the CL code ingested with UBERON.
-// The preferred term will be the term of type PT; if there is no PT, then any of the others of type PT_SAB will do.
+WITH hgnc_id, CLID, CLname,CLdefinition,CLCUI
+OPTIONAL MATCH (pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),
+	(pCL:Concept)-[:CODE]->(cMap:Code)-[rMap]->(tMap:Term)
+WHERE pCL.CUI=CLCUI
+AND rCL.CUI=pCL.CUI
+AND cCL.SAB='CL'
+AND cMap.SAB IN['AZ','STELLAR','DCT','PAZ']
 
-// First, order the preferred terms by whether they are the PT or a PT_SAB.
-// APRIL 2024 - HRA changed the label from "has_marker_component" to "characterized_by"
-WITH GeneCUI
-CALL{
-WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND rCL.CUI=pCL.CUI AND type(rCL) STARTS WITH 'PT' RETURN toInteger(cGene.CODE) AS hgnc_id, cCL.CodeID AS CLID, MIN(CASE WHEN type(rCL)='PT' THEN 0 ELSE 1 END) AS mintype order by hgnc_id,CLID,mintype
-}
-
-// Next, filter to either the PT or one of the PT_SABs.
-// MARCH 2024 - WITH used in return to upgrade to v5 Cypher.
-WITH hgnc_id, CLID, mintype
-OPTIONAL MATCH (cCL:Code)-[rCL]->(tCL:Term)
-where cCL.CodeID = CLID AND type(rCL) STARTS WITH 'PT'
-AND CASE WHEN type(rCL)='PT' THEN 0 ELSE 1 END=mintype
-WITH hgnc_id, 'cell_types_name' AS ret_key, CLID +'|'+ CASE WHEN tCL.name IS NULL THEN '' ELSE tCL.name END AS ret_value
-RETURN hgnc_id, ret_key, ret_value
-
-UNION
-
-// Cell types - CL code|definition
-// Definitions link to Concepts and multiple CL codes can match to the same concept; however, each CL code has a "preferred" CUI, identified by the CUI property of the relationship of any of the code's linked terms.
-
-// MARCH 2024 - final WITH added to work with v5 Cypher
-// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
-WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term),(pCL:Concept)-[:DEF]->(dCL:Definition) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND dCL.SAB='CL'
-WITH toInteger(cGene.CODE) AS hgnc_id,'cell_types_definition' as ret_key, cCL.CodeID + '|'+ dCL.DEF as ret_value
-RETURN DISTINCT hgnc_id, ret_key, ret_value
-ORDER BY hgnc_id, ret_value
-
-UNION
-
-// JUNE 2025 - ANNOTATION MAPPINGS TO CELL ONTOLOGY AND UBERON
-// Revised:
-// 1. To include Azimuth, STELLAR, DeepCellType, and Pan Organ Azimuth
-// 2. To account for use of UBERON base ontology instead of UBERON
-
-// Each annotation mapping:
-// 1. Assigns annotation cell codes to annotation organ codes.
-// 2. Assigns CL codes as cross-references to annotation cell codes.
-// 3. Assigns UBERON codes as cross-references to annotation organ codes.
-
-// In addition, Pan Organ Azimuth organizes annotations by "organ level".
-
-// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
-
-WITH GeneCUI
-//First, get annotation mapping codes that are cross-referenced to CL codes. For the case of a CL code being cross-referenced to multiple codes from an annotation mapping, only one code gets the "preferred" cross-reference to the CL code; however, all codes of an annotation mapping have a cross-reference to the CL code, so do not check on the CUI value of the term relationship.
+WITH hgnc_id, CLID, CLname,CLdefinition,CLCUI,cMap.CodeID AS mapID
 CALL
-{WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term), (pCL:Concept)-[:CODE]->(cMap:Code)-[rMap]->(tMap:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' AND cMap.SAB IN['AZ','STELLAR','DCT','PAZ'] RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,cCL.CodeID as CLID,cMap.CodeID AS mapID}
+	{
+		WITH mapID
+		OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT_UBERON_BASE]->(tUB:Term)
+		WHERE rMapUB.SAB IN ['AZ','STELLAR','DCT']
+    	AND rUB.CUI=pUB.CUI
+    	AND cMap.CodeID=mapID
+    	AND cUB.SAB='UBERON'
 
-//Use the annotation mapping codes to map to concepts that have located_in relationships with annotation mapping organ codes.
-//The mapping organ codes are cross-referenced to UBERON codes.
-// Limit the located_in relationships to those from annotation maps.
-// For PAZ and downward compatibility, overload the organ code with the PAZ "organ_level" code.
+		RETURN CASE WHEN cUB.CodeID IS NULL THEN NULL ELSE {id:cUB.CodeID,name:tUB.name, annotation:rMapUB.SAB,source:'UBERON'} END AS organ
 
-CALL
-{
-	WITH mapID
-    MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB]->(tUB:Term)
-    WHERE rMapUB.SAB IN['AZ','STELLAR','DCT']
-    AND rUB.CUI=pUB.CUI
-    AND cMap.CodeID=mapID
-    AND cUB.SAB='UBERON'
-    AND TYPE(rUB) STARTS WITH 'PT'
-    RETURN cUB.CodeID+'*'+ tUB.name + '' as UBERONID
+		UNION
 
-	UNION
+		WITH mapID
+    	OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:has_organ_level]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
+    	WHERE rMapUB.SAB ='PAZ'
+    	AND rUB.CUI=pUB.CUI
+    	AND cMap.CodeID=mapID
+    	AND cUB.SAB='PAZ'
+    	RETURN CASE WHEN cUB.CodeID IS NULL THEN NULL ELSE {id:cUB.CodeID,name:tUB.name, annotation:rMapUB.SAB,source:'PAZ'} END AS organ
 
-	WITH mapID
-	MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:has_organ_level]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
-    WHERE rMapUB.SAB ='PAZ'
-    AND rUB.CUI=pUB.CUI
-    AND cMap.CodeID=mapID
-    AND cUB.SAB='PAZ'
-    RETURN cUB.CodeID+'*'+ tUB.name + '' as UBERONID
+    }
 
-}
-
-WITH hgnc_id, 'cell_types_organ' as ret_key, CLID,UBERONID, CLID+ '|' + apoc.text.join(COLLECT(DISTINCT UBERONID),",") AS ret_value
-RETURN DISTINCT hgnc_id, ret_key, ret_value
-ORDER BY hgnc_id, ret_value
-
-// Indicate the source of cell type information.
-// APRIL 2024 - HRA changed "has_marker_component" to "characterized_by"
-UNION
-WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:inverse_characterized_by]->(pCL:Concept)-[:CODE]->(cCL:Code)-[rCL]->(tCL:Term) WHERE rCL.CUI=pCL.CUI AND pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cCL.SAB='CL' RETURN DISTINCT toInteger(cGene.CODE) AS hgnc_id,'cell_types_source' as ret_key, cCL.CodeID + '|Human Reference Atlas' as ret_value
-ORDER BY hgnc_id,cCL.CodeID + '|Human Reference Atlas'
+WITH hgnc_id, CLID, CLname,CLdefinition,CLCUI,COLLECT(DISTINCT organ) AS organ_list
+UNWIND organ_list AS organ
+WITH hgnc_id, CLID, CLname,CLdefinition,CLCUI,organ
+ORDER BY organ.annotation,organ.id
+WITH hgnc_id, CLID, CLname,CLdefinition,CLCUI,COLLECT(organ) AS organs
+RETURN hgnc_id, 'cell_types' AS ret_key, COLLECT(DISTINCT({id:CLID,name:CLname,definition:CLdefinition,organs:organs})) AS ret_value
 
 }
 
-// APRIL 2024 bug fix check for null gene before calling fromlists
-
-WITH hgnc_id, ret_key, COLLECT(ret_value) AS values
+WITH hgnc_id, ret_key, COLLECT(DISTINCT ret_value) AS values
 WHERE hgnc_id IS NOT NULL
 WITH hgnc_id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
-RETURN hgnc_id,
-map['approved_symbol'] AS approved_symbol,
-map['approved_name'] AS approved_name,
-map['previous_symbols'] AS previous_symbols,
-map['previous_names'] AS previous_names,
-map['alias_symbols'] AS alias_symbols,
-map['alias_names'] AS alias_names,
-map['references'] AS references,
-map['summary'] AS summaries,
-map['cell_types_code'] AS cell_types_code,
-map['cell_types_name'] AS cell_types_code_name,
-map['cell_types_definition'] AS cell_types_code_definition,
-map['cell_types_organ'] AS cell_types_codes_organ,
-map['cell_types_source'] AS cell_types_codes_source
 
-order by hgnc_id
+WITH hgnc_id,
+	{
+	    hgnc_id:hgnc_id,
+		approved_name:map['approved_name'][0],
+		approved_symbol:map['approved_symbol'][0],
+		previous_symbols:map['previous_symbols'],
+		previous_names:map['previous_names'],
+		alias_symbols:map['alias_symbols'],
+		alias_names:map['alias_names'],
+		references:map['references'],
+		summary:map['summary'],
+		cell_types:map['cell_types'][0]
+
+	} AS gene
+WHERE hgnc_id IS NOT NULL
+
+RETURN COLLECT(gene) AS genes

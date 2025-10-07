@@ -9,8 +9,8 @@ from ubkg_api.utils.http_error_string import get_404_error_string
 
 genes_blueprint = Blueprint('genes', __name__, url_prefix='/genes')
 
-@genes_blueprint.route('/<id>/detail', methods=['GET'])
-def genes_id_detail_expand_get(id=None):
+@genes_blueprint.route('/<ids>/detail', methods=['GET'])
+def genes_id_detail_expand_get(ids=None):
     """Returns detailed information on a single gene, including annotation mappings.
 
     :rtype: Union[List[GeneDetail]]
@@ -26,14 +26,15 @@ def genes_id_detail_expand_get(id=None):
 
     """
 
+    geneids = ids.split(',')
+
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    result = genedetail_get_logic(neo4j_instance, id)
+    result = genedetail_get_logic(neo4j_instance, geneids)
     if result is None or result == []:
         # Empty result
-        err = get_404_error_string(prompt_string=f'No genes with HGNC identifier')
+        err = get_404_error_string(prompt_string=f'No genes with identifiers')
         return make_response(err, 404)
 
-    # March 2025
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)
 
@@ -55,7 +56,6 @@ def genes_id_expand_get(ids=None):
     """
 
     geneids = ids.split(',')
-    print('geneids',geneids)
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = gene_get_logic(neo4j_instance, geneids)

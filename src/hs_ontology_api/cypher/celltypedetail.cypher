@@ -88,14 +88,12 @@ CALL
 CALL
 {
 	WITH CLCUI,CLID,name,definition,mapID
-   	OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB]->(tUB:Term)
+   	OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT_UBERON_BASE]->(tUB:Term)
     WHERE rMapUB.SAB IN ['AZ','STELLAR','DCT']
     AND rUB.CUI=pUB.CUI
     AND cMap.CodeID=mapID
     AND cUB.SAB='UBERON'
-    AND TYPE(rUB) STARTS WITH 'PT'
-    //RETURN cUB.CodeID+'|'+ tUB.name + '|' + rMapUB.SAB as UBERONID
-    RETURN cUB.CodeID AS UBCode, tUB.name AS UBName, rMapUB.SAB AS UBAnnotation
+    RETURN cUB.CodeID AS UBCode, tUB.name AS UBName, rMapUB.SAB AS UBAnnotation, 'UBERON' AS source
 
     UNION
 
@@ -105,13 +103,12 @@ CALL
     AND rUB.CUI=pUB.CUI
     AND cMap.CodeID=mapID
     AND cUB.SAB='PAZ'
-    //RETURN cUB.CodeID+'|'+ tUB.name + '|' + 'PAZ' as UBERONID
-    RETURN cUB.CodeID AS UBCode, tUB.name AS UBName, 'PAZ' AS UBAnnotation
+    RETURN cUB.CodeID AS UBCode, tUB.name AS UBName, 'PAZ' AS UBAnnotation, 'PAZ' as source
 
 }
 
 // Collect and order organs by annotation type.
-WITH CLID,name,definition,biomarkers, COLLECT({id:UBCode,name:UBName,source:'UBERON',annotation:UBAnnotation}) AS organ_list
+WITH CLID,name,definition,biomarkers, COLLECT(DISTINCT{id:UBCode,name:UBName,source:source,annotation:UBAnnotation}) AS organ_list
 WHERE CLID IS NOT NULL
 UNWIND organ_list AS organ
 WITH CLID,name,definition,biomarkers,organ
