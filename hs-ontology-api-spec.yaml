@@ -475,12 +475,12 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
-  /genes/{id}:
+  /genes/{ids}:
     get:
       operationId: genes_get
       summary: Return reference information on a set of genes specified by a HGNC identifiers
       parameters:
-        - name: id
+        - name: ids
           in: path
           required: true
           description: Comma-delimited set of HGNC identifiers. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
@@ -510,12 +510,12 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
-  /genes/{id}/detail:
+  /genes/{ids}/detail:
     get:
       operationId: genes_detail_get
       summary: Return detailed information on a gene specified by a HGNC identifier, including mappings from annotations
       parameters:
-        - name: id
+        - name: ids
           in: path
           required: true
           description: HGNC identifier. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
