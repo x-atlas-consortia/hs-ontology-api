@@ -263,6 +263,7 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
     return sabcodeterms
 
 def __subquery_dataset_synonym_property(sab: str, cuialias: str, returnalias: str, collectvalues: bool) -> str:
+    # OCTOBER 2025 TO BE DEPRECATED AND REMOVED
     # JAS FEB 2023
     # Returns a subquery to obtain a "synonym" relationship property. See __query_dataset_info for an explanation.
 
@@ -296,6 +297,7 @@ def __subquery_dataset_synonym_property(sab: str, cuialias: str, returnalias: st
 def __subquery_dataset_relationship_property(sab: str, cuialias: str, rel_string: str, returnalias: str,
                                              isboolean: bool = False, collectvalues: bool = False,
                                              codelist: List[str] = []) -> str:
+    # OCTOBER 2025 TO BE DEPRECATED AND REMOVED
     # JAS FEB 2023
     # Returns a subquery to obtain a "relationship property". See __query_dataset_info for an explanation.
 
@@ -361,6 +363,7 @@ def __subquery_dataset_relationship_property(sab: str, cuialias: str, rel_string
 
 
 def __subquery_data_type_info(sab: str) -> str:
+    # OCTOBER 2025 - TO BE DEPRECATED AND REMOVED
     # JAS FEB 2023
     # Returns a Cypher subquery that obtains concept CUI and preferred term strings for the Dataset Data Type
     # codes in an application context. Dataset Data Type codes are in a hierarchy with a root entity with code
@@ -386,6 +389,7 @@ def __subquery_data_type_info(sab: str) -> str:
 
 
 def __subquery_dataset_cuis(sab: str, cuialias: str, returnalias: str) -> str:
+    # OCTOBER 2025 - TO BE DEPRECATED AND REMOVED
     # JAS FEB 2023
     # Returns a Cypher subquery that obtains concept CUIs for Dataset concepts in the application context.
     # The use case is that the concepts are related to the data_set CUIs passed in the cuialias parameter.
@@ -409,6 +413,8 @@ def __subquery_dataset_cuis(sab: str, cuialias: str, returnalias: str) -> str:
 
 
 def query_cypher_dataset_info(sab: str) -> str:
+
+    # OCTOBER 2025 - TO BE DEPRECATED AND REMOVED.
     # JAS FEB 2023
     # Returns a Cypher query string that will return property information on the datasets in an application
     # context (SAB in the KG), keyed by the data_type.
@@ -501,8 +507,9 @@ def query_cypher_dataset_info(sab: str) -> str:
     return qry
 
 
-def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
+def genedetail_get_logic_old(neo4j_instance, gene_id: str) -> List[GeneDetail]:
     """
+    DEPRECATED. TO BE REMOVED WITH GeneDetail.
     Returns detailed information on a gene, based on an HGNC identifer.
     :param neo4j_instance: instance of neo4j connection
     :param gene_id: HGNC identifier for a gene
@@ -556,6 +563,67 @@ def genedetail_get_logic(neo4j_instance, gene_id: str) -> List[GeneDetail]:
 
     return genedetails
 
+def gene_get_logic(neo4j_instance, geneids: str) -> list:
+    """
+    OCTOBER 2025
+    Returns reference information on a set of gene ids.
+    :param neo4j_instance: neo4j client
+    :param gene_ids: comma-delimited set of gene identifiers
+    """
+    result = []
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $sab.
+    queryfile = 'gene.cypher'
+    querytxt = loadquerystring(queryfile)
+    ids = format_list_for_query(listquery=geneids)
+    querytxt = querytxt.replace('$ids', ids)
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+            for recd in recds:
+                result.append(recd.get('genes'))
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+        return result[0]
+def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
+    """
+    OCTOBER 2025
+    Returns detailed information on a set of gene ids.
+    :param neo4j_instance: neo4j client
+    :param gene_ids: comma-delimited set of gene identifiers
+    """
+    result = []
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $sab.
+    queryfile = 'genedetail.cypher'
+    querytxt = loadquerystring(queryfile)
+    ids = format_list_for_query(listquery=geneids)
+    querytxt = querytxt.replace('$ids', ids)
+
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+            for recd in recds:
+                result.append(recd.get('genes'))
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+        return result[0]
 
 def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     """
@@ -904,7 +972,7 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
                            starts_with: str, cell_type_count: str) -> List[CelltypeList]:
 
     """
-    Returns information on HGNC genes.
+    Returns information on Cell Ontology cell types.
     Intended to support a Data Portal landing page featuring a high-level
     list with pagination features.
 
@@ -979,14 +1047,15 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
                                                   cell_type_count=cell_type_count).serialize()
     return celltypelist
 
-def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
+def celltypedetail_get_logic_old(neo4j_instance, cl_id: str) -> List[CelltypeDetail]:
     """
+    OCTOBER 2025 - DEPRECATED; TO BE REMOVED WITH model CelltypeDetail
     Returns detailed information on a cell type, based on a Cell Ontology ID.
     :param neo4j_instance: instance of neo4j connection
     :param cl_id: Cell Ontology identifier
     """
     # response list
-    celltypedetails: [GeneDetail] = []
+    celltypedetails: [CelltypeDetail] = []
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
@@ -1026,6 +1095,75 @@ def celltypedetail_get_logic(neo4j_instance, cl_id: str) -> List[GeneDetail]:
 
     return celltypedetails
 
+def celltypedetail_get_logic(neo4j_instance, searchids:list[str]) -> dict:
+    """
+    Returns detailed information on a set of cell types, based on a Cell Ontology ID.
+    :param neo4j_instance: instance of neo4j connection
+    :param searchids: comma-delimited list of identifiers.
+                      If an identifier is an integer, assume that the integer is a CL ID, and
+                      format as a 7-digit integer string, padded with zeroes.
+                      If an identifier is a string, assume that the query should return
+                      cell types with terms that include the string.
+    """
+    result =  []
+
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $sab.
+    queryfile = 'celltypedetail.cypher'
+    querytxt = loadquerystring(queryfile)
+    ids = format_list_for_query(listquery=searchids)
+    querytxt = querytxt.replace('$ids', ids)
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+            for recd in recds:
+                result.append(recd.get('celltype'))
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+        return result[0]
+def celltype_get_logic(neo4j_instance, searchids:list[str]) -> list:
+    """
+    OCTOBER 2025
+    Returns a list of reference information on a set of cell type identifiers
+    :param neo4j_instance: Neo4j connector
+    :param searchids: comma-delimited list of identifiers.
+                      If an identifier is an integer, assume that the integer is a CL ID, and
+                      format as a 7-digit integer string, padded with zeroes.
+                      If an identifier is a string, assume that the query should return
+                      cell types with terms that include the string.
+    """
+
+    result = []
+    # Load annotated Cypher query from the cypher directory.
+    # The query is parameterized with variable $sab.
+    queryfile = 'celltype.cypher'
+    querytxt = loadquerystring(queryfile)
+    ids = format_list_for_query(listquery=searchids)
+    querytxt = querytxt.replace('$ids', ids)
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+            for recd in recds:
+                result.append(recd.get('celltype'))
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+        return result[0]
 
 def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[FieldDescription]:
     """

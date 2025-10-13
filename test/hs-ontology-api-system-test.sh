@@ -373,6 +373,14 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
+echo "/celltypes/2138,236" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/celltypes/2138,236" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
 echo "/celltypes/0002138" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/celltypes/0002138" \
