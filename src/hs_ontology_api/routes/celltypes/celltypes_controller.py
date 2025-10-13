@@ -24,7 +24,8 @@ def celltypes_id_detail_expand_get(ids=None):
         if i.isnumeric():
             clids.append(f'{int(i):07d}')
         else:
-            clids.append(i)
+            if i.strip() !='':
+                clids.append(i)
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = celltypedetail_get_logic(neo4j_instance, clids)
@@ -52,7 +53,8 @@ def celltypes_id_get(ids=None):
         if i.isnumeric():
             clids.append(f'{int(i):07d}')
         else:
-            clids.append(i)
+            if i.strip() != '':
+                clids.append(i)
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = celltype_get_logic(neo4j_instance, clids)

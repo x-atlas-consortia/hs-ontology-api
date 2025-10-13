@@ -53,6 +53,13 @@ ORDER BY hgnc_id, ret_key
 
 UNION
 
+// References to gene products of genes from UNIPROTKB
+WITH GeneCUI
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:has_gene_product]->(pProtein:Concept)-[:CODE]->(cProtein:Code) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' RETURN toInteger(cGene.CODE) AS hgnc_id, 'references' AS ret_key, cProtein.CodeID AS ret_value
+ORDER BY hgnc_id,ret_key
+
+UNION
+
 // RefSeq summaries, with backslashes in text replaced with forward slashes
 WITH GeneCUI
 OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:DEF]->(dGene:Definition) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND dGene.SAB='REFSEQ' RETURN toInteger(cGene.CODE) AS hgnc_id, 'summary' AS ret_key, replace(dGene.DEF,'\\','/') AS ret_value
