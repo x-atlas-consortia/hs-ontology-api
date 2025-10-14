@@ -133,6 +133,23 @@ WITH hgnc_id, ret_key, COLLECT(DISTINCT ret_value) AS values
 WHERE hgnc_id IS NOT NULL
 WITH hgnc_id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 
+// Add reference urls
+WITH hgnc_id, map,
+        [ref IN map['references'] |
+                {
+                        id: ref,
+                        source: split(ref,':')[0],
+                        url: CASE split(ref,':')[0]
+                                WHEN 'UNIPROTKB' THEN 'https://www.uniprot.org/uniprot/' + split(ref,':')[1]
+                                WHEN 'ENSEMBL' THEN 'https://www.ensembl.org/id/' + split(ref,':')[1]
+                                WHEN 'OMIM' THEN 'https://omim.org/entry/' + split(ref,':')[1]
+                                WHEN 'ENTREZ' THEN 'https://www.ncbi.nlm.nih.gov/gene/' + split(ref,':')[1]
+                                WHEN 'HGNC' THEN 'https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/' + split(ref,':')[1]
+                                ELSE ref
+                        END
+                }
+        ] AS ref_objs
+
 WITH hgnc_id,
 	{
 	    hgnc_id:hgnc_id,
@@ -142,7 +159,7 @@ WITH hgnc_id,
 		previous_names:map['previous_names'],
 		alias_symbols:map['alias_symbols'],
 		alias_names:map['alias_names'],
-		references:map['references'],
+		references:ref_objs,
 		summary:map['summary'],
 		cell_types:map['cell_types'][0]
 
