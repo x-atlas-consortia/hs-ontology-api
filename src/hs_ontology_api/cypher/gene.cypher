@@ -75,8 +75,11 @@ WITH hgnc_id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 WITH hgnc_id, map,
         [ref IN map['references'] |
                 {
-                        id: ref,
-                        source: split(ref,':')[0],
+                        id: split(ref,':')[1],
+                        source: CASE split(ref,':')[0]
+                                WHEN 'HGNC' THEN 'hugo'
+                                ELSE toLower(split(ref,':')[0])
+                        END,
                         url: CASE split(ref,':')[0]
                                 WHEN 'UNIPROTKB' THEN 'https://www.uniprot.org/uniprot/' + split(ref,':')[1]
                                 WHEN 'ENSEMBL' THEN 'https://www.ensembl.org/id/' + split(ref,':')[1]
