@@ -101,23 +101,12 @@ CALL
 	{
 		WITH mapID
 		OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT_UBERON_BASE]->(tUB:Term)
-		WHERE rMapUB.SAB IN ['AZ','STELLAR','DCT']
+		WHERE rMapUB.SAB IN ['AZ','STELLAR','DCT','PAZ','RIBCA']
     	AND rUB.CUI=pUB.CUI
     	AND cMap.CodeID=mapID
     	AND cUB.SAB='UBERON'
 
 		RETURN CASE WHEN cUB.CodeID IS NULL THEN NULL ELSE {id:cUB.CodeID,name:tUB.name, annotation:rMapUB.SAB,source:'UBERON'} END AS organ
-
-		UNION
-
-		WITH mapID
-    	OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:has_organ_level]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
-    	WHERE rMapUB.SAB ='PAZ'
-    	AND rUB.CUI=pUB.CUI
-    	AND cMap.CodeID=mapID
-    	AND cUB.SAB='PAZ'
-    	RETURN CASE WHEN cUB.CodeID IS NULL THEN NULL ELSE {id:cUB.CodeID,name:tUB.name, annotation:rMapUB.SAB,source:'PAZ'} END AS organ
-
     }
 
 WITH hgnc_id, CLID, CLname,CLdefinition,CLCUI,COLLECT(DISTINCT organ) AS organ_list
