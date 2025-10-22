@@ -1,7 +1,7 @@
 Flask==3.0.3
 
 #git+https://github.com/x-atlas-consortia/ubkg-api.git@dev-integrate
-ubkg-api==2.2.2
+ubkg-api==2.2.3
 
 neo4j==5.15.0
 

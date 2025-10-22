@@ -89,22 +89,11 @@ CALL
 {
 	WITH CLCUI,CLID,name,definition,mapID
    	OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT_UBERON_BASE]->(tUB:Term)
-    WHERE rMapUB.SAB IN ['AZ','STELLAR','DCT']
+    WHERE rMapUB.SAB IN ['AZ','STELLAR','DCT','PAZ','RIBCA']
     AND rUB.CUI=pUB.CUI
     AND cMap.CodeID=mapID
     AND cUB.SAB='UBERON'
     RETURN cUB.CodeID AS UBCode, tUB.name AS UBName, rMapUB.SAB AS UBAnnotation, 'UBERON' AS source
-
-    UNION
-
-    WITH CLCUI,CLID,name,definition,mapID
-    OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:has_organ_level]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT]->(tUB:Term)
-    WHERE rMapUB.SAB ='PAZ'
-    AND rUB.CUI=pUB.CUI
-    AND cMap.CodeID=mapID
-    AND cUB.SAB='PAZ'
-    RETURN cUB.CodeID AS UBCode, tUB.name AS UBName, 'PAZ' AS UBAnnotation, 'PAZ' as source
-
 }
 
 // Collect and order organs by annotation type.

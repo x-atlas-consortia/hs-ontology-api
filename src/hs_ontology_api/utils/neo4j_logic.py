@@ -22,7 +22,7 @@ from hs_ontology_api.models.proteinlist import ProteinList
 from hs_ontology_api.models.proteindetail import ProteinDetail
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
-from hs_ontology_api.models.celltypedetail import CelltypeDetail
+
 # JAS Dec 2023
 from hs_ontology_api.models.fielddescription import FieldDescription
 from hs_ontology_api.models.fieldtype import FieldType
@@ -505,63 +505,6 @@ def query_cypher_dataset_info(sab: str) -> str:
     qry = qry + 'RETURN data_type, description, alt_names, primary, dataset_provider, vis_only, contains_pii, vitessce_hints '
     qry = qry + 'ORDER BY tolower(data_type)'
     return qry
-
-
-def genedetail_get_logic_old(neo4j_instance, gene_id: str) -> List[GeneDetail]:
-    """
-    DEPRECATED. TO BE REMOVED WITH GeneDetail.
-    Returns detailed information on a gene, based on an HGNC identifer.
-    :param neo4j_instance: instance of neo4j connection
-    :param gene_id: HGNC identifier for a gene
-    """
-    # response list
-    genedetails: [GeneDetail] = []
-
-    # Load annotated Cypher query from the cypher directory.
-    # The query is parameterized with variable $ids.
-    queryfile = 'genedetail.cypher'
-    querytxt = loadquerystring(queryfile)
-
-    querytxt = querytxt.replace('$ids', f'\'{gene_id}\'')
-
-    # March 2025
-    # Set timeout for query based on value in app.cfg.
-    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
-
-    with neo4j_instance.driver.session() as session:
-        # Execute Cypher query.
-        try:
-            recds: neo4j.Result = session.run(query)
-
-            # Build response object.
-            for record in recds:
-                try:
-                    genedetail: GeneDetail = \
-                        GeneDetail(hgnc_id=record.get('hgnc_id'),
-                                   approved_symbol=record.get('approved_symbol'),
-                                   approved_name=record.get('approved_name'),
-                                   previous_symbols=record.get('previous_symbols'),
-                                   previous_names=record.get('previous_names'),
-                                   alias_symbols=record.get('alias_symbols'),
-                                   alias_names=record.get('alias_names'),
-                                   references=record.get('references'),
-                                   summaries=record.get('summaries'),
-                                   cell_types_code=record.get('cell_types_code'),
-                                   cell_types_code_name=record.get('cell_types_code_name'),
-                                   cell_types_code_definition=record.get('cell_types_code_definition'),
-                                   cell_types_codes_organ=record.get('cell_types_codes_organ'),
-                                   cell_types_code_source=record.get('cell_types_codes_source')).serialize()
-
-                    genedetails.append(genedetail)
-
-                except KeyError:
-                    pass
-        except neo4j.exceptions.ClientError as e:
-            # If the error is from a timeout, raise a HTTP 408.
-            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise GatewayTimeout
-
-    return genedetails
 
 def gene_get_logic(neo4j_instance, geneids: str) -> list:
     """
@@ -1046,54 +989,6 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
                                                   starts_with=starts_with,
                                                   cell_type_count=cell_type_count).serialize()
     return celltypelist
-
-def celltypedetail_get_logic_old(neo4j_instance, cl_id: str) -> List[CelltypeDetail]:
-    """
-    OCTOBER 2025 - DEPRECATED; TO BE REMOVED WITH model CelltypeDetail
-    Returns detailed information on a cell type, based on a Cell Ontology ID.
-    :param neo4j_instance: instance of neo4j connection
-    :param cl_id: Cell Ontology identifier
-    """
-    # response list
-    celltypedetails: [CelltypeDetail] = []
-
-    # Load annotated Cypher query from the cypher directory.
-    # The query is parameterized with variable $ids.
-    queryfile = 'celltypedetail.cypher'
-    querytxt = loadquerystring(queryfile)
-
-    querytxt = querytxt.replace('$ids', f'\'{cl_id}\'')
-
-    # March 2025
-    # Set timeout for query based on value in app.cfg.
-    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
-
-    with neo4j_instance.driver.session() as session:
-        try:
-            # Execute Cypher query.
-            recds: neo4j.Result = session.run(query)
-
-            # Build response object.
-            for record in recds:
-                try:
-                    celltypedetail: CelltypeDetail = \
-                    CelltypeDetail(cl_id=record.get('CLID'),
-                                   name=record.get('cell_types_code_name'),
-                                   definition=record.get('cell_types_definition'),
-                                   biomarkers=record.get('cell_types_genes'),
-                                   organs=record.get('cell_types_organs')).serialize()
-
-                    celltypedetails.append(celltypedetail)
-
-                except KeyError:
-                    pass
-
-        except neo4j.exceptions.ClientError as e:
-            # If the error is from a timeout, raise a HTTP 408.
-            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise GatewayTimeout
-
-    return celltypedetails
 
 def celltypedetail_get_logic(neo4j_instance, searchids:list[str]) -> dict:
     """
