@@ -556,13 +556,27 @@ echo | tee -a $testout
 
 # Test for celltypes endpoint.
 echo "TESTS FOR: celltypes GET" | tee -a $testout
-echo "SIGNATURE: /celltypes/<CL code>" | tee -a $testout
+echo "SIGNATURE: /celltypes/<comma-delimited list of codes>" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "/celltypes/0002138 => should return 200" | tee -a $testout
+echo "/celltypes/2138,236 => should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/celltypes/0002138" \
+ --url "${UBKG_URL}/celltypes/2138,236" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+# Test for celltypes/detail endpoint.
+echo "TESTS FOR: celltypes/detail GET" | tee -a $testout
+echo "SIGNATURE: /celltypes/<CL code>/detail" | tee -a $testout
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "/celltypes/0002138/detail => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/celltypes/0002138/detail" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout
