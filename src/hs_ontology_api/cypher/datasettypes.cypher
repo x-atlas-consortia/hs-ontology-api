@@ -83,10 +83,10 @@ CALL
         (pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[r:PT]->(tDatasetModality:Term)
         WHERE r.CUI=pDatasetModality.CUI
         AND pDatasetType.CUI = CUIDatasetType
-        RETURN split(tDatasetModality.name,'_')[0] AS  dataset_modality
+        RETURN COLLECT(DISTINCT split(tDatasetModality.name,'_')[0]) AS  dataset_modalities
 }
 
-WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed,context,dataset_modality
+WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed,context,dataset_modalities
 $epictype_filter
 RETURN
 CASE WHEN toUpper(context)='HUBMAP'
@@ -106,7 +106,7 @@ THEN
 ELSE
 {
         dataset_type:dataset_type,
-        dataset_modality:dataset_modality,
+        dataset_modalities:dataset_modalities,
         PDR_category:pdr_category,
         fig2:
         {
