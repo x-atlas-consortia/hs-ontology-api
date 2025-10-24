@@ -142,7 +142,7 @@ CALL
         (pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[r:PT]->(tDatasetModality:Term)
         WHERE r.CUI=pDatasetModality.CUI
         AND pDatasetType.CUI = CUIDatasetType
-        RETURN split(tDatasetModality.name,'_')[0] AS  dataset_modality
+        RETURN COLLECT(DISTINCT split(tDatasetModality.name,'_')[0]) AS  dataset_modalities
 }
 // description
 CALL
@@ -207,7 +207,7 @@ context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
 vitessce_hints,process_state,pipeline_shorthand,
 description,dataset_type_summary,
 is_multiassay,must_contain,active_status, contains_full_genetic_sequences,
-dataset_modality
+dataset_modalities
 RETURN
 {
         rule_description:
@@ -233,7 +233,7 @@ RETURN
                 is_multiassay:is_multiassay, must_contain:must_contain,
                 active_status:active_status,
                 dataset_type:dataset_type_summary,
-                dataset_modality:dataset_modality,
+                dataset_modalities:dataset_modalities,
                 contains_full_genetic_sequences:contains_full_genetic_sequences
         }
         END
