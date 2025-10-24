@@ -74,9 +74,23 @@ CALL
    AND cEpic.SAB = context
    RETURN DISTINCT CASE WHEN pEpic IS NULL THEN false ELSE true END AS is_externally_processed
 }
-WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed
+
+// SenNet modality
+CALL
+{
+        WITH CUIDatasetType
+        OPTIONAL MATCH (pDatasetType:Concept)-[:isa]->(pDatasetModality:Concept)-[:isa]->(pDatasetModalityParent:Concept{CUI:'SENNET:C046000 CUI'}),
+        (pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[r:PT]->(tDatasetModality:Term)
+        WHERE r.CUI=pDatasetModality.CUI
+        AND pDatasetType.CUI = CUIDatasetType
+        RETURN split(tDatasetModality.name,'_')[0] AS  dataset_modality
+}
+
+WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed,context,dataset_modality
 $epictype_filter
 RETURN
+CASE WHEN toUpper(context)='HUBMAP'
+THEN
 {
         dataset_type:dataset_type,
         PDR_category:pdr_category,
@@ -88,4 +102,20 @@ RETURN
         },
         assaytypes:assaytypes,
         is_externally_processed:is_externally_processed
-} AS dataset_types
+}
+ELSE
+{
+        dataset_type:dataset_type,
+        dataset_modality:dataset_modality,
+        PDR_category:pdr_category,
+        fig2:
+        {
+            aggregated_assaytype:fig2_aggregated_assaytype,
+            modality:fig2_modality,
+            category:fig2_category
+        },
+        assaytypes:assaytypes,
+        is_externally_processed:is_externally_processed
+}
+END
+AS dataset_types
