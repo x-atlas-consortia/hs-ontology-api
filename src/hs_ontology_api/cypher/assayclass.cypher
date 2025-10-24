@@ -134,6 +134,16 @@ CALL
             dataset_type
         END AS dataset_type_summary
 }
+// SenNet modality
+CALL
+{
+        WITH CUIDatasetType
+        OPTIONAL MATCH (pDatasetType:Concept)-[:isa]->(pDatasetModality:Concept)-[:isa]->(pDatasetModalityParent:Concept{CUI:'SENNET:C046000 CUI'}),
+        (pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[r:PT]->(tDatasetModality:Term)
+        WHERE r.CUI=pDatasetModality.CUI
+        AND pDatasetType.CUI = CUIDatasetType
+        RETURN split(tDatasetModality.name,'_')[0] AS  dataset_modality
+}
 // description
 CALL
 {
@@ -186,20 +196,26 @@ CALL
         WHERE pRBD.CUI=CUIRBD AND r.CUI=pStatus.CUI and cStatus.SAB=context
         RETURN DISTINCT tStatus.name AS active_status
 }
-// Response
+
+// Response.
+// Dataset modality is only applicable to SenNet.
+
 CALL
 {
 WITH
 context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
 vitessce_hints,process_state,pipeline_shorthand,
 description,dataset_type_summary,
-is_multiassay,must_contain,active_status, contains_full_genetic_sequences
+is_multiassay,must_contain,active_status, contains_full_genetic_sequences,
+dataset_modality
 RETURN
 {
         rule_description:
         {       code:CodeRBD,application_context:context, name:NameRBD
         },
         value:
+        CASE WHEN toUpper(context)='HUBMAP'
+        THEN
         {
                 assaytype:assaytype, dir_schema:dir_schema, tbl_schema:tbl_schema, vitessce_hints:vitessce_hints,
                 process_state:process_state,
@@ -209,6 +225,18 @@ RETURN
                 dataset_type:dataset_type_summary,
                 contains_full_genetic_sequences:contains_full_genetic_sequences
         }
+        ELSE
+        {
+                assaytype:assaytype, dir_schema:dir_schema, tbl_schema:tbl_schema, vitessce_hints:vitessce_hints,
+                process_state:process_state,
+                pipeline_shorthand:pipeline_shorthand, description:description,
+                is_multiassay:is_multiassay, must_contain:must_contain,
+                active_status:active_status,
+                dataset_type:dataset_type_summary,
+                dataset_modality:dataset_modality,
+                contains_full_genetic_sequences:contains_full_genetic_sequences
+        }
+        END
 }
 AS rule_based_dataset
 }
