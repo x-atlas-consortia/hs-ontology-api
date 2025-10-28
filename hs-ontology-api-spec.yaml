@@ -475,47 +475,12 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
-  /genes/{ids}:
+  /genes/{id}:
     get:
       operationId: genes_get
-      summary: Return reference information on a set of genes specified by a HGNC identifiers
+      summary: Return detailed information on a gene specified by a HGNC identifier.
       parameters:
-        - name: ids
-          in: path
-          required: true
-          description: Comma-delimited set of HGNC identifiers. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
-          schema:
-            type: string
-            example: MMRN1,BRCA1
-      responses:
-        '200':
-          description: reference information on the genes specified by the HGNC identifiers.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/GeneResponse'
-        '303':
-          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
-        '400':
-          description: Missing parameter; invalid parameter value
-        '403':
-          description: The response size exceeds a limit set by the server.
-        '404':
-          description: No information for gene with HGNC identifier *id*.
-        '504':
-          description: The query run time exceeded the specified timeout.
-        '5XX':
-          description: Unexpected error
-      tags:
-        - biological entities
-  /genes/{ids}/detail:
-    get:
-      operationId: genes_detail_get
-      summary: Return detailed information on a gene specified by a HGNC identifier, including mappings from annotations
-      parameters:
-        - name: ids
+        - name: id
           in: path
           required: true
           description: HGNC identifier. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
@@ -680,53 +645,18 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
-  /celltypes/{ids}:
+  /celltypes/{id}:
     get:
       operationId: celltypes_get
-      summary: Return information on a set of cell types specified by a list of Cell Ontology IDs
+      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID).
       parameters:
-        - name: ids
+        - name: id
           in: path
           required: true
-          description: a comma-delimited list of integer Cell Ontology IDs. Integers without leading zeroes will be padded to 7 digits--e.g., 235 will become 0000235.
+          description: Cell Ontology ID
           schema:
             type: string
-            example: 2138,0000236,fibroblast
-      responses:
-        '200':
-          description: reference information on the cell types
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CellTypeResponse'
-        '303':
-          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
-        '400':
-          description: Missing parameter; invalid parameter value
-        '403':
-          description: The response size exceeds a limit set by the server.
-        '404':
-          description: No information for cell type with Cell Ontology identifiers *id*.
-        '504':
-          description: The query run time exceeded the specified timeout.
-        '5XX':
-          description: Unexpected error
-      tags:
-        - biological entities
-  /celltypes/{ids}/detail:
-    get:
-      operationId: celltypes_detail_get
-      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID), including marker associations (via the Human Resource Atlas) and annotation mappings (from Azimuth, STELLAR, etc.)
-      parameters:
-        - name: ids
-          in: path
-          required: true
-          description: a comma-delimited list of integer Cell Ontology IDs. Integers without leading zeroes will be padded to 7 digits--e.g., 235 will become 0000235.
-          schema:
-            type: string
-            example: 2138,0000236,fibroblast
+            example: 0002138
       responses:
         '200':
           description: detailed information on the cell type specified by a Cell Ontology identifier.
@@ -1486,68 +1416,6 @@ components:
               type: number
               description: Calculated count of items. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
               example: 500
-    GeneResponse:
-      type: object
-      description: Refre ce information on a gene requested by the gene endpoint
-      properties:
-        alias_names:
-          type: array
-          description: HGNC alias names
-          items:
-            type: string
-          example: [ glycoprotein Ia* ]
-        alias_symbols:
-          type: array
-          description: HGNC alias symbols
-          items:
-            type: string
-          example: [ GPIa*,EMILIN4,ECM ]
-        approved_name:
-          type: string
-          description: HGNC approved name
-          example: multimerin 1
-        approved_symbol:
-          type: string
-          description: HGNC approved symbol
-          example: MMRN1
-        hgnc_id:
-          type: number
-          description: numeric HGNC ID for the gene
-          example: 60
-        previous_names:
-          type: array
-          description: previous names for the gene in HGNC
-          items:
-            type: string
-          example: [ multimerin ]
-        previous_symbols:
-          type: array
-          description: previous symbols for the gene in HGNC
-          items:
-            type: string
-            example: [ MMRN ]
-        references:
-          type: array
-          description: Reference for the gene between HGNC and other vocabularies. References can be either a cross-reference (e.g., between HGNC ID and NCBI Entrez ID) or from a known relationship (e.g., gene-protein relationships between a gene in HGNC and a protein in UniProtKB).
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                description: ID (code) for the reference in the source
-                example: 22915
-              source:
-                type: string
-                description: source vocabulary for the reference
-                example: entrez
-              url:
-                type: string
-                description: URL to reference site
-                example: https://www.ncbi.nlm.nih.gov/gene/22915
-        summary:
-          type: string
-          description: RefSeq summary of the gene
-          example: Multimerin is a massive, soluble protein found in....
     GeneDetailResponse: # JAS Sept 2023
       type: object
       description: Detailed information on a gene requested by the gene endpoint
@@ -1885,26 +1753,6 @@ components:
                 type: string
                 description: SAB of the cell type annotation
                 example: AZ
-    CellTypeResponse:
-      type: object
-      description: Reference information on a cell type requested by the celltypes endpoint
-      properties:
-        cell_type:
-          type: object
-          description: cell type identifiers
-          properties:
-            id:
-              type: string
-              description: Cell Ontology code
-              example: CL:0002138
-            name:
-              type: string
-              description: Preferred term for the cell type from Cell Ontology
-              example: endothelial cell of lymphatic vessel
-            definition:
-              type: string
-              description: Definition of the cell type from Cell Ontology
-              example: A endothelial cell of a lymphatic vessel. The border of…
     FieldDescriptionsResponse:
       type: object
       description: Descriptions for ingest metadata fields
@@ -2255,6 +2103,12 @@ components:
                   type: string
                   description: corresponds to the "dataset_type" key in the testing_rule_chain.json.
                   example: 2D Imaging Mass Cytometry
+                dataset_modalities:
+                  type: array
+                  description: array of "dataset modalities" for the dataset type. Applies to SenNet only.
+                  items:
+                    type: string
+                    example: ["Imaging","Transcriptomics"]
                 PDR_category:
                   type: string
                   description: category for the dataset_type per the HuBMAP Data Coordination Working Group's "Pipeline Decision Rules" (PDR) document.
@@ -2327,6 +2181,12 @@ components:
                   type: string
                   description: corresponds to the "dataset_type" key in the testing_rule_chain.json.
                   example: 2D Imaging Mass Cytometry
+                dataset_modalities:
+                  type: array
+                  description: array of "dataset modalities" for the dataset type. Applies to SenNet only.
+                  items:
+                    type: string
+                    example: ["Imaging","Transcriptomics"]
                 PDR_category:
                   type: string
                   description: category for the dataset_type per the HuBMAP Data Coordination Working Group's "Pipeline Decision Rules" (PDR) document.
