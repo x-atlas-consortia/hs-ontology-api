@@ -1770,11 +1770,9 @@ def annotations_get_logic(neo4j_instance, sab:str, ids:list[str]) -> list:
     searchids = format_list_for_query(listquery=ids)
     if searchids == '':
         searchids = f"''"
-
     querytxt = querytxt.replace('$ids', searchids)
 
     querytxt = querytxt.replace('$sab', f"'{sab}'")
-    print(querytxt)
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)

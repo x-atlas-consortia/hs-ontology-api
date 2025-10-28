@@ -53,7 +53,7 @@ def get_annotations(ids=None):
     result = annotations_get_logic(neo4j_instance, sab=sab, ids=annids)
     if result is None or result == []:
         # Empty result
-        err = get_404_error_string()
+        err = get_404_error_string(prompt_string=f'No annotations with identifiers')
         return make_response(err, 404)
 
     # Redirect to S3 if payload is large.
