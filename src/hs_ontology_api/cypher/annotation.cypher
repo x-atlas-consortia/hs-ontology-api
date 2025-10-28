@@ -14,6 +14,7 @@ WITH sab,
 
 [$ids] AS ids
 
+// Find all annotations that have the annotation parent and match the search terms.
 MATCH (tAnn:Term)<-[rAnn:PT]-(cAnn:Code{SAB:sab})<-[:CODE]-(pAnn:Concept)-[:isa]->(pAnnParent:Concept)-[:CODE]->(cAnnParent:Code{CODE:'2000000'}),
 (pAnn:Concept)-[:CODE]->(cCL:Code{SAB:'CL'})-[rCL:PT]->(tCL:Term)
 WHERE rAnn.CUI=pAnn.CUI AND rCL.CUI=pAnn.CUI
@@ -34,17 +35,22 @@ AND (
 WITH sab, cAnn.CodeID AS Annotation_ID, tAnn.name AS Annotation_Fullname, split(tAnn.name,'_')[-1] AS Annotation_Name, cCL.CodeID AS CL_ID, tCL.name AS CL_Name ,pAnn.CUI AS Annotation_CUI
 ORDER BY cAnn.CodeID
 
-// Organ mapping
+// Organ mapping on both UBERON and the annotation ontology.
 WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name, CL_ID, CL_Name, Annotation_CUI
-MATCH (pAnn:Concept)-[rAnn:located_in{SAB:sab}]->(pOrgan:Concept)-[:CODE]->(cOrgan:Code{SAB:'UBERON'})-[rOrgan:PT_UBERON_BASE]->(tOrgan:Term),
+MATCH (pAnn:Concept)-[rAnn:located_in{SAB:sab}]->(pOrgan:Concept)-[:CODE]->(cOrgan:Code)-[rOrgan]->(tOrgan:Term),
 (pOrgan:Concept)-[:CODE]->(cOrganSAB:Code{SAB:sab})-[r:PT]->(tOrganSAB:Term)
 WHERE pAnn.CUI=Annotation_CUI
 AND rOrgan.CUI=pOrgan.CUI
-AND Annotation_Fullname CONTAINS tOrganSAB.name
+AND (cOrgan.SAB='UBERON' AND TYPE(rOrgan) = 'PT_UBERON_BASE')
+OR
+(cOrgan.SAB=sab AND TYPE(rOrgan) = 'PT' AND Annotation_Fullname CONTAINS tOrganSAB.name)
 
-WITH {id:Annotation_ID,
-name: {fully_specified: Annotation_Fullname, simple: Annotation_Name},
-celltype: {ID: CL_ID, name: CL_Name},
-organ: {UBERON: {code:cOrgan.CodeID, name: tOrgan.name}, in_annotation:{code:cOrganSAB.CodeID,name: tOrganSAB.name}}
-} AS celltype_annotation
+WITH Annotation_ID, Annotation_Fullname, Annotation_Name,
+{code: CL_ID, term: CL_Name} AS mapped_celltype,
+COLLECT (DISTINCT {sab: cOrgan.SAB, code:cOrgan.CodeID, term: tOrgan.name}) AS mapped_organ
+
+WITH {code:Annotation_ID,
+terms: {full: Annotation_Fullname, simple: Annotation_Name},
+mapped_celltype: mapped_celltype,
+mapped_organ: mapped_organ} AS celltype_annotation
 RETURN COLLECT(DISTINCT celltype_annotation) AS annotations

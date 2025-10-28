@@ -27,6 +27,14 @@ def get_annotations(ids=None):
         return make_response(err, 400)
     sab = request.args.get('sab')
 
+    # Check for valid sab. The parameter is case-insensitive, but any error should return the
+    # value provided in the request.
+    val_enum = ['AZ', 'STELLAR', 'DCT', 'PAZ', 'RIBCA', 'VCCF']
+    err = validate_parameter_value_in_enum(param_name='sab', param_value=sab.upper(),
+                                           enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+
     listids = []
     if ids is not None:
         listids = ids.split(',')

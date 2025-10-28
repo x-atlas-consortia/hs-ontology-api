@@ -1790,4 +1790,4 @@ def annotations_get_logic(neo4j_instance, sab:str, ids:list[str]) -> list:
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    return result
+    return result[0]
