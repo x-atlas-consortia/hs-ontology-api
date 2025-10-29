@@ -4,7 +4,7 @@
 // The calling function in neo4j_logic.py will replace variables preceded with $.
 
 // Filter on SAB
-WITH $sab as sab
+WITH toUpper($sab) as sab
 //WITH 'AZ' as sab
 WITH sab,
 

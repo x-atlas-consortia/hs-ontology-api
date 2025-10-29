@@ -689,10 +689,10 @@ paths:
         - name: sab
           in: query
           required: true
-          description: SAB for a cell type annotation
+          description: case-insensitive SAB for a cell type annotation
           schema:
             type: string
-            example: VCCF
+            example: vccf
       responses:
         '200':
           description: Array of ingest metadata fields with descriptions
