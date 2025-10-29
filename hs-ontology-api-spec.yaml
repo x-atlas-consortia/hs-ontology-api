@@ -2359,20 +2359,22 @@ components:
                 description: Cell Ontology preferred term
                 example: adipocyte
           mapped_organ:
-            type: array
+            type: object
             description: coding for the organ in which the annotation is located
-            items:
-              type: object
-              properties:
-                sab:
-                  type: string
-                  description: SAB for the encoding ontology - either UBERON or the specified annotation
-                  example: UBERON
-                code:
-                  type: string
-                  description: code in the encoding ontology
-                  example: UBERON:0000948
-                term:
-                  type: string
-                  description: preferred term in the encoding ontology
-                  example: heart
+            properties:
+              code:
+                type: string
+                description: code in the encoding ontology
+                example: AZ:1000001
+              term:
+                type: string
+                description: preferred term in the encoding ontology
+                example: AZ_Heart_L2
+              uberon_code:
+                type: string
+                description: code in UBERON
+                example: UBERON:0000948
+              uberon_term:
+                type: string
+                description: term in UBERON
+                example: heart

@@ -29,7 +29,7 @@ def get_annotations(ids=None):
 
     # Check for valid sab. The parameter is case-insensitive, but any error should return the
     # value provided in the request.
-    val_enum = ['AZ', 'STELLAR', 'DCT', 'PAZ', 'RIBCA', 'VCCF']
+    val_enum = ['AZ', 'STELLAR', 'DCTH', 'PAZ', 'RIBCA', 'VCCF']
     err = validate_parameter_value_in_enum(param_name='sab', param_value=sab.upper(),
                                            enum_list=val_enum)
     if err != 'ok':

@@ -35,19 +35,25 @@ AND (
 WITH sab, cAnn.CodeID AS Annotation_ID, tAnn.name AS Annotation_Fullname, split(tAnn.name,'_')[-1] AS Annotation_Name, cCL.CodeID AS CL_ID, tCL.name AS CL_Name ,pAnn.CUI AS Annotation_CUI
 ORDER BY cAnn.CodeID
 
-// Organ mapping on both UBERON and the annotation ontology.
+// Organ mapping
 WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name, CL_ID, CL_Name, Annotation_CUI
-MATCH (pAnn:Concept)-[rAnn:located_in{SAB:sab}]->(pOrgan:Concept)-[:CODE]->(cOrgan:Code)-[rOrgan]->(tOrgan:Term),
-(pOrgan:Concept)-[:CODE]->(cOrganSAB:Code{SAB:sab})-[r:PT]->(tOrganSAB:Term)
+MATCH (pAnn:Concept)-[rAnn:located_in]->(pOrgan:Concept)-[:CODE]->(cOrgan:Code)-[rOrgan]->(tOrgan:Term)
 WHERE pAnn.CUI=Annotation_CUI
 AND rOrgan.CUI=pOrgan.CUI
-AND (cOrgan.SAB='UBERON' AND TYPE(rOrgan) = 'PT_UBERON_BASE')
-OR
-(cOrgan.SAB=sab AND TYPE(rOrgan) = 'PT' AND Annotation_Fullname CONTAINS tOrganSAB.name)
+AND rAnn.SAB=sab
+AND cOrgan.SAB=sab
+AND TYPE(rOrgan) = 'PT'
+AND Annotation_Fullname CONTAINS tOrgan.name
 
-WITH Annotation_ID, Annotation_Fullname, Annotation_Name,
+WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name, CL_ID, CL_Name,
+cOrgan.SAB as OrganSAB, cOrgan.CodeID AS OrganCode, tOrgan.name AS OrganName
+MATCH (tOrgSAB:Term)<-[rOrgSAB:PT]-(cOrgSAB:Code{CodeID:OrganCode})<-[:CODE]-(pU:Concept)-[:CODE]->(cU:Code{SAB:'UBERON'})-[rU:PT_UBERON_BASE]->(tU:Term)
+WHERE rU.CUI=pU.CUI
+AND rOrgSAB.CUI=pU.CUI
+
+WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name,
 {code: CL_ID, term: CL_Name} AS mapped_celltype,
-COLLECT (DISTINCT {sab: cOrgan.SAB, code:cOrgan.CodeID, term: tOrgan.name}) AS mapped_organ
+{code:OrganCode, term: OrganName,uberon_code:cU.CodeID, uberon_term:tU.name} AS mapped_organ
 
 WITH {code:Annotation_ID,
 terms: {full: Annotation_Fullname, simple: Annotation_Name},
