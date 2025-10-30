@@ -75,6 +75,34 @@ echo | tee -a $testout
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
 
+echo "TESTS FOR: annotations GET" | tee -a $testout
+echo "SIGNATURE: /annotations/<optional search terms>?sab=<sab>" | tee -a $testout
+echo | tee -a $testout
+echo | tee -a $testout
+echo "1. /annotations?sab=AZ => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations?sab=AZ" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "2. /annotations?sab=AZz => invalid; should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations?sab=AZz" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "3. /annotations/cell?sab=AZ => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/cell?sab=AZ" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
 echo "TESTS FOR: pathways/with-genes GET" | tee -a $testout
 echo "SIGNATURE: /pathways/with-genes?geneids=<list>&pathwayid=<pathwayid>&pathwaynamestartswith=<string>&eventtypes=<list>" | tee -a $testout
 echo | tee -a $testout
