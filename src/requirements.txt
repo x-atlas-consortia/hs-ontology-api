@@ -15,7 +15,7 @@ numpy==1.23.5
 # Test and analysis scripts
 argparse==1.4.0
 datatest==0.11.1
-deepdiff==6.7.1
+
 
 # for S3 worker
 boto3==1.36.17
