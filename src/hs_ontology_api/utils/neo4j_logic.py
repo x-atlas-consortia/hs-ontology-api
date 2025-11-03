@@ -1751,3 +1751,41 @@ def pathway_participants_get_logic(neo4j_instance, pathwayid=None, sabs=None,
 
     if len(participants) > 0:
         return participants[0]
+def annotations_get_logic(neo4j_instance, sab:str, ids:list[str]) -> list:
+    """
+    OCTOBER 2025
+    Returns a list of information on a set of cell type annotation identifiers.
+    :param neo4j_instance: Neo4j connector
+    :param sab: SAB of the cell type annotation
+    :param ids: optional comma-delimited list of IDs, either numeric ids left-padded with zeroes or portions of preferred terms
+    """
+
+    result = []
+    # Load annotated Cypher query from the cypher directory.
+
+    # The query is parameterized
+    queryfile = 'annotation.cypher'
+    querytxt = loadquerystring(queryfile)
+
+    searchids = format_list_for_query(listquery=ids)
+    if searchids == '':
+        searchids = f"''"
+    querytxt = querytxt.replace('$ids', searchids)
+
+    querytxt = querytxt.replace('$sab', f"'{sab}'")
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+            for recd in recds:
+                result.append(recd.get('annotations'))
+
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    return result[0]
