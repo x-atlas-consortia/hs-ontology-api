@@ -476,15 +476,50 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
-  /genes/{id}:
+  /genes/{ids}:
     get:
       operationId: genes_get
-      summary: Return detailed information on a gene specified by a HGNC identifier.
+      summary: Return reference information on a gene specified by a HGNC identifier.
       parameters:
-        - name: id
+        - name: ids
           in: path
           required: true
-          description: HGNC identifier. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
+          description: a case-sensitive, comma-delimited list of HGNC identifiers. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
+          schema:
+            type: string
+            example: MMRN1
+      responses:
+        '200':
+          description: detailed information on the gene specified by a HGNC identifier.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeneResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No information for gene with HGNC identifier *id*.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - biological entities
+  /genes/{ids}/detail:
+    get:
+      operationId: genes_detail_get
+      summary: Return detailed information on a gene specified by a HGNC identifier.
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          description: a case-sensitive, comma-delimited list of HGNC identifiers. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
           schema:
             type: string
             example: MMRN1
@@ -646,18 +681,53 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
-  /celltypes/{id}:
+  /celltypes/{ids}:
     get:
       operationId: celltypes_get
-      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID).
+      summary: Return reference information on a cell type specified by an identifier (Cell Ontology ID).
       parameters:
-        - name: id
+        - name: ids
           in: path
           required: true
-          description: Cell Ontology ID
+          description: case-insensitive, comma-delimited list of text Cell Ontology identifiers. If the identifer is numeric, it is treated as a CL ID; otherwise, it is treated as a search term corresponding to a preferred term.
           schema:
             type: string
-            example: 0002138
+            example: 0002138,fibroblast
+      responses:
+        '200':
+          description: detailed information on the cell type specified by a Cell Ontology identifier.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CellTypeResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No information for cell type with Cell Ontology identifier *id*.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - biological entities
+  /celltypes/{ids}/detail:
+    get:
+      operationId: celltypes_detail_get
+      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID).
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          description: case-insensitive, comma-delimited list of text Cell Ontology identifiers. If the identifer is numeric, it is treated as a CL ID; otherwise, it is treated as a search term corresponding to a preferred term.
+          schema:
+            type: string
+            example: 0002138,fibroblast
       responses:
         '200':
           description: detailed information on the cell type specified by a Cell Ontology identifier.
@@ -707,7 +777,47 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No field descriptions (with list of parameters, if specified)
+          description: No annotations (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - cell type annotations
+  /annotations/{ids}:
+    get:
+      operationId: annotations_id_get
+      summary: Returns information on a specified set of cell types in an annotation ontology
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          description: case-insensitive, comma-delimited list of cell type annotation identifiers. If a numeric string, an id is considered a annotation ID; otherwise, the string is used as a search term
+          schema:
+            type: string
+            example: 0000001,Arterial Endothelial
+        - name: sab
+          in: query
+          required: true
+          description: case-insensitive SAB for a cell type annotation
+          schema:
+            type: string
+            example: vccf
+      responses:
+        '200':
+          description: Array of ingest metadata fields with descriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No annotations (with list of parameters, if specified)
         '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
@@ -1450,7 +1560,69 @@ components:
               type: number
               description: Calculated count of items. If starts_with is non-null, the count is that of the genes with approved HGNC symbols that start with the value of starts_with.
               example: 500
-    GeneDetailResponse: # JAS Sept 2023
+    GeneResponse:
+      type: object
+      description: Reference information on a gene requested by the gene endpoint
+      properties:
+        alias_names:
+          type: array
+          description: HGNC alias names
+          items:
+            type: string
+          example: [glycoprotein Ia*]
+        alias_symbols:
+          type: array
+          description: HGNC alias symbols
+          items:
+            type: string
+          example: [GPIa*,EMILIN4,ECM]
+        approved_name:
+          type: string
+          description: HGNC approved name
+          example: multimerin 1
+        approved_symbol:
+          type: string
+          description: HGNC approved symbol
+          example: MMRN1
+        hgnc_id:
+          type: number
+          description: numeric HGNC ID for the gene
+          example: 60
+        previous_names:
+          type: array
+          description: previous names for the gene in HGNC
+          items:
+            type: string
+          example: [multimerin]
+        previous_symbols:
+          type: array
+          description: previous symbols for the gene in HGNC
+          items:
+            type: string
+            example: [MMRN]
+        references:
+          type: array
+          description: Reference for the gene between HGNC and other vocabularies. References can be either a cross-reference (e.g., between HGNC ID and NCBI Entrez ID) or from a known relationship (e.g., gene-protein relationships between a gene in HGNC and a protein in UniProtKB).
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID (code) for the reference in the source
+                example: 22915
+              source:
+                type: string
+                description: source vocabulary for the reference
+                example: entrez
+              url:
+                type: string
+                description: URL to reference site
+                example: https://www.ncbi.nlm.nih.gov/gene/22915
+        summary:
+          type: string
+          description: RefSeq summary of the gene
+          example: Multimerin is a massive, soluble protein found in....
+    GeneDetailResponse:
       type: object
       description: Detailed information on a gene requested by the gene endpoint
       properties:
@@ -1705,6 +1877,26 @@ components:
               type: number
               description: calculated count of cell types. If starts_with is non-null, the count is that of the cell types with names that start with the value of starts_with.
               example: 500
+    CellTypeResponse:
+      type: object
+      description: Reference information on a cell type requested by the celltypes endpoint
+      properties:
+        cell_type:
+          type: object
+          description: cell type identifiers
+          properties:
+            id:
+              type: string
+              description: Cell Ontology code
+              example: CL:0002138
+            name:
+              type: string
+              description: Preferred term for the cell type from Cell Ontology
+              example: endothelial cell of lymphatic vessel
+            definition:
+              type: string
+              description: Definition of the cell type from Cell Ontology
+              example: A endothelial cell of a lymphatic vessel. The border of…
     CellTypeDetailResponse:
       type: object
       description: Detailed information on a cell type requested by the celltypes endpoint
