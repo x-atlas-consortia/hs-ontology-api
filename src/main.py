@@ -30,6 +30,9 @@ from hs_ontology_api.routes.datasettypes.datasettypes_controller import datasett
 # JAS March 2025
 from hs_ontology_api.routes.pathways.pathways_controller import pathways_blueprint
 
+# October 2025
+from hs_ontology_api.routes.annotations.annotations_controller import annotations_blueprint
+
 def make_flask_config():
     """
     Used to override the "native" app.cfg for the ubkg-api instantiated by the child API with
@@ -72,6 +75,8 @@ app.register_blueprint(assayclasses_blueprint)
 app.register_blueprint(datasettypes_blueprint)
 # March 2025
 app.register_blueprint(pathways_blueprint)
+# October 2025
+app.register_blueprint(annotations_blueprint)
 
 ####################################################################################################
 ## For local development/testing

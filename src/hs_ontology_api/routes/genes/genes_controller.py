@@ -42,7 +42,7 @@ def genes_id_detail_expand_get(ids=None):
 def genes_id_expand_get(ids=None):
     """
     OCTOBER 2025
-    Returns detailed information for genes that match a set of gene identifiers
+    Returns information for genes that match a set of gene identifiers
 
     The following types of identifiers can be used in the list:
     1. HGNC numeric IDs (e.g., 7178)

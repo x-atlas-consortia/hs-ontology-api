@@ -14,6 +14,7 @@ tags:
   - name: dataset types
   - name: organs
   - name: biological entities
+  - name: cell type annotations
   - name: ingestion metadata
   - name: pathways
   - name: other
@@ -478,18 +479,18 @@ paths:
   /genes/{ids}:
     get:
       operationId: genes_get
-      summary: Return reference information on a set of genes specified by a HGNC identifiers
+      summary: Return reference information on a gene specified by a HGNC identifier.
       parameters:
         - name: ids
           in: path
           required: true
-          description: Comma-delimited set of HGNC identifiers. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
+          description: a case-sensitive, comma-delimited list of HGNC identifiers. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
           schema:
             type: string
-            example: MMRN1,BRCA1
+            example: MMRN1
       responses:
         '200':
-          description: reference information on the genes specified by the HGNC identifiers.
+          description: detailed information on the gene specified by a HGNC identifier.
           content:
             application/json:
               schema:
@@ -513,12 +514,12 @@ paths:
   /genes/{ids}/detail:
     get:
       operationId: genes_detail_get
-      summary: Return detailed information on a gene specified by a HGNC identifier, including mappings from annotations
+      summary: Return detailed information on a gene specified by a HGNC identifier.
       parameters:
         - name: ids
           in: path
           required: true
-          description: HGNC identifier. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
+          description: a case-sensitive, comma-delimited list of HGNC identifiers. An identifier can be an approved ID (e.g., 7178); approved symbol (e.g., MMRN1); alias (e.g., EMILIN4 for MMRN1); previous symbol (e.g., MMRN for MMRN1); previous alias; or a name string (approved, previous, alias--e.g., "multimerin 1").
           schema:
             type: string
             example: MMRN1
@@ -683,18 +684,18 @@ paths:
   /celltypes/{ids}:
     get:
       operationId: celltypes_get
-      summary: Return information on a set of cell types specified by a list of Cell Ontology IDs
+      summary: Return reference information on a cell type specified by an identifier (Cell Ontology ID).
       parameters:
         - name: ids
           in: path
           required: true
-          description: a comma-delimited list of integer Cell Ontology IDs. Integers without leading zeroes will be padded to 7 digits--e.g., 235 will become 0000235.
+          description: case-insensitive, comma-delimited list of text Cell Ontology identifiers. If the identifer is numeric, it is treated as a CL ID; otherwise, it is treated as a search term corresponding to a preferred term.
           schema:
             type: string
-            example: 2138,0000236,fibroblast
+            example: 0002138,fibroblast
       responses:
         '200':
-          description: reference information on the cell types
+          description: detailed information on the cell type specified by a Cell Ontology identifier.
           content:
             application/json:
               schema:
@@ -708,7 +709,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No information for cell type with Cell Ontology identifiers *id*.
+          description: No information for cell type with Cell Ontology identifier *id*.
         '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
@@ -718,15 +719,15 @@ paths:
   /celltypes/{ids}/detail:
     get:
       operationId: celltypes_detail_get
-      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID), including marker associations (via the Human Resource Atlas) and annotation mappings (from Azimuth, STELLAR, etc.)
+      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID).
       parameters:
         - name: ids
           in: path
           required: true
-          description: a comma-delimited list of integer Cell Ontology IDs. Integers without leading zeroes will be padded to 7 digits--e.g., 235 will become 0000235.
+          description: case-insensitive, comma-delimited list of text Cell Ontology identifiers. If the identifer is numeric, it is treated as a CL ID; otherwise, it is treated as a search term corresponding to a preferred term.
           schema:
             type: string
-            example: 2138,0000236,fibroblast
+            example: 0002138,fibroblast
       responses:
         '200':
           description: detailed information on the cell type specified by a Cell Ontology identifier.
@@ -750,6 +751,79 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
+  /annotations:
+    get:
+      operationId: annotations_get
+      summary: Returns information on a specified cell type annotation ontology
+      parameters:
+        - name: sab
+          in: query
+          required: true
+          description: case-insensitive SAB for a cell type annotation
+          schema:
+            type: string
+            example: vccf
+      responses:
+        '200':
+          description: Array of ingest metadata fields with descriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No annotations (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - cell type annotations
+  /annotations/{ids}:
+    get:
+      operationId: annotations_id_get
+      summary: Returns information on a specified set of cell types in an annotation ontology
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          description: case-insensitive, comma-delimited list of cell type annotation identifiers. If a numeric string, an id is considered a annotation ID; otherwise, the string is used as a search term
+          schema:
+            type: string
+            example: 0000001,Arterial Endothelial
+        - name: sab
+          in: query
+          required: true
+          description: case-insensitive SAB for a cell type annotation
+          schema:
+            type: string
+            example: vccf
+      responses:
+        '200':
+          description: Array of ingest metadata fields with descriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No annotations (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - cell type annotations
   /field-descriptions:
     get:
       operationId: field_descriptions_get
@@ -1488,20 +1562,20 @@ components:
               example: 500
     GeneResponse:
       type: object
-      description: Refre ce information on a gene requested by the gene endpoint
+      description: Reference information on a gene requested by the gene endpoint
       properties:
         alias_names:
           type: array
           description: HGNC alias names
           items:
             type: string
-          example: [ glycoprotein Ia* ]
+          example: [glycoprotein Ia*]
         alias_symbols:
           type: array
           description: HGNC alias symbols
           items:
             type: string
-          example: [ GPIa*,EMILIN4,ECM ]
+          example: [GPIa*,EMILIN4,ECM]
         approved_name:
           type: string
           description: HGNC approved name
@@ -1519,13 +1593,13 @@ components:
           description: previous names for the gene in HGNC
           items:
             type: string
-          example: [ multimerin ]
+          example: [multimerin]
         previous_symbols:
           type: array
           description: previous symbols for the gene in HGNC
           items:
             type: string
-            example: [ MMRN ]
+            example: [MMRN]
         references:
           type: array
           description: Reference for the gene between HGNC and other vocabularies. References can be either a cross-reference (e.g., between HGNC ID and NCBI Entrez ID) or from a known relationship (e.g., gene-protein relationships between a gene in HGNC and a protein in UniProtKB).
@@ -1548,7 +1622,7 @@ components:
           type: string
           description: RefSeq summary of the gene
           example: Multimerin is a massive, soluble protein found in....
-    GeneDetailResponse: # JAS Sept 2023
+    GeneDetailResponse:
       type: object
       description: Detailed information on a gene requested by the gene endpoint
       properties:
@@ -1803,6 +1877,26 @@ components:
               type: number
               description: calculated count of cell types. If starts_with is non-null, the count is that of the cell types with names that start with the value of starts_with.
               example: 500
+    CellTypeResponse:
+      type: object
+      description: Reference information on a cell type requested by the celltypes endpoint
+      properties:
+        cell_type:
+          type: object
+          description: cell type identifiers
+          properties:
+            id:
+              type: string
+              description: Cell Ontology code
+              example: CL:0002138
+            name:
+              type: string
+              description: Preferred term for the cell type from Cell Ontology
+              example: endothelial cell of lymphatic vessel
+            definition:
+              type: string
+              description: Definition of the cell type from Cell Ontology
+              example: A endothelial cell of a lymphatic vessel. The border of…
     CellTypeDetailResponse:
       type: object
       description: Detailed information on a cell type requested by the celltypes endpoint
@@ -1885,26 +1979,6 @@ components:
                 type: string
                 description: SAB of the cell type annotation
                 example: AZ
-    CellTypeResponse:
-      type: object
-      description: Reference information on a cell type requested by the celltypes endpoint
-      properties:
-        cell_type:
-          type: object
-          description: cell type identifiers
-          properties:
-            id:
-              type: string
-              description: Cell Ontology code
-              example: CL:0002138
-            name:
-              type: string
-              description: Preferred term for the cell type from Cell Ontology
-              example: endothelial cell of lymphatic vessel
-            definition:
-              type: string
-              description: Definition of the cell type from Cell Ontology
-              example: A endothelial cell of a lymphatic vessel. The border of…
     FieldDescriptionsResponse:
       type: object
       description: Descriptions for ingest metadata fields
@@ -2255,6 +2329,12 @@ components:
                   type: string
                   description: corresponds to the "dataset_type" key in the testing_rule_chain.json.
                   example: 2D Imaging Mass Cytometry
+                dataset_modalities:
+                  type: array
+                  description: array of "dataset modalities" for the dataset type. Applies to SenNet only.
+                  items:
+                    type: string
+                    example: ["Imaging","Transcriptomics"]
                 PDR_category:
                   type: string
                   description: category for the dataset_type per the HuBMAP Data Coordination Working Group's "Pipeline Decision Rules" (PDR) document.
@@ -2327,6 +2407,12 @@ components:
                   type: string
                   description: corresponds to the "dataset_type" key in the testing_rule_chain.json.
                   example: 2D Imaging Mass Cytometry
+                dataset_modalities:
+                  type: array
+                  description: array of "dataset modalities" for the dataset type. Applies to SenNet only.
+                  items:
+                    type: string
+                    example: ["Imaging","Transcriptomics"]
                 PDR_category:
                   type: string
                   description: category for the dataset_type per the HuBMAP Data Coordination Working Group's "Pipeline Decision Rules" (PDR) document.
@@ -2430,3 +2516,57 @@ components:
                       type: string
                       description: For ENSEMBL participants, the GENCODE feature type; otherwise, "n/a"
                       example: n/a
+    AnnotationResponse:
+      type: array
+      description: list of specified cell type annotation codes
+      items:
+        type: object
+        properties:
+          code:
+            type: string
+            description: code for the annotation in the ontology
+            example: AZ:0000001
+          terms:
+            type: object
+            description: terms for the annotation in the ontology
+            properties:
+              full:
+                type: string
+                description: fully-specified, unique term for the annotation
+                example: AZ_Heart_L2_Adipocyte
+              simple:
+                type: string
+                description: generic term for the annotation, which is generally not unique
+                example: Adipocyte
+          mapped_celltype:
+            type: object
+            description: coding for the mapped Cell Ontology cell type
+            properties:
+              code:
+                type: string
+                description: Cell Ontology code
+                example: CL:0000136
+              term:
+                type: string
+                description: Cell Ontology preferred term
+                example: adipocyte
+          mapped_organ:
+            type: object
+            description: coding for the organ in which the annotation is located
+            properties:
+              code:
+                type: string
+                description: code in the encoding ontology
+                example: AZ:1000001
+              term:
+                type: string
+                description: preferred term in the encoding ontology
+                example: AZ_Heart_L2
+              uberon_code:
+                type: string
+                description: code in UBERON
+                example: UBERON:0000948
+              uberon_term:
+                type: string
+                description: term in UBERON
+                example: heart

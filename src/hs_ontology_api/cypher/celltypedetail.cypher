@@ -79,7 +79,7 @@ CALL
     WHERE pCL.CUI=CLCUI
     AND rCL.CUI=pCL.CUI
     AND cCL.SAB='CL'
-    AND cMap.SAB IN['AZ','STELLAR','DCT','PAZ']
+    AND cMap.SAB IN['AZ','STELLAR','DCTH','PAZ']
     RETURN DISTINCT cMap.CodeID AS mapID
  }
 
@@ -89,7 +89,7 @@ CALL
 {
 	WITH CLCUI,CLID,name,definition,mapID
    	OPTIONAL MATCH (cMap:Code)<-[:CODE]-(pMap:Concept)-[rMapUB:located_in]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT_UBERON_BASE]->(tUB:Term)
-    WHERE rMapUB.SAB IN ['AZ','STELLAR','DCT','PAZ','RIBCA']
+    WHERE rMapUB.SAB IN ['AZ','STELLAR','DCTH','PAZ','RIBCA']
     AND rUB.CUI=pUB.CUI
     AND cMap.CodeID=mapID
     AND cUB.SAB='UBERON'
