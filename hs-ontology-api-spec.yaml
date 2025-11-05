@@ -1664,30 +1664,38 @@ components:
                 type: string
                 description: Name (preferred term) for the cell type from Cell Ontology
                 example: endothelial cell of lymphatic vessel
-              organs:
+              organ_levels:
                 type: array
-                description: Array of organs (or organ levels, for PAZ) associated with the cell type, based on relationships in the Human Resource Atlas and various cell annotations, including Azimuth; STELLAR; and Pan Organ Azimuth (PAZ)
+                description: Organ level codes associated with the cell type in cell type annotations
                 items:
                   type: object
                   properties:
-                    id:
+                    organ_level_code:
                       type: string
-                      description: Identifier (code) for the organ in source
-                      example: '0000948'
-                    source:
+                      description: code for the organ level
+                      example: 'AZ:1000001'
+                    organ_level_term:
                       type: string
-                      description: Source vocabulary for id for organ
-                      example: UBERON
-                    name:
+                      description: term for the organ level
+                      example: AZ_Heart_L2
+                    annotation:
                       type: string
-                      description: Name (preferred term) for organ in source
+                      description: SAB of the cell type annotation
+                      example: AZ
+                    uberon_code:
+                      type: string
+                      description: code for the UBERON organ of which the organ level is part
+                      example: UBERON:0000948
+                    uberon_term:
+                      type: string
+                      description: term for the UBERON organ of which the organ level is part
                       example: heart
-              sources:
-                type: array
-                description: Array of identifiers of sources for the association of the cell type to the gene
-                items:
-                  type: string
-                  example: Human Reference Atlas
+        sources:
+          type: array
+          description: Array of identifiers of sources for the association of the cell type to the gene
+          items:
+            type: string
+            example: Human Reference Atlas
         hgnc_id:
           type: number
           description: numeric HGNC ID for the gene
@@ -1957,7 +1965,7 @@ components:
                     type: string
                     description: preferred term for entry in vocabulary
                     example: multimerin-1
-        organs:
+        organ_levels:
           type: array
           description: Organ level codes associated with the cell type in cell type annotations
           items:
