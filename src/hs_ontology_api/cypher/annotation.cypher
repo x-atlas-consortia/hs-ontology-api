@@ -5,12 +5,10 @@
 
 // Filter on SAB
 WITH toUpper($sab) as sab
-//WITH 'AZ' as sab
 WITH sab,
 
 // Optional filter on list of annotation codes or simple names
 //['0000001','Arterial Endothelial'] AS ids
-//WITH [''] AS ids
 
 [$ids] AS ids
 
@@ -35,12 +33,7 @@ AND (
 WITH sab, cAnn.CodeID AS Annotation_ID, tAnn.name AS Annotation_Fullname, split(tAnn.name,'_')[-1] AS Annotation_Name, cCL.CodeID AS CL_ID, tCL.name AS CL_Name ,pAnn.CUI AS Annotation_CUI
 ORDER BY cAnn.CodeID
 
-// Organ mapping.
-// Cell type annotations associate annotation codes with "organ_level" codes.
-// Organ level codes have "part_of" relationships with UBERON organ codes.
-// Organ levels have a higher level of resolution than organs, and the ETL
-// builds organ level names by concatenating the preferred term for the organ (from
-// UBERON), so filter the UBERON organ by means of the organ level name.
+// Organ mapping
 WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name, CL_ID, CL_Name, Annotation_CUI
 OPTIONAL MATCH (pAnn:Concept{CUI:Annotation_CUI})-[rAnn:located_in]->(pOrgan:Concept)-[:CODE]->(cOrgan:Code)-[rOrgan:PT]->(tOrgan:Term),
 (pOrgan:Concept)-[:part_of]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT_UBERON_BASE]->(tUB:Term)
@@ -48,7 +41,7 @@ WHERE rOrgan.CUI=pOrgan.CUI
 AND rAnn.SAB=sab
 AND cOrgan.SAB=sab
 AND rUB.CUI=pUB.CUI
-AND Annotation_Fullname CONTAINS tOrgan.nam
+AND Annotation_Fullname CONTAINS tOrgan.name
 
 WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name,
 {code: CL_ID, term: CL_Name} AS mapped_celltype,
