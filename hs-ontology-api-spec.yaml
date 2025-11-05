@@ -719,7 +719,7 @@ paths:
   /celltypes/{ids}/detail:
     get:
       operationId: celltypes_detail_get
-      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID).
+      summary: Return detailed information on a cell type specified by an identifier (Cell Ontology ID), including cell type annotation information.
       parameters:
         - name: ids
           in: path
@@ -1959,26 +1959,30 @@ components:
                     example: multimerin-1
         organs:
           type: array
-          description: Organs (or organ levels, for PAZ) associated with the cell type, based on relationships in the Human Resource Atlas and various annotations (including Azimuth, STELLAR, and Pan Organ Azimuth, or PAZ)
+          description: Organ level codes associated with the cell type in cell type annotations
           items:
             type: object
             properties:
-              id:
+              organ_level_code:
                 type: string
-                description: Identifier (code) for the organ in source
-                example: '0000948'
-              source:
+                description: code for the organ level
+                example: 'AZ:1000001'
+              organ_level_term:
                 type: string
-                description: Source vocabulary for id for organ
-                example: UBERON
-              name:
-                type: string
-                description: Name (preferred term) for organ in source
-                example: heart
+                description: term for the organ level
+                example: AZ_Heart_L2
               annotation:
                 type: string
                 description: SAB of the cell type annotation
                 example: AZ
+              uberon_code:
+                type: string
+                description: code for the UBERON organ of which the organ level is part
+                example: UBERON:0000948
+              uberon_term:
+                type: string
+                description: term for the UBERON organ of which the organ level is part
+                example: heart
     FieldDescriptionsResponse:
       type: object
       description: Descriptions for ingest metadata fields
@@ -2552,21 +2556,21 @@ components:
                 example: adipocyte
           mapped_organ:
             type: object
-            description: coding for the organ in which the annotation is located
+            description: coding for the organ level in which the annotation is located
             properties:
-              code:
+              organ_level_code:
                 type: string
                 description: code in the encoding ontology
                 example: AZ:1000001
-              term:
+              organ_level_term:
                 type: string
                 description: preferred term in the encoding ontology
                 example: AZ_Heart_L2
               uberon_code:
                 type: string
-                description: code in UBERON
+                description: code for the UBERON organ of which the organ level is part
                 example: UBERON:0000948
               uberon_term:
                 type: string
-                description: term in UBERON
+                description: term for the UBERON organ of which the organ level is part
                 example: heart
