@@ -91,7 +91,7 @@ WITH annotation_sabs,CLID, name, definition, biomarkers, AnnID, AnnName,OLSAB, O
 ORDER BY OLID,UBID,AnnID,AnnName
 WITH annotation_sabs,CLID, name, definition, biomarkers,
 COLLECT(DISTINCT {code:AnnID,term:AnnName}) AS annotations,
-COLLECT(DISTINCT {annotation:OLSAB, organ_level_code:OLID,organ_level_name:OLName,uberon_code:UBID, uberon_term:UBName}) AS organs
+COLLECT(DISTINCT {annotation:OLSAB, organ_level_code:OLID,organ_level_term:OLName,uberon_code:UBID, uberon_term:UBName}) AS organs
 
 WITH CLID,name,definition,biomarkers, annotations,organs
 WHERE CLID IS NOT NULL
