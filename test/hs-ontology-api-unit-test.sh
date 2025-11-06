@@ -75,6 +75,62 @@ echo | tee -a $testout
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
 
+echo "TESTS FOR: annotations/organ-levels GET" | tee -a $testout
+echo "SIGNATURE: /annotations/<optional search terms>/organ-levels/?sab=<sab>" | tee -a $testout
+echo | tee -a $testout
+echo | tee -a $testout
+echo "1. /annotations?sab=AZ => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/organ-levels?sab=AZ" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "2. /annotations/organ-levels?sab=AZz => invalid; should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/organ-levels?sab=AZz" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "3. /annotations/heart/organ-levels?sab=AZ => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/heart/organ-levels?sab=AZ" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "TESTS FOR: annotations/organs GET" | tee -a $testout
+echo "SIGNATURE: /annotations/<optional search terms>/organs?sab=<sab>" | tee -a $testout
+echo | tee -a $testout
+echo | tee -a $testout
+echo "1. /annotations?sab=AZ => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/organs?sab=AZ" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "2. /annotations/organs?sab=AZz => invalid; should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/organs?sab=AZz" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "3. /annotations/heart/organs?sab=AZ => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/heart/organs?sab=AZ" \
+--header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
 echo "TESTS FOR: annotations GET" | tee -a $testout
 echo "SIGNATURE: /annotations/<optional search terms>?sab=<sab>" | tee -a $testout
 echo | tee -a $testout
