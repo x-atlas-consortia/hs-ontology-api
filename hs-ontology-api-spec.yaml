@@ -11,13 +11,21 @@ servers:
     description: Production server
 tags:
   - name: assay classifications
+    description: assay classifications used by the database ingestion assay classifier
   - name: dataset types
+    description: dataset types used by the database ingestion assay classifier
   - name: organs
+    description: organ definitions used in the Registration User Interface (RUI)
   - name: biological entities
+    description: genes, proteins, and cell types described in the Data Portal
   - name: cell type annotations
+    description: cell type annotations as described in the Human Reference Atlas
   - name: ingestion metadata
+    description: metadata related to dataset ingestion; includes some legacy pre-CEDAR metadata
   - name: pathways
+    description: information related to pathway data obtained from REACTOME
   - name: other
+    description: not otherwise specified endpoints
 paths:
   /assayclasses:
     get:
@@ -904,13 +912,6 @@ paths:
       operationId: annotations_organs_get
       summary: Returns information on specified organs related to cell type annotations
       parameters:
-        - name: ids
-          in: path
-          required: true
-          description: comma-delimited list of cell type organ identifiers. If a numeric string, an id is considered an UBERON ID; otherwise, the string is used as a search term.
-          schema:
-            type: string
-            example: 0013702,heart
         - name: sab
           in: query
           required: false
@@ -939,11 +940,18 @@ paths:
           description: Unexpected error
       tags:
         - cell type annotations
-  /annotations/{id}/organs:
+  /annotations/{ids}/organs:
     get:
       operationId: annotations_organs_id_get
       summary: Returns information on organs related to cell type annotations
       parameters:
+        - name: ids
+          in: path
+          required: true
+          description: comma-delimited list of cell type annotation organ level identifiers. If a numeric string, an id is considered a UBERON ID; otherwise, the string is used as a search term
+          schema:
+            type: string
+            example: heart
         - name: sab
           in: query
           required: false
