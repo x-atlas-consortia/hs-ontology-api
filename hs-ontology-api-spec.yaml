@@ -514,7 +514,7 @@ paths:
   /genes/{ids}/detail:
     get:
       operationId: genes_detail_get
-      summary: Return detailed information on a gene specified by a HGNC identifier.
+      summary: Return detailed information on a gene specified by a HGNC identifier, inclduing cell type annotation information.
       parameters:
         - name: ids
           in: path
@@ -546,6 +546,7 @@ paths:
           description: Unexpected error
       tags:
         - biological entities
+        - cell type annotations
   /proteins-info:
     get:
       operationId: protein_info_get
@@ -750,6 +751,7 @@ paths:
         '5XX':
           description: Unexpected error
       tags:
+        - cell type annotations
         - biological entities
   /annotations:
     get:
@@ -765,7 +767,7 @@ paths:
             example: vccf
       responses:
         '200':
-          description: Array of ingest metadata fields with descriptions
+          description: Array of cell type annotations
           content:
             application/json:
               schema:
@@ -805,7 +807,7 @@ paths:
             example: vccf
       responses:
         '200':
-          description: Array of ingest metadata fields with descriptions
+          description: Array of cell type annotations
           content:
             application/json:
               schema:
@@ -818,6 +820,79 @@ paths:
           description: The response size exceeds a limit set by the server.
         '404':
           description: No annotations (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - cell type annotations
+  /annotations/organ-levels:
+    get:
+      operationId: annotations_organ_levels_get
+      summary: Returns information on the "organ level" codes of cell type annotations
+      parameters:
+        - name: sab
+          in: query
+          required: false
+          description: case-insensitive SAB for a cell type annotation
+          schema:
+            type: string
+            example: vccf
+      responses:
+        '200':
+          description: Array of cell type annotation organ levels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationOrganLevelResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No annotation organ levels (with list of parameters, if specified)
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unexpected error
+      tags:
+        - cell type annotations
+  /annotations/{ids}/organ-levels:
+    get:
+      operationId: annotations_organ_levels_id_get
+      summary: Returns information on the "organ level" codes of specified cell type annotations
+      parameters:
+        - name: ids
+          in: path
+          required: true
+          description: comma-delimited list of cell type annotation organ level identifiers. If a numeric string, an id is considered a organ level ID; otherwise, the string is used as a search term
+          schema:
+            type: string
+            example: 1000001,heart
+        - name: sab
+          in: query
+          required: false
+          description: case-insensitive SAB for a cell type annotation
+          schema:
+            type: string
+            example: vccf
+      responses:
+        '200':
+          description: Array of cell type annotation organ levels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnotationOrganLevelResponse'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Invalid parameter
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No annotation organ levels (with list of parameters, if specified)
         '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
@@ -2581,4 +2656,47 @@ components:
               uberon_term:
                 type: string
                 description: term for the UBERON organ of which the organ level is part
-                example: heart
+    AnnotationOrganLevelResponse:
+      type: array
+      description: list of specified annotation organ levels
+      items:
+        type: object
+        properties:
+          organ_level_code:
+            type: string
+            description: code for the organ level in the cell type annotation ontology
+            example: VCCF:1000001
+          organ_level_term:
+            type: string
+            description: term for the organ level in the cell type annotation ontology
+            example: "VCCF_bonemarrow-codex-chop_L1"
+          uberon_code:
+            type: string
+            description: code for the UBERON organ of which the organ level is a part
+            example: UBERON:0002371
+          uberon_term:
+            type: string
+            description: term for the UBERON organ of which the organ level is part
+            example: bone marrow
+          annotations:
+            type: array
+            description: cell type annotations that are located in the organ level
+            items:
+              type: object
+              properties:
+                annotation_code:
+                  type: string
+                  description: code for the cell type annotation
+                  example: VCCF:0000002
+                annotation_term:
+                  type: string
+                  description: term for the cell type annotation
+                  example: VCCF_bonemarrow-codex-chop_L1_unknown cell
+                cl_code:
+                  type: string
+                  description: cross-referenced code in Cell Ontology
+                  example: CL:0000000
+                cl_term:
+                  type: string
+                  description: term for cross-referenced code in Cell Ontology
+                  example: cell

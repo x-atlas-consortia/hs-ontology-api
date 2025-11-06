@@ -65,5 +65,5 @@ OPTIONAL MATCH (cA:Code{CodeID:AnnID})<-[:CODE]-(pA:Concept)-[:CODE]->(cCL:Code{
 WHERE rCL.CUI=pA.CUI
 
 WITH OLCUI, OLID, OLName, UBID, UBName, AnnID, AnnName,AnnCUI,cCL.CodeID AS CLID, tCL.name AS CLName
-WITH OLCUI, OLID, OLName, UBID, UBName, AnnID, AnnName, COLLECT(DISTINCT{code:AnnID,term:AnnName, cl_code:CLID, cl_name:CLName}) AS annotations
+WITH OLCUI, OLID, OLName, UBID, UBName, AnnID, AnnName, COLLECT(DISTINCT{annotation_code:AnnID,annotation_term:AnnName, cl_code:CLID, cl_name:CLName}) AS annotations
 RETURN COLLECT(DISTINCT{organ_level_code:OLID,organ_level_term:OLName,uberon_code:UBID,uberon_term:UBName,annotations:annotations}) AS organ_levels
