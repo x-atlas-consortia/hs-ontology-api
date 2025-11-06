@@ -1,23 +1,22 @@
 // November 2025
-// Returns information on the organ level codes of cell type annotations.
+// Returns information on the organs associated with cell type annotations.
 
-// Used by the annotations/organ-levels endpoints.
+// Used by the annotations/organs endpoints.
 
 // The calling function in neo4j_logic.py will replace variables preceded with $.
 
 // Optional filter on SAB
 WITH toUpper($sab) as sab
-//WITH 'VCCF' as sab
+//WITH 'STELLAR' as sab
 WITH sab,
 
-// Optional filter on list of organ-level identifiers or search terms
-//[''] AS ids
-//['heart','100001'] AS ids
+// Optional filter on list of organ UBERON identifiers or search terms
+//['intestine','0000160'] AS ids
 [$ids] AS ids
 
 // Find all organ level codes (children of ID 1000000) that match the search terms.
 // Find corresponding UBERON organ codes.
-// Find annotations that are located in the organ level.
+// Find annotations that are located in organ levels.
 
 MATCH (cOLParent:Code{CODE:'1000000'})<-[:CODE]-(pOLParent:Concept)<-[:isa]-(pOL:Concept),
 (tOL:Term)<-[rOL:PT]-(cOL:Code)<-[:CODE]-(pOL:Concept)-[:part_of]-(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT_UBERON_BASE]->(tUB:Term),
@@ -44,9 +43,13 @@ AND (
                         (sab IS NOT NULL AND sab <> '' AND cOL.SAB = sab) OR
                         ((sab IS NULL OR sab = '') AND cOL.SAB IN ['AZ','STELLAR','DCTH','PAZ','RIBCA','VCCF'])
                     )
-                    AND cOL.CODE = id
+                    AND cUB.CodeID = 'UBERON:'+id
                 ELSE
-                    toLower(tOL.name) CONTAINS toLower(id)
+                    (
+                        (sab IS NOT NULL AND sab <> '' AND cOL.SAB = sab) OR
+                        ((sab IS NULL OR sab = '') AND cOL.SAB IN ['AZ','STELLAR','DCTH','PAZ','RIBCA','VCCF'])
+                    )
+                    AND toLower(tUB.name) CONTAINS toLower(id)
             END
         )
         OR ids[0] = ''
@@ -64,6 +67,7 @@ ORDER BY AnnID, OLID, UBID
 OPTIONAL MATCH (cA:Code{CodeID:AnnID})<-[:CODE]-(pA:Concept)-[:CODE]->(cCL:Code{SAB:'CL'})-[rCL:PT]->(tCL:Term)
 WHERE rCL.CUI=pA.CUI
 
-WITH OLCUI, OLID, OLName, UBID, UBName, AnnID, AnnName,AnnCUI,cCL.CodeID AS CLID, tCL.name AS CLName
-WITH OLCUI, OLID, OLName, UBID, UBName, AnnID, AnnName, COLLECT(DISTINCT{annotation_code:AnnID,annotation_term:AnnName, cl_code:CLID, cl_name:CLName}) AS annotations
-RETURN COLLECT(DISTINCT{organ_level_code:OLID,organ_level_term:OLName,uberon_code:UBID,uberon_term:UBName,annotations:annotations}) AS organ_levels
+WITH UBID, UBName, OLID, OLName, AnnID, AnnName, cCL.CodeID AS CLID, tCL.name AS CLName
+WITH UBID, UBName, OLID, OLName, COLLECT(DISTINCT{annotation_code:AnnID,annotation_term:AnnName, cl_code:CLID, cl_name:CLName}) AS annotations
+WITH UBID, UBName, COLLECT(DISTINCT{code:OLID,term:OLName, annotations:annotations}) AS organ_levels
+RETURN COLLECT(DISTINCT{code:UBID, term:UBName, organ_levels:organ_levels}) AS organs
