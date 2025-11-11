@@ -123,15 +123,7 @@ CALL
         OPTIONAL MATCH (pDatasetType:Concept{CUI:CUIDatasetType})-[:isa]->(pDatasetModality:Concept)-[:isa]->(pDatasetModalityParent:Concept{CUI:'SENNET:C046000 CUI'}),
         (pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[rDatasetModality:PT]->(tDatasetModality:Term)
         WHERE rDatasetModality.CUI=pDatasetModality.CUI
-        WITH context,COLLECT(DISTINCT tDatasetModality.name) as sn_dataset_modality
-        RETURN
-        CASE
-            WHEN toUpper(context)='SENNET'
-                THEN sn_dataset_modality
-            ELSE
-                NULL
-            END
-        AS sn_dataset_modality
+        RETURN COLLECT(DISTINCT tDatasetModality.name) as sn_dataset_modality
 
 }
 
@@ -146,7 +138,6 @@ CALL
         THEN
                 {
                         dataset_type:dataset_type,
-                        sennet_dataset_modalities: sn_dataset_modality,
                         PDR_category:pdr_category,
                         fig2:
                         {
@@ -156,10 +147,7 @@ CALL
                         }
                 }
         ELSE
-            {
-                dataset_type:dataset_type,
-                sennet_dataset_modalities:sn_dataset_modality
-            }
+            dataset_type
         END AS dataset_type_summary
 }
 // description
@@ -222,7 +210,7 @@ WITH
 context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
 vitessce_hints,process_state,pipeline_shorthand,
 description,dataset_type_summary,
-is_multiassay,must_contain,active_status, contains_full_genetic_sequences
+is_multiassay,must_contain,active_status, contains_full_genetic_sequences, sn_dataset_modality
 RETURN
 {
         rule_description:
@@ -236,6 +224,7 @@ RETURN
                 is_multiassay:is_multiassay, must_contain:must_contain,
                 active_status:active_status,
                 dataset_type:dataset_type_summary,
+                sennet_dataset_modalities: CASE WHEN toUpper(context)="SENNET" THEN sn_dataset_modality ELSE [] END,
                 contains_full_genetic_sequences:contains_full_genetic_sequences
         }
 }
