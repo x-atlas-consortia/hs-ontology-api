@@ -2497,7 +2497,7 @@ components:
                   type: string
                   description: corresponds to the "dataset_type" key in the testing_rule_chain.json.
                   example: 2D Imaging Mass Cytometry
-                dataset_modalities:
+                sennet_dataset_modalities:
                   type: array
                   description: array of "dataset modalities" for the dataset type. Applies to SenNet only.
                   items:
