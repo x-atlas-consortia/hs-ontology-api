@@ -1597,7 +1597,6 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
     else:
         querytxt = querytxt.replace('$epictype_filter','')
 
-    print(querytxt)
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 

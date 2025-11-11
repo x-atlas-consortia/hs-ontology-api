@@ -395,6 +395,14 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
+echo "13. /assayclasses/C200001 SENNET => valid provide-measurement-assay-codes; should return 200 with dataset modality" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/assayclasses/C200001?application_context=SENNET" \
+--header "Accept: application/json" | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
 echo "TESTS FOR: dataset-types GET" | tee -a $testout
 echo "SIGNATURE: /dataset-types?application_context" | tee -a $testout
 echo | tee -a $testout
@@ -451,6 +459,12 @@ echo "2. /dataset-types/2D Imaging Mass Cytometry?application_context=HUBMAP => 
 curl --request GET \
  --url "${UBKG_URL}/dataset-types/2D%20Imaging%20Mass%20Cytometry?application_context=HUBMAP" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "3. /dataset-types/2D Imaging Mass Cytometry?application_context=SENNET => valid; should return 200 WITH DATASET MODALITY" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/2D%20Imaging%20Mass%20Cytometry?application_context=SENNET" \
+ --header "Accept: application/json" | tee -a $testout
 echo
 
 echo "TESTS FOR: organs GET" | tee -a $testout
