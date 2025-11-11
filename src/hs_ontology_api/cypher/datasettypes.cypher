@@ -1,3 +1,6 @@
+// NOVEMBER 2025
+// Added dataset modality for SenNet.
+
 // Called by the dataset-types endpoint.
 
 // Return information on dataset types.
@@ -14,9 +17,29 @@ CALL
         AND rp.CUI=p.CUI
         AND r.CUI=pDatasetType.CUI
         AND cDatasetType.SAB=context
-        $datasettype_filter
-        RETURN DISTINCT pDatasetType.CUI AS CUIDatasetType,tDatasetType.name AS dataset_type
+
+        RETURN DISTINCT pDatasetType.CUI AS CUIDatasetType,tDatasetType.name AS dataset_type, cDatasetType.CodeID AS dataset_code
         ORDER BY dataset_type
+}
+
+// NOVEMBER 2025
+// SenNet dataset modality.
+// SENNET:C046000 is the dataset modality parent.
+// SENNET dataset type codes are cross-referenced to HRAVS concepts. Because HRAVS is ingested into UBKG before SENNET, the SENNET
+// concepts are mapped to HRAVS CUIs. Use the dataset type Code nodes to get to the modality.
+CALL
+{
+        WITH dataset_code,context
+        OPTIONAL MATCH (cDatasetType:Code{CodeID:dataset_code})<-[:CODE]-(pDatasetType:Concept)-[:isa]->(pDatasetModality:Concept)-[:isa]->(pDatasetModalityParent:Concept{CUI:'SENNET:C046000 CUI'}),
+        (pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[rDatasetModality:PT]-(tDatasetModality:Term)
+        WHERE rDatasetModality.CUI=pDatasetModality.CUI
+        WITH context, COLLECT(DISTINCT tDatasetModality.name) AS sn_dataset_modality
+        RETURN CASE
+            WHEN toUpper(context)='SENNET'
+                THEN sn_dataset_modality
+            ELSE
+                NULL
+            END AS sn_dataset_modality
 }
 
 // Pipeline Decision Rules category
@@ -74,12 +97,12 @@ CALL
    AND cEpic.SAB = context
    RETURN DISTINCT CASE WHEN pEpic IS NULL THEN false ELSE true END AS is_externally_processed
 }
-WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed
-$epictype_filter
+WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed, sn_dataset_modality
 RETURN
 {
         dataset_type:dataset_type,
         PDR_category:pdr_category,
+        sennet_dataset_modality: sn_dataset_modality,
         fig2:
         {
             aggregated_assaytype:fig2_aggregated_assaytype,
