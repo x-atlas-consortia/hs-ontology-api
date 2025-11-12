@@ -349,6 +349,14 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
+echo "/genes/MMRN1/detail" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/genes/MMRN1/detail" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
 echo "/proteins-info?page=1&proteins_per_page=3" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/proteins-info?page=1&proteins_per_page=3" \
@@ -384,6 +392,14 @@ echo | tee -a $testout
 echo "/celltypes/0002138" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/celltypes/0002138" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "/celltypes/0002138/detail" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/celltypes/0002138/detail" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout
@@ -440,6 +456,14 @@ echo | tee -a $testout
 echo "/annotations?sab=AZ" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/annotations?sab=AZ" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "/annotations/cell?sab=AZ" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/cell?sab=AZ" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout

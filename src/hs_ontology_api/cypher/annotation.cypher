@@ -5,12 +5,10 @@
 
 // Filter on SAB
 WITH toUpper($sab) as sab
-//WITH 'AZ' as sab
 WITH sab,
 
 // Optional filter on list of annotation codes or simple names
 //['0000001','Arterial Endothelial'] AS ids
-//WITH [''] AS ids
 
 [$ids] AS ids
 
@@ -37,23 +35,18 @@ ORDER BY cAnn.CodeID
 
 // Organ mapping
 WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name, CL_ID, CL_Name, Annotation_CUI
-MATCH (pAnn:Concept)-[rAnn:located_in]->(pOrgan:Concept)-[:CODE]->(cOrgan:Code)-[rOrgan]->(tOrgan:Term)
-WHERE pAnn.CUI=Annotation_CUI
-AND rOrgan.CUI=pOrgan.CUI
+OPTIONAL MATCH (pAnn:Concept{CUI:Annotation_CUI})-[rAnn:located_in]->(pOrgan:Concept)-[:CODE]->(cOrgan:Code)-[rOrgan:PT]->(tOrgan:Term),
+(pOrgan:Concept)-[:part_of]->(pUB:Concept)-[:CODE]->(cUB:Code)-[rUB:PT_UBERON_BASE]->(tUB:Term)
+WHERE rOrgan.CUI=pOrgan.CUI
 AND rAnn.SAB=sab
 AND cOrgan.SAB=sab
-AND TYPE(rOrgan) = 'PT'
+AND rUB.CUI=pUB.CUI
 AND Annotation_Fullname CONTAINS tOrgan.name
-
-WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name, CL_ID, CL_Name,
-cOrgan.SAB as OrganSAB, cOrgan.CodeID AS OrganCode, tOrgan.name AS OrganName
-MATCH (tOrgSAB:Term)<-[rOrgSAB:PT]-(cOrgSAB:Code{CodeID:OrganCode})<-[:CODE]-(pU:Concept)-[:CODE]->(cU:Code{SAB:'UBERON'})-[rU:PT_UBERON_BASE]->(tU:Term)
-WHERE rU.CUI=pU.CUI
-AND rOrgSAB.CUI=pU.CUI
 
 WITH sab, Annotation_ID, Annotation_Fullname, Annotation_Name,
 {code: CL_ID, term: CL_Name} AS mapped_celltype,
-{code:OrganCode, term: OrganName,uberon_code:cU.CodeID, uberon_term:tU.name} AS mapped_organ
+{organ_level_code:cOrgan.CodeID, organ_level_term: tOrgan.name, uberon_code:cUB.CodeID, uberon_term:tUB.name}
+AS mapped_organ
 
 WITH {code:Annotation_ID,
 terms: {full: Annotation_Fullname, simple: Annotation_Name},
