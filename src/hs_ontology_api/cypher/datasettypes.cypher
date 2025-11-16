@@ -82,7 +82,7 @@ CALL
     WITH CUIDatasetType,context
     OPTIONAL MATCH (pDataSetType:Concept{CUI:CUIDatasetType})-[:isa]->(pDatasetModality:Concept)-[:isa]->(pDatasetModalityParent:Concept{CUI:'SENNET:C046000 CUI'}),(pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[rDatasetModality:PT]->(tDatasetModality:Term)
     WHERE rDatasetModality.CUI=pDatasetModality.CUI
-    RETURN COLLECT(DISTINCT tDatasetModality.name) AS sn_dataset_modality
+    RETURN COLLECT(DISTINCT split(tDatasetModality.name,'_modality')[0]) AS sn_dataset_modality
 
 }
 
