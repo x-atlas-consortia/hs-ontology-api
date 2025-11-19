@@ -133,7 +133,6 @@ def get_annotation_organs(ids=None):
     # value provided in the request.
     val_enum = ['AZ', 'STELLAR', 'DCTH', 'PAZ', 'RIBCA', 'VCCF']
 
-
     err = validate_parameter_value_in_enum(param_name='sab', param_value=sab,
                                            enum_list=val_enum)
     if err != 'ok':
