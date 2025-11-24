@@ -74,11 +74,25 @@ CALL
    AND cEpic.SAB = context
    RETURN DISTINCT CASE WHEN pEpic IS NULL THEN false ELSE true END AS is_externally_processed
 }
-WITH  dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed
+
+// NOVEMBER 2025
+// SenNet dataset modality.
+CALL
+{
+    WITH CUIDatasetType,context
+    OPTIONAL MATCH (pDataSetType:Concept{CUI:CUIDatasetType})-[:isa]->(pDatasetModality:Concept)-[:isa]->(pDatasetModalityParent:Concept{CUI:'SENNET:C046000 CUI'}),(pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[rDatasetModality:PT]->(tDatasetModality:Term)
+    WHERE rDatasetModality.CUI=pDatasetModality.CUI
+    RETURN COLLECT(DISTINCT split(tDatasetModality.name,'_modality')[0]) AS sn_dataset_modality
+
+}
+
+WITH dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed,
+sn_dataset_modality, context
 $epictype_filter
 RETURN
 {
         dataset_type:dataset_type,
+        sennet_dataset_modalities:CASE WHEN context='SENNET' THEN sn_dataset_modality ELSE 'n/a' END,
         PDR_category:pdr_category,
         fig2:
         {

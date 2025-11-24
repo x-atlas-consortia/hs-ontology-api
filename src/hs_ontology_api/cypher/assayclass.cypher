@@ -1,3 +1,5 @@
+// NOVEMBER 2025 - added SenNet dataset modality.
+
 // Called by the assayclassifier endpoint.
 
 // Return information on rule-based datasets--i.e., the datasets specified in the Rule Engine's testing rule chain.
@@ -111,11 +113,25 @@ CALL
         WHERE pDatasetType.CUI=CUIDatasetType AND r.CUI=pFig2category.CUI AND cFig2category.SAB=context
         RETURN DISTINCT tFig2category.name AS fig2_category
 }
+
+// NOVEMBER 2025
+// SenNet dataset modality.
+// SENNET:C046000 is the dataset modality parent.
+CALL
+{
+        WITH CUIDatasetType,context
+        OPTIONAL MATCH (pDatasetType:Concept{CUI:CUIDatasetType})-[:isa]->(pDatasetModality:Concept)-[:isa]->(pDatasetModalityParent:Concept{CUI:'SENNET:C046000 CUI'}),
+        (pDatasetModality:Concept)-[:CODE]->(cDatasetModality:Code{SAB:'SENNET'})-[rDatasetModality:PT]->(tDatasetModality:Term)
+        WHERE rDatasetModality.CUI=pDatasetModality.CUI
+        RETURN COLLECT(DISTINCT split(tDatasetModality.name,'_modality')[0]) as sn_dataset_modality
+
+}
+
 // dataset_type summary
 // Oct 2024 - content driven by provide_hierarchy_info parameter.
 CALL
 {
-    WITH dataset_type, pdr_category, fig2_aggregated_assaytype, fig2_modality, fig2_category, provide_hierarchy_info
+    WITH dataset_type, pdr_category, fig2_aggregated_assaytype, fig2_modality, fig2_category, provide_hierarchy_info, sn_dataset_modality
     RETURN
     CASE
         WHEN provide_hierarchy_info='True'
@@ -186,6 +202,7 @@ CALL
         WHERE pRBD.CUI=CUIRBD AND r.CUI=pStatus.CUI and cStatus.SAB=context
         RETURN DISTINCT tStatus.name AS active_status
 }
+
 // Response
 CALL
 {
@@ -193,7 +210,7 @@ WITH
 context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
 vitessce_hints,process_state,pipeline_shorthand,
 description,dataset_type_summary,
-is_multiassay,must_contain,active_status, contains_full_genetic_sequences
+is_multiassay,must_contain,active_status, contains_full_genetic_sequences, sn_dataset_modality
 RETURN
 {
         rule_description:
@@ -207,6 +224,7 @@ RETURN
                 is_multiassay:is_multiassay, must_contain:must_contain,
                 active_status:active_status,
                 dataset_type:dataset_type_summary,
+                sennet_dataset_modalities: CASE WHEN toUpper(context)="SENNET" THEN sn_dataset_modality ELSE [] END,
                 contains_full_genetic_sequences:contains_full_genetic_sequences
         }
 }
