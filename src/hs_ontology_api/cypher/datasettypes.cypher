@@ -89,10 +89,8 @@ CALL
 WITH dataset_type,pdr_category,fig2_aggregated_assaytype,fig2_modality,fig2_category,assaytypes,is_externally_processed,
 sn_dataset_modality, context
 $epictype_filter
-RETURN
-{
+RETURN apoc.map.merge({
         dataset_type:dataset_type,
-        sennet_dataset_modalities:CASE WHEN context='SENNET' THEN sn_dataset_modality ELSE 'n/a' END,
         PDR_category:pdr_category,
         fig2:
         {
@@ -102,4 +100,5 @@ RETURN
         },
         assaytypes:assaytypes,
         is_externally_processed:is_externally_processed
-} AS dataset_types
+},
+CASE WHEN toUpper(context)="SENNET" THEN {dataset_modalities: sn_dataset_modality} ELSE {} END) AS dataset_types
