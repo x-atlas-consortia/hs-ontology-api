@@ -206,28 +206,27 @@ CALL
 // Response
 CALL
 {
-WITH
-context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
+WITH context, CodeRBD, NameRBD, assaytype, dir_schema, tbl_schema,
 vitessce_hints,process_state,pipeline_shorthand,
 description,dataset_type_summary,
-is_multiassay,must_contain,active_status, contains_full_genetic_sequences, sn_dataset_modality
-RETURN
+is_multiassay,must_contain,active_status, contains_full_genetic_sequences,sn_dataset_modality 
+RETURN 
 {
         rule_description:
         {       code:CodeRBD,application_context:context, name:NameRBD
         },
-        value:
-        {
-                assaytype:assaytype, dir_schema:dir_schema, tbl_schema:tbl_schema, vitessce_hints:vitessce_hints,
-                process_state:process_state,
-                pipeline_shorthand:pipeline_shorthand, description:description,
-                is_multiassay:is_multiassay, must_contain:must_contain,
-                active_status:active_status,
-                dataset_type:dataset_type_summary,
-                sennet_dataset_modalities: CASE WHEN toUpper(context)="SENNET" THEN sn_dataset_modality ELSE [] END,
-                contains_full_genetic_sequences:contains_full_genetic_sequences
-        }
-}
+        value: apoc.map.merge({
+                        assaytype:assaytype,dir_schema:dir_schema,tbl_schema:tbl_schema,vitessce_hints:vitessce_hints,
+                        process_state:process_state,
+                        pipeline_shorthand:pipeline_shorthand,description:description,
+                        is_multiassay:is_multiassay,must_contain:must_contain,
+                        active_status:active_status,
+                        dataset_type:dataset_type_summary,
+                        contains_full_genetic_sequences:contains_full_genetic_sequences
+                },
+                CASE WHEN toUpper(context)="SENNET" THEN {dataset_modalities: sn_dataset_modality} ELSE {} END
+        )
+} 
 AS rule_based_dataset
 }
 WITH rule_based_dataset
