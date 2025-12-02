@@ -468,3 +468,35 @@ curl --request GET \
 echo
 echo | tee -a $testout
 echo | tee -a $testout
+
+echo "/annotations/organ-levels?sab=AZ" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/organ-levels?sab=AZ" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "/annotations/heart/organ-levels?sab=AZ" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/heart/organ-levels?sab=AZ" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "/annotations/organs?sab=AZ" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/organs?sab=AZ" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "/annotations/heart/organs?sab=AZ" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/annotations/heart/organs?sab=AZ" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
