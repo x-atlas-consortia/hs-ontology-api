@@ -69,7 +69,7 @@ else
     if [ "$1" = "check" ]; then
         # Bash array
         config_paths=(
-            '../src/instance/app.cfg'
+            '../src/hs_ontology_api/instance/app.cfg'
         )
 
         for pth in "${config_paths[@]}"; do
@@ -106,7 +106,7 @@ else
         cp ../VERSION ubkg-api
         cp ../BUILD ubkg-api
 
-        docker compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api build
+        docker compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api build --no-cache
     elif [ "$1" = "start" ]; then
         docker compose -f docker-compose.yml -f docker-compose.development.yml -p hs-ontology-api up -d
     elif [ "$1" = "stop" ]; then
