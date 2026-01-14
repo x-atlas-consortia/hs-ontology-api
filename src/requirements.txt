@@ -3,19 +3,19 @@ Flask==3.0.3
 #git+https://github.com/x-atlas-consortia/ubkg-api.git@dev-integrate
 ubkg-api==2.2.3
 
+# Stick with Neo4j package version compatible with ubkg-api rather
+# than jumping to 5.26.0 or higher with Python 3.13 usage.
 neo4j==5.15.0
 
 # for analysis of tabular data
-pandas==1.5.0
-numpy==1.23.5
+pandas==2.3.0
+numpy==2.1.0
 
 # Cells API client
 # hubmap-api-py-client==0.0.9
 
 # Test and analysis scripts
-argparse==1.4.0
-datatest==0.11.1
-
+datatest==0.11.1 # tested on Python 2.6, 2.7, 3.2 through 3.10 as of 1/12/2026, per https://pypi.org/project/datatest/
 
 # for S3 worker
 boto3==1.36.17
