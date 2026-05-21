@@ -461,6 +461,15 @@ paths:
           schema:
             type: string
             example: M
+        - name: organism
+          in: query
+          require: false
+          description: Optional organism identifier
+          schema:
+            type: string
+            enum:
+              - human
+              - mouse
       responses:
         '200':
           description: high-level information on genes specified by HGNC identifiers.
@@ -1682,15 +1691,15 @@ components:
             properties:
               approved_name:
                 type: string
-                description: HGNC approved name
+                description: HGNC approved name (human) or MGI approved name (mouse)
                 example: multimerin 1
               approved_symbol:
                 type: string
-                description: HGNC approved symbol
+                description: HGNC approved symbol (human) or MGI symbol (mouse)
                 example: MMRN1
               summary:
                 type: string
-                description: RefSeq summary for the gene
+                description: RefSeq summary for the gene (human)
                 example: Multimerin is a massive, soluble protein found in....
         pagination:
           type: object

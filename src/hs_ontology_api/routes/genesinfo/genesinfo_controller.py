@@ -22,9 +22,8 @@ def geneslist() -> list[str]:
     # Until the response from the Cells API improves, use the UBKG.
     # return jsonify(ontcells.genes_from_cells())
 
-    # JUNE 2025 - Validation
     # Check for invalid parameter names.
-    err = validate_query_parameter_names(parameter_name_list=['page','genes_per_page', 'starts_with'])
+    err = validate_query_parameter_names(parameter_name_list=['page','genes_per_page', 'starts_with','organism'])
     if err != 'ok':
         return make_response(err, 400)
 
@@ -34,6 +33,16 @@ def geneslist() -> list[str]:
     starts_with = request.args.get('starts_with')
     if starts_with is None:
         starts_with = ''
+
+    # Check for valid parameter values.
+    organism = request.args.get('organism')
+    if organism is not None:
+        organism = organism.lower()
+        val_enum = ['human', 'mouse']
+        err = validate_parameter_value_in_enum(param_name='organism', param_value=organism,
+                                               enum_list=val_enum)
+        if err != 'ok':
+            return make_response(err, 400)
 
     # Validate and set defaults for genes_per_page.
     if genes_per_page is None:
@@ -45,11 +54,17 @@ def geneslist() -> list[str]:
 
     # Escape apostrophes and double quotes.
     starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-    # Obtain the total count of genes, considering the filter starts_with.
-    gene_count = genelist_count_get_logic(neo4j_instance, starts_with)
+
+    # Obtain the total count of genes, considering the filter starts_with and
+    # the species
+    gene_count = genelist_count_get_logic(neo4j_instance, starts_with=starts_with, organism=organism)
 
     if gene_count == 0:
-        return make_response(f"There are no genes with HGNC symbols that start with '{starts_with}'.", 404)
+        if is_mouse:
+            sab = 'MGI'
+        else:
+            sab = 'HGNC'
+        return make_response(f"There are no genes with {sab} symbols that start with '{starts_with}'.", 404)
 
     # Default values for page.
     # Case: No parameter specified.
@@ -86,8 +101,12 @@ def geneslist() -> list[str]:
                                 total_pages=total_pages,
                                 genes_per_page=genes_per_page,
                                 starts_with=starts_with,
-                                gene_count=gene_count)
+                                gene_count=gene_count,
+                                organism=organism)
+    if result == {"genes": []}:
+        err = get_404_error_string(prompt_string=f"No results for "
+                                                 f"specified parameters")
+        return make_response(err, 404)
 
-    # March 2025
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)
