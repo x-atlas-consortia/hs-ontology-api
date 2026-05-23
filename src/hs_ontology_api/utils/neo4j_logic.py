@@ -504,17 +504,23 @@ def query_cypher_dataset_info(sab: str) -> str:
     qry = qry + 'ORDER BY tolower(data_type)'
     return qry
 
-def gene_get_logic(neo4j_instance, geneids: str) -> list:
+def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
     """
     OCTOBER 2025
     Returns reference information on a set of gene ids.
     :param neo4j_instance: neo4j client
     :param gene_ids: comma-delimited set of gene identifiers
+    :param organism: from an enum [human, mouse]
     """
+
     result = []
+
     # Load annotated Cypher query from the cypher directory.
-    # The query is parameterized with variable $sab.
-    queryfile = 'gene.cypher'
+    if organism == 'mouse':
+        queryfile = 'mouse_gene.cypher'
+    else:
+        queryfile = 'gene.cypher'
+
     querytxt = loadquerystring(queryfile)
     ids = format_list_for_query(listquery=geneids)
     querytxt = querytxt.replace('$ids', ids)
@@ -534,10 +540,12 @@ def gene_get_logic(neo4j_instance, geneids: str) -> list:
                 raise GatewayTimeout
 
         return result[0]
+
 def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     """
     OCTOBER 2025
-    Returns detailed information on a set of gene ids.
+    Returns detailed information on a set of gene ids, including
+    annotation mappings.
     :param neo4j_instance: neo4j client
     :param gene_ids: comma-delimited set of gene identifiers
     """

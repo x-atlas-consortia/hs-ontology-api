@@ -18,9 +18,9 @@ def geneslist() -> list[str]:
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
 
-    # Obtain a list of genes that the Cells API identifies as being in datasets.
-    # Until the response from the Cells API improves, use the UBKG.
-    # return jsonify(ontcells.genes_from_cells())
+    """
+    Obtains a list of genes in the UBKG.
+    """
 
     # Check for invalid parameter names.
     err = validate_query_parameter_names(parameter_name_list=['page','genes_per_page', 'starts_with','organism'])
