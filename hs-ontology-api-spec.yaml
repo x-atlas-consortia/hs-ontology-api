@@ -1981,12 +1981,12 @@ components:
           type: string
           description: UniProtKB Recommended Name
           example: multimerin-1
-        #synonyms:
-          #type: array
-          #description: alternative names
-          #items:
-            #type: string
-          #example: [EMILIN-4,Elastin microfibril interface located protein 4 (Elastin microfibril interfacer 4),Endothelial cell multimerin]
+        synonyms:
+          type: array
+          description: alternative names
+          items:
+            type: string
+          example: [EMILIN-4,Elastin microfibril interface located protein 4 (Elastin microfibril interfacer 4),Endothelial cell multimerin]
         references:
           type: array
           description: Array of links to protein databases
