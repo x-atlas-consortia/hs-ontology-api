@@ -9,11 +9,9 @@ from ubkg_api.utils.http_error_string import get_404_error_string
 
 proteins_blueprint = Blueprint('proteins', __name__, url_prefix='/proteins')
 
-@proteins_blueprint.route('/<id>', methods=['GET'])
-def proteins_id_expand_get(id=None):
-    """Returns detailed information on a single protein.
-
-    :rtype: Union[List[GeneDetail]]
+@proteins_blueprint.route('/<ids>', methods=['GET'])
+def proteins_id_expand_get(ids=None):
+    """Returns detailed information on a set of proteins.
 
     The following types of identifiers can be used in the list:
     1. UniProtKB ID
@@ -21,13 +19,13 @@ def proteins_id_expand_get(id=None):
 
     """
 
+    protein_ids = ids.split(',')
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-    result = proteindetail_get_logic(neo4j_instance, id)
+    result = proteindetail_get_logic(neo4j_instance, protein_ids=protein_ids)
     if result is None or result == []:
         # Empty result
-        err = get_404_error_string(prompt_string=f'No proteins with UNIPROTKB identifer')
+        err = get_404_error_string(prompt_string=f'No proteins with UNIPROTKB identifers')
         return make_response(err, 404)
 
-    # March 2025
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)

@@ -341,9 +341,25 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
+echo "/genes-info?page=1&genes_per_page=3&organism=mouse" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/genes-info?page=1&genes_per_page=3" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
 echo "/genes/MMRN1" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/genes/MMRN1" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "/genes/A1bg?organism=mouse" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/genes/A1bg?organism=mouse" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout

@@ -565,15 +565,40 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
+echo "4. /genes-info?genes_per_page=3&starts_with=B&organism=mouse => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/genes-info?genes_per_page=3&starts_with=B&organism=mouse" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "5. /genes-info?genes_per_page=3&starts_with=B&organism=rat => should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/genes-info?genes_per_page=3&starts_with=B&organism=rat" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+
 # Test for genes endpoint.
 echo "TESTS FOR: genes GET" | tee -a $testout
 echo "SIGNATURE: /genes/<HGNC symbol>" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "/genes/MMRN1 => should return 200" | tee -a $testout
+echo "1. /genes/MMRN1 => should return 200" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/genes/MMRN1" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "2. /genes/A1bg?organism=mouse => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/genes/A1bg?organism=mouse" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout

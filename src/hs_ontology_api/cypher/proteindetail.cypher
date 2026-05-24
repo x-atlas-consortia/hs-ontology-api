@@ -46,15 +46,31 @@ RETURN cProtein.CODE AS id,'description' as ret_key, COLLECT(DISTINCT dProtein.D
 ORDER BY id
 }
 
-//Pivot results
-
-WITH id, ret_key, COLLECT(ret_value) AS values
-WITH id,apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
+WITH id, ret_key, COLLECT(DISTINCT ret_value) AS values
 WHERE id IS NOT NULL
-RETURN id,
-map['recommended_name'] AS recommended_name,
-map['entry_name'] AS entry_name,
-map['synonym'] AS synonyms,
-map['description'] AS description
+WITH id, apoc.map.fromLists(COLLECT(ret_key),COLLECT(values)) AS map
 
-order by id
+// order by id
+// Parse the organism from either the entry name (e.g., MMRN1_HUMAN) or the synonym.
+
+WITH id,
+{
+  uniprotkb_id: id,
+  recommended_name: map['recommended_name'],
+  entry_name: map['entry_name'],
+  synonym: map['synonym'],
+  references:
+    [{ source: 'uniprotkb',
+      entry: map['description'][0],
+      curation: 'swissprot',
+      organism: CASE
+                  WHEN map['entry_name'][0] IS NOT NULL
+                  THEN tolower(split(map['entry_name'][0],'_')[1])
+                  ELSE tolower(split(map['synonym'][0],'_')[1])
+                END,
+      url:'https://www.uniprot.org/uniprotkb/'+id+'/entry'
+    }]
+} AS protein
+
+WHERE id IS NOT NULL
+RETURN COLLECT(protein) AS proteins

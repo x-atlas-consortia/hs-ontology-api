@@ -17,7 +17,7 @@ from hs_ontology_api.models.genedetail import GeneDetail
 # JAS Nov 2023
 from hs_ontology_api.models.proteinlist_detail import ProteinListDetail
 from hs_ontology_api.models.proteinlist import ProteinList
-from hs_ontology_api.models.proteindetail import ProteinDetail
+#from hs_ontology_api.models.proteindetail import ProteinDetail
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 
@@ -547,7 +547,7 @@ def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     Returns detailed information on a set of gene ids, including
     annotation mappings.
     :param neo4j_instance: neo4j client
-    :param gene_ids: comma-delimited set of gene identifiers
+    :param geneids: comma-delimited set of gene identifiers
     """
     result = []
     # Load annotated Cypher query from the cypher directory.
@@ -865,51 +865,41 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     return protein_count
 
 
-def proteindetail_get_logic(neo4j_instance, protein_id: str) -> List[ProteinDetail]:
+def proteindetail_get_logic(neo4j_instance, protein_ids: str) -> list:
     """
     Returns detailed information on a protein, based a UniProtKB identifier.
     :param neo4j_instance: instance of neo4j connection
-    :param protein_id: UniProtKB identifier for a protein--either a UniProtKB ID or entry name
+    :param protein_ids: list of UniProtKB identifiers for protein--either a UniProtKB ID or entry name
     """
-    # response list
-    proteindetails: [ProteinDetail] = []
+    result = []
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'proteindetail.cypher'
     querytxt = loadquerystring(queryfile)
 
-    querytxt = querytxt.replace('$ids', f'\'{protein_id}\'')
+    ids = format_list_for_query(listquery=protein_ids)
+    querytxt = querytxt.replace('$ids', ids)
 
-    # March 2025
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
+    print(querytxt)
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
             recds: neo4j.Result = session.run(query)
-
-            # Build response object.
-            for record in recds:
-                try:
-                    proteindetail: ProteinDetail = \
-                    ProteinDetail(uniprotkb_id=record.get('id'), recommended_name=record.get('recommended_name'),
-                                  entry_name=record.get('entry_name'), synonyms=record.get('synonyms'),
-                                  description=record.get('description')).serialize()
-
-                    proteindetails.append(proteindetail)
-
-                except KeyError:
-                    pass
+            for recd in recds:
+                result.append(recd.get('proteins'))
 
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    return proteindetails
-
+    print(result)
+    return result[0]
 
 def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     """
