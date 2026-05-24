@@ -895,7 +895,6 @@ def proteindetail_get_logic(neo4j_instance, protein_ids: str) -> list:
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    print(result)
     return result[0]
 
 def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
