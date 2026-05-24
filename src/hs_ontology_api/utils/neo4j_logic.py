@@ -17,7 +17,6 @@ from hs_ontology_api.models.genedetail import GeneDetail
 # JAS Nov 2023
 from hs_ontology_api.models.proteinlist_detail import ProteinListDetail
 from hs_ontology_api.models.proteinlist import ProteinList
-#from hs_ontology_api.models.proteindetail import ProteinDetail
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 
@@ -881,11 +880,9 @@ def proteindetail_get_logic(neo4j_instance, protein_ids: str) -> list:
     ids = format_list_for_query(listquery=protein_ids)
     querytxt = querytxt.replace('$ids', ids)
 
-
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
-    print(querytxt)
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
