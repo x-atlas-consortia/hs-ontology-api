@@ -60,7 +60,7 @@ def geneslist() -> list[str]:
     gene_count = genelist_count_get_logic(neo4j_instance, starts_with=starts_with, organism=organism)
 
     if gene_count == 0:
-        if is_mouse:
+        if organism == 'mouse':
             sab = 'MGI'
         else:
             sab = 'HGNC'
