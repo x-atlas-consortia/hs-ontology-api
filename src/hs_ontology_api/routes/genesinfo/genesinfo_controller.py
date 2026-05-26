@@ -1,6 +1,7 @@
 # coding: utf-8
 # JAS October 2023
 from flask import Blueprint, jsonify, current_app, request, make_response
+from markupsafe import escape
 from hs_ontology_api.utils.neo4j_logic import genelist_get_logic,genelist_count_get_logic
 import math
 # March 2025
@@ -64,7 +65,8 @@ def geneslist() -> list[str]:
             sab = 'MGI'
         else:
             sab = 'HGNC'
-        return make_response(f"There are no genes with {sab} symbols that start with '{starts_with}'.", 404)
+        return make_response(f"There are no genes with {sab} symbols that start with '{escape(starts_with)}'.", 404)
+
 
     # Default values for page.
     # Case: No parameter specified.
