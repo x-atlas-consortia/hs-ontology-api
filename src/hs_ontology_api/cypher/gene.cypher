@@ -1,6 +1,6 @@
 // GENES
 // OCTOBER 2025
-// Return reference information on a gene, based on a input list of HGNC identifiers.
+// Return reference information on a set of human genes, based on a input list of HGNC identifiers.
 // Used by the genes endpoint.
 
 CALL
