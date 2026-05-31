@@ -1,9 +1,9 @@
 # coding: utf-8
-# JAS November 2023
+
 from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import proteinlist_get_logic,proteinlist_count_get_logic
 import math
-# March 2025
+from markupsafe import escape
 # S3 redirect functions
 from ubkg_api.utils.s3_redirect import redirect_if_large
 proteinsinfo_blueprint = Blueprint('proteins-info', __name__, url_prefix='/proteins-info')
@@ -16,14 +16,25 @@ def proteinslist() -> list[str]:
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
 
-    # Obtain a list of proteins that the Cells API identifies as being in datasets.
-    # Until the response from the Cells API improves, use the UBKG.
+    # Obtain a list of proteins from the UBKG.
 
-    # JUNE 2025 - Validation
     # Check for invalid parameter names.
-    err = validate_query_parameter_names(parameter_name_list=['page','proteins_per_page', 'starts_with'])
+    err = validate_query_parameter_names(parameter_name_list=['page','proteins_per_page', 'starts_with', 'organism'])
     if err != 'ok':
         return make_response(err, 400)
+
+    # Check for valid parameter values.
+    organism = request.args.get('organism')
+    print(request.args)
+    if organism is None:
+        organism = 'all'
+    else:
+        organism = organism.lower()
+        val_enum = ['human', 'mouse','all']
+        err = validate_parameter_value_in_enum(param_name='organism', param_value=organism,
+                                                   enum_list=val_enum)
+        if err != 'ok':
+            return make_response(err, 400)
 
     # Obtain parameters.
     page = request.args.get('page')
@@ -42,12 +53,16 @@ def proteinslist() -> list[str]:
                               f'than zero.', 400))
 
     # Obtain the total count of genes, considering the filter starts_with.
-    protein_count = proteinlist_count_get_logic(neo4j_instance, starts_with)
+    protein_count = proteinlist_count_get_logic(neo4j_instance, organism=organism, starts_with=starts_with)
     if protein_count == 0:
         # Escape apostrophes and double quotes.
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
+        if organism == 'all':
+            orgs = 'all organisms'
+        else:
+            orgs = organism.lower()
         return make_response(f"There are no proteins with UniProtKB identifiers (entry names or recommended names) "
-                             f"that start with '{starts_with}' (case-insensitive).", 404)
+                             f"for {orgs} that start with '{escape(starts_with)}' (case-insensitive).", 404)
 
     # Default values for page.
     # Case: No parameter specified.
@@ -84,7 +99,7 @@ def proteinslist() -> list[str]:
                                    total_pages=total_pages,
                                    proteins_per_page=proteins_per_page,
                                    starts_with=starts_with,
-                                   protein_count=protein_count)
-    # March 2025
+                                   protein_count=protein_count,
+                                   organism=organism)
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)

@@ -27,7 +27,7 @@ WITH ProteinCUI
 OPTIONAL MATCH (pProtein:Concept)-[:CODE]->(cProtein:Code)-[r]->(tProtein:Term) WHERE pProtein.CUI=ProteinCUI
 AND r.CUI=pProtein.CUI AND type(r) IN ['PT','SY']
 AND cProtein.SAB='UNIPROTKB' RETURN cProtein.CODE as id, CASE type(r) WHEN 'PT' THEN 'recommended_name' WHEN 'SY' THEN
-CASE WHEN tProtein.name ENDS WITH '_HUMAN' THEN 'entry_name' ELSE 'synonym' END ELSE 'synonym' END AS ret_key,
+CASE WHEN tProtein.name ENDS WITH '_HUMAN' OR tProtein.name ENDS WITH '_MOUSE' THEN 'entry_name' ELSE 'synonym' END ELSE 'synonym' END AS ret_key,
 tProtein.name AS ret_value
 ORDER BY id, ret_key
 

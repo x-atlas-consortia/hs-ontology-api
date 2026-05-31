@@ -1,11 +1,13 @@
 # coding: utf-8
-# JAS September 2023
-from flask import Blueprint, jsonify, current_app, make_response
+
+from flask import Blueprint, jsonify, current_app, make_response, request
 from hs_ontology_api.utils.neo4j_logic import proteindetail_get_logic
-# March 2025
+
 # S3 redirect functions
 from ubkg_api.utils.s3_redirect import redirect_if_large
-from ubkg_api.utils.http_error_string import get_404_error_string
+from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
+                                              validate_parameter_value_in_enum, validate_required_parameters)
+
 
 proteins_blueprint = Blueprint('proteins', __name__, url_prefix='/proteins')
 
@@ -19,12 +21,18 @@ def proteins_id_expand_get(ids=None):
 
     """
 
+    if len(request.args) > 0:
+        params = list(request.args.keys())
+        err = {"message": f"This endpoint does not accept request query parameters. ({params})"}
+        return make_response(err, 400)
+
     protein_ids = ids.split(',')
+
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = proteindetail_get_logic(neo4j_instance, protein_ids=protein_ids)
     if result is None or result == []:
         # Empty result
-        err = get_404_error_string(prompt_string=f'No proteins with UNIPROTKB identifers')
+        err = get_404_error_string(prompt_string=f'No proteins with UNIPROTKB identifiers')
         return make_response(err, 404)
 
     # Redirect to S3 if payload is large.

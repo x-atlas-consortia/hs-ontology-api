@@ -464,9 +464,10 @@ paths:
         - name: organism
           in: query
           required: false
-          description: Optional organism identifier
+          description: Optional organism filter
           schema:
             type: string
+            default: human
             enum:
               - human
               - mouse
@@ -508,9 +509,10 @@ paths:
         - name: organism
           in: query
           required: false
-          description: Optional organism identifier
+          description: Optional organism filter
           schema:
             type: string
+            default: human
             enum:
               - human
               - mouse
@@ -600,6 +602,17 @@ paths:
           schema:
             type: string
             example: M
+        - name: organism
+          in: query
+          required: false
+          description: Optional organism filter
+          schema:
+            type: string
+            default: all
+            enum:
+              - human
+              - mouse
+              - all
       responses:
         '200':
           description: high-level information on proteins specified by UniProtKB identifiers.
