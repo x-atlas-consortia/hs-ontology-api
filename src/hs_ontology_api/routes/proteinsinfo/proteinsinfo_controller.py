@@ -25,7 +25,7 @@ def proteinslist() -> list[str]:
 
     # Check for valid parameter values.
     organism = request.args.get('organism')
-    print(request.args)
+
     if organism is None:
         organism = 'all'
     else:
