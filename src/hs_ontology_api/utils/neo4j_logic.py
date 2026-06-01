@@ -13,13 +13,10 @@ from werkzeug.exceptions import GatewayTimeout
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 # JAS Sept 2023
 from hs_ontology_api.models.genedetail import GeneDetail
-# JAS October 2023
-from hs_ontology_api.models.genelist import GeneList
-from hs_ontology_api.models.genelist_detail import GeneListDetail
+
 # JAS Nov 2023
 from hs_ontology_api.models.proteinlist_detail import ProteinListDetail
 from hs_ontology_api.models.proteinlist import ProteinList
-from hs_ontology_api.models.proteindetail import ProteinDetail
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 
@@ -506,17 +503,23 @@ def query_cypher_dataset_info(sab: str) -> str:
     qry = qry + 'ORDER BY tolower(data_type)'
     return qry
 
-def gene_get_logic(neo4j_instance, geneids: str) -> list:
+def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
     """
     OCTOBER 2025
     Returns reference information on a set of gene ids.
     :param neo4j_instance: neo4j client
     :param gene_ids: comma-delimited set of gene identifiers
+    :param organism: from an enum [human, mouse]
     """
+
     result = []
+
     # Load annotated Cypher query from the cypher directory.
-    # The query is parameterized with variable $sab.
-    queryfile = 'gene.cypher'
+    if organism == 'mouse':
+        queryfile = 'mouse_gene.cypher'
+    else:
+        queryfile = 'gene.cypher'
+
     querytxt = loadquerystring(queryfile)
     ids = format_list_for_query(listquery=geneids)
     querytxt = querytxt.replace('$ids', ids)
@@ -536,12 +539,14 @@ def gene_get_logic(neo4j_instance, geneids: str) -> list:
                 raise GatewayTimeout
 
         return result[0]
+
 def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     """
     OCTOBER 2025
-    Returns detailed information on a set of gene ids.
+    Returns detailed information on a set of gene ids, including
+    annotation mappings.
     :param neo4j_instance: neo4j client
-    :param gene_ids: comma-delimited set of gene identifiers
+    :param geneids: comma-delimited set of gene identifiers
     """
     result = []
     # Load annotated Cypher query from the cypher directory.
@@ -568,19 +573,25 @@ def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
 
         return result[0]
 
-def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
+def genelist_count_get_logic(neo4j_instance, starts_with: str, organism: str='human') -> int:
     """
-        Returns the count of HGNC genes in the UBKG.
-        If starts_with is non-null, returns the count of HGNC genes with approved symbol
+        Returns the count of genes in the UBKG.
+        If starts_with is non-null, returns the count of genes with approved symbol
         that starts with the parameter value.
         :param neo4j_instance:  neo4j client
         :param starts_with: filtering string for STARTS WITH queries
+        :param organism: from an enum [human, mouse]
+
         :return: integer count
     """
     #
 
     # Load annotated Cypher query from the cypher directory.
-    queryfile = 'geneslist_count.cypher'
+    if organism == 'mouse':
+        queryfile = 'mouse_geneslist_count.cypher'
+    else:
+        queryfile = 'geneslist_count.cypher'
+
     querytxt = loadquerystring(queryfile)
     starts_with_clause = ''
     if starts_with != '':
@@ -589,7 +600,6 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
         starts_with_clause = f'AND toUpper(tGene.name) STARTS WITH "{starts_with.upper()}"'
     querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -610,9 +620,8 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
     return gene_count
 
-
 def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_page: str, starts_with: str,
-                       gene_count: str) -> List[GeneList]:
+                       gene_count: str, organism: str='human') -> dict:
 
     """
     Returns information on HGNC genes.
@@ -625,12 +634,16 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
     :param genes_per_page: number of rows to limit in neo4j query
     :param starts_with: string for type-ahead (starts with) searches
     :param gene_count: Calculated total count of genes, optionally filtered with starts_with
-    :return: List[GeneList]
+    :param organism: from an enum [human, mouse]
+    :return: dict
 
     """
 
     # Load annotated Cypher query from the cypher directory.
-    queryfile = 'geneslist.cypher'
+    if organism == 'mouse':
+        queryfile = 'mouse_geneslist.cypher'
+    else:
+        queryfile = 'geneslist.cypher'
     querytxt = loadquerystring(queryfile)
 
     # The query is parameterized with variables $skiprows and $limitrows.
@@ -645,51 +658,83 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
 
     skiprows = intpage * int(genes_per_page)
 
-    starts_with_clause = ''
     if starts_with != '':
-        # Escape apostrophes and double quotes.
-        # Apr 2024 - expanded to case-insensitive search on symbol or name.
-        starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-        starts_with_clause = f'AND toUpper(map["approved_symbol"][0]) STARTS WITH "{starts_with.upper()}"'
+        escaped_starts_with = starts_with.replace("\\", "\\\\").replace("'", "\\'").upper()
+
+        symbol_expr = (
+            'toUpper(replace(replace(replace(toString(map["approved_symbol"][0]), "[", ""), "]", ""), "\'", ""))'
+            if organism == 'mouse'
+            else "toUpper(map['approved_symbol'][0])"
+        )
+
+        starts_with_clause = f"AND {symbol_expr} STARTS WITH '{escaped_starts_with}'"
+    else:
+        starts_with_clause = ''
 
     querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
     querytxt = querytxt.replace('$skiprows', str(skiprows))
     querytxt = querytxt.replace('$limitrows', str(genes_per_page))
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
+    genelist = []
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
             recds: neo4j.Result = session.run(query)
 
-            genes: [GeneListDetail] = []
             # Build the list of gene details for this page.
             for record in recds:
                 try:
-                    gene: GeneListDetail = \
-                    GeneListDetail(hgnc_id=record.get('hgnc_id'),
-                                   approved_symbol=record.get('approved_symbol'),
-                                   approved_name=record.get('approved_name'),
-                                   summary=record.get('description')).serialize()
-                    genes.append(gene)
+                    if organism == 'mouse':
+                        # symbol currently returned for mouse genes in format
+                        # ["['0610010K14Rik']"]
+                        symbol = record.get('approved_symbol')
+                        if symbol is None:
+                            symbol = ''
+                        elif symbol == ["['-']"]:
+                            symbol = ''
+                        else:
+                            symbol = symbol[0].replace("[", "").replace("]", "").replace("'","")
+                        approved_name = record.get('approved_name')
+                        if approved_name is None:
+                            approved_name = ''
+                        elif approved_name == ["-"]:
+                            approved_name = ''
+                        else:
+                            approved_name = approved_name[0]
+                        gene = {
+                            "approved_name": approved_name,
+                            "approved_symbol": symbol,
+                            "mgi_id": record.get('mgi_id')
+                        }
+                    else:
+                        description = record.get('description')
+                        if description is None:
+                            description = ''
+                        else:
+                            description = description[0]
+                        gene = {
+                            "approved_name": record.get('approved_name')[0],
+                            "approved_symbol": record.get('approved_symbol')[0],
+                            "summary": description,
+                            "hgnc_id": record.get('hgnc_id')
+                        }
+
                 except KeyError:
                     pass
-            # Use the list of gene details with the page to build a genelist object.
-            genelist: GeneList = GeneList(page=page, total_pages=total_pages, genes_per_page=genes_per_page,
-                                          genes=genes, starts_with=starts_with, gene_count=gene_count).serialize()
+                genelist.append(gene)
+
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
-
-    return genelist
+    return {"genes":genelist}
 
 
 def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_per_page: str, starts_with: str,
-                          protein_count: str) -> List[GeneList]:
+                          protein_count: str) -> list:
 
     """
     Returns information on UNIPROTKB proteins.
@@ -819,23 +864,22 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     return protein_count
 
 
-def proteindetail_get_logic(neo4j_instance, protein_id: str) -> List[ProteinDetail]:
+def proteindetail_get_logic(neo4j_instance, protein_ids: str) -> list:
     """
     Returns detailed information on a protein, based a UniProtKB identifier.
     :param neo4j_instance: instance of neo4j connection
-    :param protein_id: UniProtKB identifier for a protein--either a UniProtKB ID or entry name
+    :param protein_ids: list of UniProtKB identifiers for protein--either a UniProtKB ID or entry name
     """
-    # response list
-    proteindetails: [ProteinDetail] = []
+    result = []
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'proteindetail.cypher'
     querytxt = loadquerystring(queryfile)
 
-    querytxt = querytxt.replace('$ids', f'\'{protein_id}\'')
+    ids = format_list_for_query(listquery=protein_ids)
+    querytxt = querytxt.replace('$ids', ids)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -843,27 +887,15 @@ def proteindetail_get_logic(neo4j_instance, protein_id: str) -> List[ProteinDeta
         # Execute Cypher query.
         try:
             recds: neo4j.Result = session.run(query)
-
-            # Build response object.
-            for record in recds:
-                try:
-                    proteindetail: ProteinDetail = \
-                    ProteinDetail(uniprotkb_id=record.get('id'), recommended_name=record.get('recommended_name'),
-                                  entry_name=record.get('entry_name'), synonyms=record.get('synonyms'),
-                                  description=record.get('description')).serialize()
-
-                    proteindetails.append(proteindetail)
-
-                except KeyError:
-                    pass
+            for recd in recds:
+                result.append(recd.get('proteins'))
 
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    return proteindetails
-
+    return result[0]
 
 def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     """
