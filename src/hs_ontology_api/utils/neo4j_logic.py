@@ -898,7 +898,12 @@ def proteindetail_get_logic(neo4j_instance, protein_ids: str) -> list:
     queryfile = 'proteindetail.cypher'
     querytxt = loadquerystring(queryfile)
 
-    ids = format_list_for_query(listquery=protein_ids)
+    #ids = format_list_for_query(listquery=protein_ids)
+    # Format the list of ids for the Cypher query clause:
+    # 1. Strip white space
+    # 2. Restore single quotes
+    # ids = format_list_for_query(listquery=geneids)
+    ids = ",".join([f"'{item.strip()}'" for item in protein_ids])
     querytxt = querytxt.replace('$ids', ids)
 
     # Set timeout for query based on value in app.cfg.
