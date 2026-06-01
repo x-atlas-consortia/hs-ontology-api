@@ -521,7 +521,11 @@ def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
         queryfile = 'gene.cypher'
 
     querytxt = loadquerystring(queryfile)
-    ids = format_list_for_query(listquery=geneids)
+    # Format the list of ids for the Cypher query clause:
+    # 1. Strip white space
+    # 2. Restore single quotes
+    #ids = format_list_for_query(listquery=geneids)
+    ids = ",".join([f"'{item.strip()}'" for item in geneids])
     querytxt = querytxt.replace('$ids', ids)
 
     # Set timeout for query based on value in app.cfg.
