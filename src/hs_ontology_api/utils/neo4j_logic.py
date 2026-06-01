@@ -682,7 +682,7 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
-    genelist = []
+    genes = []
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
@@ -728,7 +728,19 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
 
                 except KeyError:
                     pass
-                genelist.append(gene)
+
+                genes.append(gene)
+
+            genelist = {
+            "pagination": {
+                "page": page,
+                "total_pages": total_pages,
+                "items_per_page": genes_per_page,
+                "starts_with": starts_with,
+                "item_count": gene_count
+            },
+            "genes": genes
+        }
 
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
