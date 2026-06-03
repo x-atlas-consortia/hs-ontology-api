@@ -557,7 +557,11 @@ def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     # The query is parameterized with variable $sab.
     queryfile = 'genedetail.cypher'
     querytxt = loadquerystring(queryfile)
-    ids = format_list_for_query(listquery=geneids)
+    #ids = format_list_for_query(listquery=geneids)
+    # Format the list of ids for the Cypher query clause:
+    # 1. Strip white space
+    # 2. Restore single quotes
+    ids = ",".join([f"'{item.strip()}'" for item in geneids])
     querytxt = querytxt.replace('$ids', ids)
 
 
@@ -731,22 +735,19 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
 
                 genes.append(gene)
 
-            genelist = {
-            "pagination": {
+            pagination = {
                 "page": page,
                 "total_pages": total_pages,
                 "items_per_page": genes_per_page,
                 "starts_with": starts_with,
                 "item_count": gene_count
-            },
-            "genes": genes
-        }
+            }
 
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
-    return {"genes":genelist}
+    return {"pagination": pagination, "genes":genes}
 
 
 def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_per_page: str, starts_with: str,
