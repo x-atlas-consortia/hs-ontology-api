@@ -14,9 +14,6 @@ from hs_ontology_api.models.sab_code_term import SabCodeTerm
 # JAS Sept 2023
 from hs_ontology_api.models.genedetail import GeneDetail
 
-# JAS Nov 2023
-from hs_ontology_api.models.proteinlist_detail import ProteinListDetail
-from hs_ontology_api.models.proteinlist import ProteinList
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 
@@ -751,7 +748,7 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
 
 
 def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_per_page: str, starts_with: str,
-                          protein_count: str) -> list:
+                          protein_count: str, organism: str) -> list:
 
     """
     Returns information on UNIPROTKB proteins.
@@ -764,7 +761,7 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
     :param proteins_per_page: number of rows to limit in neo4j query
     :param starts_with: string for type-ahead (starts with) searches
     :param protein_count: Calculated total count of genes, optionally filtered with starts_with
-    :return: List[ProteinList]
+    :param organism: organism to filter: human or mouse
 
     """
 
@@ -791,8 +788,8 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
         starts_with = starts_with.replace("'", "\'").replace('"', "\'")
         starts_with_clause = f' AND (toLower(id) STARTS WITH "{starts_with.lower()}" ' \
                              f' OR toLower(map["entry_name"][0]) STARTS WITH "{starts_with.lower()}" ' \
-                             f' OR toLower(map["recommended_name"][0]) STARTS WITH "{starts_with.lower()}" )' # \
-                             # f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
+                             f' OR toLower(map["recommended_name"][0]) STARTS WITH "{starts_with.lower()}" )' \
+                             f'OR ANY (n in map[\'synonyms\'] WHERE n.name STARTS WITH \'{starts_with}\')'
     querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
     querytxt = querytxt.replace('$skiprows', str(skiprows))
     querytxt = querytxt.replace('$limitrows', str(proteins_per_page))
@@ -801,7 +798,13 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
     if starts_with != '':
         starts_with = f'{starts_with} (case-insensitive)'
 
-    # March 2025
+    # Filter on organism.
+    if organism == 'all':
+        organism_filter = ''
+    else:
+        organism_filter = f' AND map["entry_name"][0] CONTAINS "_{organism.upper()}"'
+    querytxt = querytxt.replace('$organism_filter', organism_filter)
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -810,20 +813,30 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
         try:
             recds: neo4j.Result = session.run(query)
 
-            proteins: [ProteinListDetail] = []
+            proteins = []
             # Build the list of gene details for this page.
             for record in recds:
                 try:
-                    protein: ProteinListDetail = \
-                    ProteinListDetail(uniprotkb_id=record.get('id'), recommended_name=record.get('recommended_name'),
-                                      entry_name=record.get('entry_name'), synonyms=record.get('synonyms')).serialize()
+                    protein = {
+                        "uniprotkb_id": record.get('id'),
+                        "recommended_name": record.get('recommended_name'),
+                        "entry_name": record.get('entry_name')
+                    }
                     proteins.append(protein)
                 except KeyError:
                     pass
-            # Use the list of protein details with the page to build a ProteinList object.
-            proteinlist: ProteinList = ProteinList(page=page, total_pages=total_pages, proteins_per_page=proteins_per_page,
-                                               proteins=proteins, starts_with=starts_with,
-                                               protein_count=protein_count).serialize()
+
+            proteinlist = {
+                "pagination": {
+                    "page": page,
+                    "total_pages": total_pages,
+                    "items_per_page": proteins_per_page,
+                    "starts_with": starts_with,
+                    "item_count": protein_count
+                },
+                    "proteins": proteins
+            }
+
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
@@ -832,13 +845,14 @@ def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_
     return proteinlist
 
 
-def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
+def proteinlist_count_get_logic(neo4j_instance, starts_with: str, organism: str) -> int:
     """
         Returns the count of UniProtKB proteins in the UBKG.
         If starts_with is non-null, returns the count of UniProtKB proteins with identifier
         (approved name, entry name, or synonym) that starts with the parameter value.
         :param neo4j_instance:  neo4j client
         :param starts_with: filtering string for STARTS WITH queries
+        :param organism: filtering string for organism: human or mouse
         :return: integer count
     """
     #
@@ -859,7 +873,13 @@ def proteinlist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
     querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
 
-    # March 2025
+    # Filter on organism.
+    if organism == 'all':
+        organism_filter = ''
+    else:
+        organism_filter = f' AND map["entry_name"][0] CONTAINS "_{organism.upper()}"'
+    querytxt = querytxt.replace('$organism_filter', organism_filter)
+
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -886,6 +906,7 @@ def proteindetail_get_logic(neo4j_instance, protein_ids: str) -> list:
     Returns detailed information on a protein, based a UniProtKB identifier.
     :param neo4j_instance: instance of neo4j connection
     :param protein_ids: list of UniProtKB identifiers for protein--either a UniProtKB ID or entry name
+
     """
     result = []
 
@@ -894,7 +915,12 @@ def proteindetail_get_logic(neo4j_instance, protein_ids: str) -> list:
     queryfile = 'proteindetail.cypher'
     querytxt = loadquerystring(queryfile)
 
-    ids = format_list_for_query(listquery=protein_ids)
+    #ids = format_list_for_query(listquery=protein_ids)
+    # Format the list of ids for the Cypher query clause:
+    # 1. Strip white space
+    # 2. Restore single quotes
+    # ids = format_list_for_query(listquery=geneids)
+    ids = ",".join([f"'{item.strip()}'" for item in protein_ids])
     querytxt = querytxt.replace('$ids', ids)
 
     # Set timeout for query based on value in app.cfg.
