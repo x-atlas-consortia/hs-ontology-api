@@ -634,15 +634,40 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
+echo "4. /proteins-info?proteins_per_page=3&starts_with=B&organism=test => should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/proteins-info?proteins_per_page=3&starts_with=B&organism=test" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+echo "5. /proteins-info?proteins_per_page=3&starts_with=B&organism=mouse => should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/proteins-info?proteins_per_page=3&starts_with=B&organism=mouse" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
 echo "TESTS FOR: proteins GET" | tee -a $testout
 echo "SIGNATURE: /proteins/<UniProtKB symbol>" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
 # Test for proteins endpoint.
-echo "/proteins/MMRN1_HUMAN => should return 200" | tee -a $testout
+echo "1. /proteins/MMRN1_HUMAN => should return 200" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/proteins/MMRN1_HUMAN" \
+ --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo | tee -a $testout
+echo | tee -a $testout
+
+# Test for proteins endpoint.
+echo "2. /proteins/MMRN1_HUMAN?organism=mouse => should return 400" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/proteins/MMRN1_HUMAN?organism=mouse" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout
