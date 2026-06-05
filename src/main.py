@@ -26,6 +26,7 @@ from hs_ontology_api.routes.fieldentities.fieldentities_controller import field_
 # JAS July 2024
 from hs_ontology_api.routes.assayclasses.assayclasses_controller import assayclasses_blueprint
 from hs_ontology_api.routes.datasettypes.datasettypes_controller import datasettypes_blueprint
+from hs_ontology_api.routes.modalities.modalities_controller import modalities_blueprint
 
 # JAS March 2025
 from hs_ontology_api.routes.pathways.pathways_controller import pathways_blueprint
@@ -73,6 +74,7 @@ app.register_blueprint(field_entities_blueprint)
 # July 2024
 app.register_blueprint(assayclasses_blueprint)
 app.register_blueprint(datasettypes_blueprint)
+app.register_blueprint(modalities_blueprint)
 # March 2025
 app.register_blueprint(pathways_blueprint)
 # October 2025

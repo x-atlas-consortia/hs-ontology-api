@@ -1646,7 +1646,6 @@ def dataset_types_valueset_get_logic(neo4j_instance) -> list:
     list_dataset_types =[]
     querytxt = loadquerystring('dataset_type_valueset.cypher')
 
-    print(querytxt)
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1730,6 +1729,100 @@ def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_cod
                 raise GatewayTimeout
 
     return datasettypes
+
+def modalities_get_logic(neo4j_instance, modality_code=None, dataset_type_code=None,  analyte_code=None, isepic=None) -> dict:
+    """
+        Obtains information on SenNet modalities.
+
+        The return from the query is a complete JSON, so there is no need for a model class.
+
+        :param neo4j_instance: neo4j connection
+        :param dataset_type_code: dataset_type code
+        :param modality_code: modality code
+        :param analyte_code: analyte code
+        :param isepic: optional filter to Epic (externally processed) dataset types
+
+        """
+    modalities: [dict] = []
+
+    # Load and parameterize query.
+    querytxt = loadquerystring('modalities.cypher')
+
+    # Filter by dataset type code.
+    if dataset_type_code is not None:
+        querytxt = querytxt.replace('$dataset_type_code', f"'{dataset_type_code}'")
+    else:
+        querytxt = querytxt.replace('$dataset_type_code',f"''")
+
+
+    # Filter by modality code.
+    if modality_code is not None:
+        querytxt = querytxt.replace('$modality_code', f"'{modality_code}'")
+    else:
+        querytxt = querytxt.replace('$modality_code', f"''")
+
+    # Filter by analyte code.
+    if analyte_code is not None:
+        querytxt = querytxt.replace('$analyte_code', f"'{analyte_code}'")
+    else:
+        querytxt = querytxt.replace('$analyte_code', f"''")
+
+    if isepic in ['true','false']:
+        if isepic == 'true':
+            isepicbool = True
+        else:
+            isepicbool = False
+        querytxt = querytxt.replace('$epictype_filter', f"{isepicbool}")
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                dst = record.get('modalities')
+                try:
+                    modalities.append(dst)
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    return modalities
+
+def modalities_valueset_get_logic(neo4j_instance) -> list:
+    """
+    Returns the list of codes for modalities.
+    :param neo4j_instance:
+
+    """
+
+    list_modalities =[]
+    querytxt = loadquerystring('modalities_valueset.cypher')
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                dst = record.get('modalities')
+                try:
+                    list_modalities.append(dst)
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    return list_modalities
 
 def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=None,
                       pathwaynamestartswith=None, eventtypes=None) -> List[dict]:
