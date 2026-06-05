@@ -1636,6 +1636,37 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
 
     return assayclasses
 
+def dataset_types_valueset_get_logic(neo4j_instance) -> list:
+    """
+    Returns the list of codes for dataset types.
+    :param neo4j_instance:
+
+    """
+
+    list_dataset_types =[]
+    querytxt = loadquerystring('dataset_type_valueset.cypher')
+
+    print(querytxt)
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                dst = record.get('dataset_types')
+                try:
+                    list_dataset_types.append(dst)
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    return list_dataset_types
+
 def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_code=None, analyte_code=None, isepic=None) -> dict:
     """
         Obtains information on SenNet dataset types.

@@ -2,12 +2,13 @@ from flask import Blueprint, jsonify, current_app, make_response,request
 
 from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
                                               validate_parameter_value_in_enum, validate_required_parameters)
-from hs_ontology_api.utils.neo4j_logic import dataset_types_get_logic
+from hs_ontology_api.utils.neo4j_logic import dataset_types_get_logic, dataset_types_valueset_get_logic
 # March 2025
 # S3 redirect functions
 from ubkg_api.utils.s3_redirect import redirect_if_large
 
 datasettypes_blueprint = Blueprint('datasettypes_hs', __name__, url_prefix='/dataset-types')
+
 
 @datasettypes_blueprint.route('', methods=['GET'])
 def datasettypes_expand_get():
@@ -15,7 +16,10 @@ def datasettypes_expand_get():
 
 @datasettypes_blueprint.route('/<dataset_type_code>', methods=['GET'])
 def datasettypes_dataset_type_get(dataset_type_code):
-    return datasettypes_get(dataset_type_code=dataset_type_code)
+    if dataset_type_code.lower()=='valueset':
+        return datasetypes_valueset_get()
+    else:
+        return datasettypes_get(dataset_type_code=dataset_type_code)
 
 @datasettypes_blueprint.route('/<dataset_type_code>/<modality_code>', methods=['GET'])
 def datasettypes_dataset_type_modality_get(dataset_type_code, modality_code):
@@ -24,6 +28,22 @@ def datasettypes_dataset_type_modality_get(dataset_type_code, modality_code):
 @datasettypes_blueprint.route('/<dataset_type_code>/<modality_code>/<analyte_code>', methods=['GET'])
 def datasettypes_dataset_type_modality_analyte_get(dataset_type_code, modality_code, analyte_code):
     return datasettypes_get(dataset_type_code=dataset_type_code, modality_code=modality_code, analyte_code=analyte_code)
+
+def datasetypes_valueset_get():
+    """
+    Returns a simple valueset of dataset type codes.
+    """
+    neo4j_instance = current_app.neo4jConnectionHelper.instance()
+    result = dataset_types_valueset_get_logic(neo4j_instance)
+
+    if result is None or result == []:
+        # Empty result
+        err = get_404_error_string(prompt_string=f"No results for "
+                                                 f"specified parameters")
+        return make_response(err, 404)
+
+    # Redirect to S3 if large.
+    return redirect_if_large(resp=result)
 
 def datasettypes_get(dataset_type_code=None, modality_code=None, analyte_code=None):
     """
