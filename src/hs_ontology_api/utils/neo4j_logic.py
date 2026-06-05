@@ -1636,41 +1636,49 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
 
     return assayclasses
 
-def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic=None) -> dict:
+def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_code=None, analyte_code=None, isepic=None) -> dict:
     """
-    July 2024
-        Obtains information on dataset types.
+        Obtains information on SenNet dataset types.
 
         The return from the query is a complete JSON, so there is no need for a model class.
 
         :param neo4j_instance: neo4j connection
-        :param datasettype: dataset_type
-        :param context: application context--i.e., HUBMAP or SENNET
+        :param dataset_type_code: dataset_type code
+        :param modality_code: modality code
+        :param analyte_code: analyte code
         :param isepic: optional filter to Epic (externally processed) dataset types
 
         """
     datasettypes: [dict] = []
 
     # Load and parameterize query.
-    querytxt = loadquerystring('datasettypes.cypher')
+    querytxt = loadquerystring('dataset_types.cypher')
 
-    # Filter by application context.
-    querytxt = querytxt.replace('$context', context)
-
-    # Filter by dataset type
-    if datasettype is not None:
-        querytxt = querytxt.replace('$datasettype_filter', f"AND tDatasetType.name='{datasettype}'")
+    # Filter by dataset type code.
+    if dataset_type_code is not None:
+        querytxt = querytxt.replace('$dataset_type_code', f"'{dataset_type_code}'")
     else:
-        querytxt = querytxt.replace('$datasettype_filter','')
+        querytxt = querytxt.replace('$dataset_type_code',f"''")
+
+
+    # Filter by modality code.
+    if modality_code is not None:
+        querytxt = querytxt.replace('$modality_code', f"'{modality_code}'")
+    else:
+        querytxt = querytxt.replace('$modality_code', f"''")
+
+    # Filter by analyte code.
+    if analyte_code is not None:
+        querytxt = querytxt.replace('$analyte_code', f"'{analyte_code}'")
+    else:
+        querytxt = querytxt.replace('$analyte_code', f"''")
 
     if isepic in ['true','false']:
         if isepic == 'true':
             isepicbool = True
         else:
             isepicbool = False
-        querytxt = querytxt.replace('$epictype_filter', f"WHERE is_externally_processed={isepicbool}")
-    else:
-        querytxt = querytxt.replace('$epictype_filter','')
+        querytxt = querytxt.replace('$epictype_filter', f"{isepicbool}")
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
