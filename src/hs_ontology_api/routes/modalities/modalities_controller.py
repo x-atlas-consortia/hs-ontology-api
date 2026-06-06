@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify, current_app, make_response,request
 from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
                                               validate_parameter_value_in_enum, validate_required_parameters)
 from hs_ontology_api.utils.neo4j_logic import modalities_get_logic, modalities_valueset_get_logic
-# March 2025
+
 # S3 redirect functions
 from ubkg_api.utils.s3_redirect import redirect_if_large
 
@@ -47,7 +47,7 @@ def modalities_valueset_get():
 
 def modalities_get(modality_code=None, dataset_type_code=None, analyte_code=None):
     """
-    Returns information on a set of HuBMAP or SenNet modalities, with options to filter the list to those with specific property values.
+    Returns information on a set of SenNet modalities, with options to filter the list to those with specific property values.
     Filters are additive (i.e., boolean AND).
 
     """

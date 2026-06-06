@@ -1797,7 +1797,7 @@ def modalities_get_logic(neo4j_instance, modality_code=None, dataset_type_code=N
 def modalities_valueset_get_logic(neo4j_instance) -> list:
     """
     Returns the list of codes for modalities.
-    :param neo4j_instance:
+    :param neo4j_instance: neo4j connection
 
     """
 

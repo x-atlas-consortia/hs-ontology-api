@@ -1,7 +1,6 @@
 // Called by the modalities endpoint.
 
-// Return information on modalities
-
+// Return a simple valueset of information on modalities.
 
 WITH 'SENNET' AS context
 
