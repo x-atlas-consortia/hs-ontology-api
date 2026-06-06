@@ -16,6 +16,5 @@ CALL
                 split(tModality.name,'_modality')[0] AS NameModality
         ORDER BY split(tModality.name,'_modality')[0]
 }
-WITH CUIModality, CodeModality, NameModality
-WITH {code:CodeModality,name:NameModality} AS modality
-RETURN DISTINCT modality AS modalities
+WITH CodeModality, NameModality
+RETURN DISTINCT {code:CodeModality,name:NameModality} AS modalities

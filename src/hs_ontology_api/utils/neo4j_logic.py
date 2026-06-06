@@ -1643,7 +1643,7 @@ def dataset_types_valueset_get_logic(neo4j_instance) -> list:
 
     """
 
-    list_dataset_types =[]
+    dataset_types: [dict] = []
     querytxt = loadquerystring('dataset_type_valueset.cypher')
 
     # Set timeout for query based on value in app.cfg.
@@ -1656,7 +1656,7 @@ def dataset_types_valueset_get_logic(neo4j_instance) -> list:
             for record in recds:
                 dst = record.get('dataset_types')
                 try:
-                    list_dataset_types.append(dst)
+                    dataset_types.append(dst)
                 except KeyError:
                     pass
         except neo4j.exceptions.ClientError as e:
@@ -1664,7 +1664,7 @@ def dataset_types_valueset_get_logic(neo4j_instance) -> list:
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    return list_dataset_types
+    return dataset_types
 
 def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_code=None, analyte_code=None, isepic=None) -> dict:
     """
@@ -1679,7 +1679,7 @@ def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_cod
         :param isepic: optional filter to Epic (externally processed) dataset types
 
         """
-    datasettypes: [dict] = []
+    dataset_types: [dict] = []
 
     # Load and parameterize query.
     querytxt = loadquerystring('dataset_types.cypher')
@@ -1720,7 +1720,7 @@ def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_cod
             for record in recds:
                 dst = record.get('dataset_types')
                 try:
-                    datasettypes.append(dst)
+                    dataset_types.append(dst)
                 except KeyError:
                     pass
         except neo4j.exceptions.ClientError as e:
@@ -1728,7 +1728,7 @@ def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_cod
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    return datasettypes
+    return dataset_types
 
 def modalities_get_logic(neo4j_instance, modality_code=None, dataset_type_code=None,  analyte_code=None, isepic=None) -> dict:
     """
@@ -1753,7 +1753,6 @@ def modalities_get_logic(neo4j_instance, modality_code=None, dataset_type_code=N
         querytxt = querytxt.replace('$dataset_type_code', f"'{dataset_type_code}'")
     else:
         querytxt = querytxt.replace('$dataset_type_code',f"''")
-
 
     # Filter by modality code.
     if modality_code is not None:
@@ -1801,7 +1800,7 @@ def modalities_valueset_get_logic(neo4j_instance) -> list:
 
     """
 
-    list_modalities =[]
+    modalities: [dict] = []
     querytxt = loadquerystring('modalities_valueset.cypher')
 
     # Set timeout for query based on value in app.cfg.
@@ -1814,7 +1813,7 @@ def modalities_valueset_get_logic(neo4j_instance) -> list:
             for record in recds:
                 dst = record.get('modalities')
                 try:
-                    list_modalities.append(dst)
+                    modalities.append(dst)
                 except KeyError:
                     pass
         except neo4j.exceptions.ClientError as e:
@@ -1822,7 +1821,101 @@ def modalities_valueset_get_logic(neo4j_instance) -> list:
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    return list_modalities
+    return modalities
+
+def analytes_get_logic(neo4j_instance, analyte_code=None, modality_code=None, dataset_type_code=None, isepic=None) -> dict:
+    """
+        Obtains information on SenNet analytes.
+
+        The return from the query is a complete JSON, so there is no need for a model class.
+
+        :param neo4j_instance: neo4j connection
+        :param dataset_type_code: dataset_type code
+        :param modality_code: modality code
+        :param analyte_code: analyte code
+        :param isepic: optional filter to Epic (externally processed) dataset types
+
+        """
+    analytes: [dict] = []
+
+    # Load and parameterize query.
+    querytxt = loadquerystring('analytes.cypher')
+
+    # Filter by dataset type code.
+    if dataset_type_code is not None:
+        querytxt = querytxt.replace('$dataset_type_code', f"'{dataset_type_code}'")
+    else:
+        querytxt = querytxt.replace('$dataset_type_code',f"''")
+
+    # Filter by modality code.
+    if modality_code is not None:
+        querytxt = querytxt.replace('$modality_code', f"'{modality_code}'")
+    else:
+        querytxt = querytxt.replace('$modality_code', f"''")
+
+    # Filter by analyte code.
+    if analyte_code is not None:
+        querytxt = querytxt.replace('$analyte_code', f"'{analyte_code}'")
+    else:
+        querytxt = querytxt.replace('$analyte_code', f"''")
+
+    if isepic in ['true','false']:
+        if isepic == 'true':
+            isepicbool = True
+        else:
+            isepicbool = False
+        querytxt = querytxt.replace('$epictype_filter', f"{isepicbool}")
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                dst = record.get('analytes')
+                try:
+                    analytes.append(dst)
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    return analytes
+
+def analytes_valueset_get_logic(neo4j_instance) -> list:
+    """
+    Returns the list of codes for analytes.
+    :param neo4j_instance: neo4j connection
+
+    """
+
+    analytes: [dict] = []
+    querytxt = loadquerystring('analytes_valueset.cypher')
+
+    print(querytxt)
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                dst = record.get('analytes')
+                try:
+                    analytes.append(dst)
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    return analytes
 
 def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=None,
                       pathwaynamestartswith=None, eventtypes=None) -> List[dict]:

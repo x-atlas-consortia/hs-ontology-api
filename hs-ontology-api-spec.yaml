@@ -422,7 +422,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters.
+          description: No modalities matching parameters.
         '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
@@ -464,7 +464,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters.
+          description: No modalities matching parameters.
         '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
@@ -513,7 +513,7 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters.
+          description: No modalities matching parameters.
         '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
@@ -569,7 +569,189 @@ paths:
         '403':
           description: The response size exceeds a limit set by the server.
         '404':
-          description: No dataset types matching parameters.
+          description: No modalities matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /analytes:
+    get:
+      operationId: analytes_get
+      summary: returns metadata on SenNet analytes.
+      parameters:
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: An analyte object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analyte'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No analytes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /analytes/{analyte_code}:
+    get:
+      operationId: analytes_analyte_code_get
+      summary: returns metadata on specified SenNet analyte.
+      parameters:
+        - name: analyte_code
+          in: path
+          required: true
+          description: Either an analyte code or "valueset". If "valueset", the response will show only codes and names for analytes.
+          schema:
+            type: string
+            example: C020131
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: An analyte object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analyte'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No analytes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /analytes/{analyte_code}/{modality_code}:
+    get:
+      operationId: analytes_analyte_code_modality_code_get
+      summary: returns metadata on specified SenNet analyte and modality.
+      parameters:
+        - name: analyte_code
+          in: path
+          required: true
+          description: Either an analyte code or "valueset". If "valueset", the response will show only codes and names for analytes.
+          schema:
+            type: string
+            example: C020131
+        - name: modality_code
+          in: path
+          required: true
+          description: code for a modality
+          schema:
+            type: string
+            example: C046009
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: An analyte object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analyte'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No analytes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /analytes/{analyte_code}/{modality_code}/{dataset_type_code}:
+    get:
+      operationId: analytes_analyte_code_modality_code_dataset_type_code_get
+      summary: returns metadata on specified SenNet analyte, modality, and dataset type.
+      parameters:
+        - name: analyte_code
+          in: path
+          required: true
+          description: Either an analyte code or "valueset". If "valueset", the response will show only codes and names for analytes.
+          schema:
+            type: string
+            example: C020131
+        - name: modality_code
+          in: path
+          required: true
+          description: code for a modality
+          schema:
+            type: string
+            example: C046009
+        - name: dataset_type_code
+          in: path
+          required: true
+          description: code for a dataset type
+          schema:
+            type: string
+            example: C011902
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: An analyte object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analyte'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No analytes matching parameters.
         '504':
           description: The query run time exceeded the specified timeout.
         '5XX':
@@ -3037,7 +3219,67 @@ components:
                       type: string
                       description: preferred term for the analyte
                       example: protein
-
+    Analyte:
+      type: object
+      description: a set of analyte objects
+      properties:
+        analytes:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the analyte
+                example: C020131
+              name:
+                type: string
+                description: preferred term for the analyte
+                example: protein
+        modalities:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the modality
+                example: C046009
+              name:
+                type: string
+                description: preferred term for the modality
+                example: Proteomics
+              dataset_types:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: code for the dataset type
+                      example: C014004
+                    name:
+                      type: string
+                      description: preferred term for the dataset type
+                      example: 10X Multiome
+                    is_externally_processed:
+                      type: boolean
+                      description: whether the dataset type is externally processed
+                      default: true
+                    assaytypes:
+                      type: array
+                      description: list of ingestion assaytypes associated with the dataset type
+                      items:
+                        type: object
+                        properties:
+                          code:
+                            type: string
+                            description: code for the assaytype
+                            example: C200741
+                          name:
+                            type: string
+                            description: preferred term for the assaytype
+                            example: visium-no-probes
     PathwayEvent:
       type: object
       description: a set of Reactome pathway events

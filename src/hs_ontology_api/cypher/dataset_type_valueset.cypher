@@ -18,6 +18,5 @@ CALL
                 tDatasetType.name AS NameDatasetType
         ORDER BY tDatasetType.name
 }
-WITH CUIDatasetType, CodeDatasetType, NameDatasetType
-WITH {code:CodeDatasetType,name:NameDatasetType} AS dataset_type
-RETURN DISTINCT dataset_type AS dataset_types
+WITH CodeDatasetType, NameDatasetType
+RETURN DISTINCT {code:CodeDatasetType,name:NameDatasetType} AS dataset_types
