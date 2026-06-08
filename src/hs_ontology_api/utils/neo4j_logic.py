@@ -12,8 +12,6 @@ from werkzeug.exceptions import GatewayTimeout
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
-# JAS Dec 2023
-from hs_ontology_api.models.fielddescription import FieldDescription
 from hs_ontology_api.models.fieldtype import FieldType
 from hs_ontology_api.models.fieldassay import FieldAssay
 # JAS Jan 2024
@@ -21,9 +19,6 @@ from hs_ontology_api.models.fieldschema import FieldSchema
 from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
 from hs_ontology_api.models.fieldentity import FieldEntity
 
-# Mar 2025
-# Until the ubkg-api is refactored so that format_list_for_query function is in
-# a utility module, import from the ubkg-api's common_neo4j_logic module.
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
@@ -1134,7 +1129,7 @@ def celltype_get_logic(neo4j_instance, searchids:list[str]) -> list:
 
         return result[0]
 
-def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[FieldDescription]:
+def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[dict]:
     """
     Returns detailed information on an ingest metadata field description.
     :param: neo4j_instance - neo4j connection
@@ -1142,7 +1137,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
     :param: definition_source - source of field description-- HMFIELD or CEDAR
     """
     # response list
-    fielddescriptions: [FieldDescription] = []
+    fielddescriptions = []
 
     # Used in WHERE clauses when no filter is needed.
     identity_filter = '1=1'
@@ -1169,7 +1164,6 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
 
     querytxt = querytxt.replace('$source_filter', source_filter)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1182,11 +1176,12 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
             # Build response object.
             for record in recds:
                 try:
-                    fielddescription: FieldDescription = \
-                    FieldDescription(code_ids=record.get('code_ids'),
-                                     name=record.get('identifier'),
-                                     descriptions=record.get('defs')).serialize()
 
+                    fielddescription = {
+                        "code_ids": record.get('code_ids'),
+                        "name": record.get('identifier'),
+                        "description": record.get('defs'),
+                    }
                     fielddescriptions.append(fielddescription)
                     record_count = record_count + 1
                 except KeyError:
