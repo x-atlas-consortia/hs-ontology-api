@@ -1,36 +1,30 @@
 from os import path
 from flask import Flask
 from pathlib import Path
+
+# UBKG API package
 from ubkg_api.app import UbkgAPI, logger
 
 from hs_ontology_api.routes.organs.organs_controller import organs_blueprint
 from hs_ontology_api.routes.relationships.relationships_controller import relationships_blueprint
 from hs_ontology_api.routes.valueset.valueset_controller import valueset_blueprint
-# JAS September 2023
 from hs_ontology_api.routes.genes.genes_controller import genes_blueprint
 from hs_ontology_api.routes.genesinfo.genesinfo_controller import genesinfo_blueprint
-# JAS November 2023
 from hs_ontology_api.routes.proteins.proteins_controller import proteins_blueprint
 from hs_ontology_api.routes.proteinsinfo.proteinsinfo_controller import proteinsinfo_blueprint
 from hs_ontology_api.routes.celltypes.celltypes_controller import celltypes_blueprint
 from hs_ontology_api.routes.celltypesinfo.celltypesinfo_controller import celltypesinfo_blueprint
-# JAS December 2023
 from hs_ontology_api.routes.fielddescriptions.fielddescriptions_controller import field_descriptions_blueprint
 from hs_ontology_api.routes.fieldtypes.fieldtypes_controller import field_types_blueprint
 from hs_ontology_api.routes.fieldassays.fieldassays_controller import field_assays_blueprint
-# JAS January 2024
 from hs_ontology_api.routes.fieldschemas.fieldschemas_controller import field_schemas_blueprint
 from hs_ontology_api.routes.fieldtypesinfo.fieldtypesinfo_controller import field_types_info_blueprint
 from hs_ontology_api.routes.fieldentities.fieldentities_controller import field_entities_blueprint
-
-# JAS July 2024
 from hs_ontology_api.routes.assayclasses.assayclasses_controller import assayclasses_blueprint
 from hs_ontology_api.routes.datasettypes.datasettypes_controller import datasettypes_blueprint
-
-# JAS March 2025
+from hs_ontology_api.routes.modalities.modalities_controller import modalities_blueprint
+from hs_ontology_api.routes.analytes.analytes_controller import analytes_blueprint
 from hs_ontology_api.routes.pathways.pathways_controller import pathways_blueprint
-
-# October 2025
 from hs_ontology_api.routes.annotations.annotations_controller import annotations_blueprint
 
 def make_flask_config():
@@ -54,28 +48,23 @@ app.config = cfg
 app.register_blueprint(organs_blueprint)
 app.register_blueprint(relationships_blueprint)
 app.register_blueprint(valueset_blueprint)
-# JAS Sept 2023
 app.register_blueprint(genes_blueprint)
 app.register_blueprint(genesinfo_blueprint)
-# JAS Nov 2023
 app.register_blueprint(proteins_blueprint)
 app.register_blueprint(proteinsinfo_blueprint)
 app.register_blueprint(celltypesinfo_blueprint)
 app.register_blueprint(celltypes_blueprint)
-# JAS Dec 2023
 app.register_blueprint(field_descriptions_blueprint)
 app.register_blueprint(field_types_blueprint)
 app.register_blueprint(field_assays_blueprint)
-# JAS Jan 2024
 app.register_blueprint(field_schemas_blueprint)
 app.register_blueprint(field_types_info_blueprint)
 app.register_blueprint(field_entities_blueprint)
-# July 2024
 app.register_blueprint(assayclasses_blueprint)
 app.register_blueprint(datasettypes_blueprint)
-# March 2025
+app.register_blueprint(modalities_blueprint)
+app.register_blueprint(analytes_blueprint)
 app.register_blueprint(pathways_blueprint)
-# October 2025
 app.register_blueprint(annotations_blueprint)
 
 ####################################################################################################
