@@ -11,8 +11,6 @@ from werkzeug.exceptions import GatewayTimeout
 
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
-# JAS Sept 2023
-from hs_ontology_api.models.genedetail import GeneDetail
 
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
