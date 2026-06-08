@@ -12,11 +12,8 @@ from werkzeug.exceptions import GatewayTimeout
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
-from hs_ontology_api.models.fieldtype import FieldType
 from hs_ontology_api.models.fieldassay import FieldAssay
-# JAS Jan 2024
 from hs_ontology_api.models.fieldschema import FieldSchema
-from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
 from hs_ontology_api.models.fieldentity import FieldEntity
 
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
@@ -1195,7 +1192,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
     return fielddescriptions
 
 def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, type_source=None, type=None)\
-        -> List[FieldType]:
+        -> List[dict]:
     """
     Returns detailed information on an ingest metadata field's associated data types.
     The types here are not to be confused
@@ -1208,7 +1205,7 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
     :param type: term for the type--e.g., string
     """
     # response list
-    fieldtypes: [FieldType] = []
+    fieldtypes=[]
 
     # Used in WHERE clauses when no filter is needed.
     identity_filter = '1=1'
@@ -1251,7 +1248,6 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
                       f"ELSE tType.name END='{type}'"
     querytxt = querytxt.replace('$type_filter', type_filter)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1263,10 +1259,22 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
             record_count = 0
             # Build response object.
             for record in recds:
+                types = record.get('types')
+                typeslist = []
+                for t in types:
+                    type = t.split('|')
+                    typeobj = {
+                        "mapping_source": type[0],
+                        "type_source": type[1],
+                        "type": type[2]
+                    }
+                    typeslist.append(typeobj)
                 try:
-                    fieldtype: FieldType = FieldType(code_ids=record.get('code_ids'),
-                                                     name=record.get('field_name'),
-                                                     types=record.get('types')).serialize()
+                    fieldtype = {
+                        "code_ids": record.get('code_ids'),
+                        "name": record.get('field_name'),
+                        "types": typeslist
+                    }
 
                     fieldtypes.append(fieldtype)
                     record_count = record_count + 1
