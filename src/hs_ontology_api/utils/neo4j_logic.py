@@ -12,7 +12,6 @@ from werkzeug.exceptions import GatewayTimeout
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
-from hs_ontology_api.models.fieldassay import FieldAssay
 from hs_ontology_api.models.fieldschema import FieldSchema
 from hs_ontology_api.models.fieldentity import FieldEntity
 
@@ -120,7 +119,6 @@ def relationships_for_gene_target_symbol_get_logic(neo4j_instance, target_symbol
         'symbol-alias': []
     }
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1389,7 +1387,6 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assaytype=None) -> d
         # Execute Cypher query.
         try:
             recds: neo4j.Result = session.run(query)
-
             for field in recds:
                 resp = field.get('fieldassays')
                 try:
