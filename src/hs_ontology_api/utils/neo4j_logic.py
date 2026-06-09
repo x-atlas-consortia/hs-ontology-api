@@ -1296,7 +1296,7 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
     :return:
     """
     # response list
-    fieldtypes: [FieldTypeDetail] = []
+    fieldtypes = []
 
     # Used in WHERE clauses when no filter is needed.
     identity_filter = '1=1'
@@ -1315,7 +1315,6 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
         type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
     querytxt = querytxt.replace('$type_source_filter', type_source_filter)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1327,10 +1326,14 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
             # Build response object.
             for record in recds:
                 try:
-                    fieldtypedetail: FieldTypeDetail = \
-                    FieldTypeDetail(type_detail=record.get('type'),
-                                    is_mapped=False).serialize()
 
+                    # Split type information.
+                    fieldtype = record.get('type').split('|')
+
+                    fieldtypedetail = {
+                        "type_source": fieldtype[0],
+                        "type": fieldtype[1]
+                    }
                     fieldtypes.append(fieldtypedetail)
 
                 except KeyError:
