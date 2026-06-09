@@ -12,7 +12,6 @@ from werkzeug.exceptions import GatewayTimeout
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
-from hs_ontology_api.models.fieldschema import FieldSchema
 from hs_ontology_api.models.fieldentity import FieldEntity
 
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
@@ -1382,7 +1381,6 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assaytype=None) -> d
 
     querytxt = querytxt.replace('$assay_type_filter', assay_type_filter)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1405,7 +1403,7 @@ def field_assays_get_logic(neo4j_instance, field_name=None, assaytype=None) -> d
 
         return resp
 
-def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None, schema=None) -> List[FieldSchema]:
+def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None, schema=None) -> List[dict]:
     """
     Returns detailed information on an ingest metadata field's associated schemas or CEDAR templates.
 
@@ -1416,7 +1414,7 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
 
     """
     # response list
-    fieldschemas: [FieldSchema] = []
+    fieldschemas = []
 
     # Used in WHERE clauses when no filter is needed.
     identity_filter = '1=1'
@@ -1447,26 +1445,31 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
         mapping_source_filter = f" AND SPLIT(schema_name,'|')[0]='{mapping_source}'"
     querytxt = querytxt.replace('$mapping_source_filter', mapping_source_filter)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
             recds: neo4j.Result = session.run(query)
+            for field in recds:
+                schemas = field.get('schemas')
+                schema_list = []
+                for schema in schemas:
+                    schema_split = schema.split('|')
+                    schema_item = {
+                        "source":schema_split[0],
+                        "schema":schema_split[1]
+                    }
+                    schema_list.append(schema_item)
 
-            record_count = 0
-
-            # Build response object.
-            for record in recds:
                 try:
-                    fieldschema: FieldSchema = \
-                        FieldSchema(code_ids=record.get('code_ids'),
-                                    name=record.get('field_name'),
-                                    schemas=record.get('schemas')).serialize()
+                    schema_obj = {
+                        "code_ids": [field.get('code_ids')],
+                        "name": field.get('field_name'),
+                        "schemas": schema_list
+                    }
+                    fieldschemas.append(schema_obj)
 
-                    fieldschemas.append(fieldschema)
-                    record_count = record_count + 1
                 except KeyError:
                     pass
 
