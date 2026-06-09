@@ -1,16 +1,11 @@
-# MAR 2025
-# Added check for timeout
 
 import logging
 import neo4j
 from typing import List
 import os
 
-# Mar 2025 for handling configurable timeouts
+# For handling configurable timeouts
 from werkzeug.exceptions import GatewayTimeout
-
-# Classes for JSON objects in response body
-from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
 
@@ -142,7 +137,7 @@ def relationships_for_gene_target_symbol_get_logic(neo4j_instance, target_symbol
     return result
 
 
-def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_sabs: List[str]) -> List[SabCodeTerm]:
+def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_sabs: List[str]) -> List[dict]:
     # JAS 29 NOV 2022
     # Returns a valueset of concepts that are children (have as isa relationship) of another concept.
 
@@ -156,7 +151,7 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
     # is from the UMLS. The order of SABs in the list indicates the order in which child concepts should be
     # selected.
 
-    sabcodeterms: [SabCodeTerm] = []
+    sabcodeterms = []
 
     # Build clauses of the query that depend on child_sabs, including:
     # 1. an IN statement
@@ -216,7 +211,6 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
     querytxt = querytxt + 'WHERE r.CUI = conceptChildCUI '
     querytxt = querytxt + 'RETURN termChild.name AS term, codeChild.CODE as code,codeChild.SAB as sab'
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -226,8 +220,11 @@ def valueset_get_logic(neo4j_instance, parent_sab: str, parent_code: str, child_
             recds: neo4j.Result = session.run(query)
             for record in recds:
                 try:
-                    sabcodeterm: [SabCodeTerm] = SabCodeTerm(record.get('sab'), record.get('code'),
-                                                             record.get('term')).serialize()
+                    sabcodeterm = {
+                        "code": record['code'],
+                        "sab": record['sab'],
+                        "term": record['term']
+                    }
                     sabcodeterms.append(sabcodeterm)
                 except KeyError:
                     pass
