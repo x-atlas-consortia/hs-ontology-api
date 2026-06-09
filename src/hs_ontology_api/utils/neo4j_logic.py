@@ -12,8 +12,6 @@ from werkzeug.exceptions import GatewayTimeout
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
-from hs_ontology_api.models.fieldentity import FieldEntity
-
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
@@ -1481,7 +1479,7 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
         return fieldschemas
 
 
-def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None, application=None) -> List[FieldEntity]:
+def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None, application=None) -> List[dict]:
     """
     Returns detailed information on an ingest metadata field's associated entities.
 
@@ -1494,7 +1492,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
     :param application: application context--i.e., HUBMAP or SENNET
     """
     # response list
-    fieldentities: [FieldEntity] = []
+    fieldentities = []
 
     # Used in WHERE clauses when no filter is needed.
     identity_filter = '1=1'
@@ -1534,7 +1532,6 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
         application_filter = f"AND cEntity.SAB='{application}'"
     querytxt = querytxt.replace('$application_filter', application_filter)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1542,17 +1539,29 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
         # Execute Cypher query.
         try:
             recds: neo4j.Result = session.run(query)
-            record_count = 0
+            # June 2026 Refactored to use JSON streamed response instead of
+            # an earlier OpenAPI class. The extraneous array structure
+            # maintains the original response format.
+            for field in recds:
+                entities = field.get('entities')
+                entity_list = []
+                for entity in entities:
+                    entity_split = entity.split('|')
+                    entity_item = {"nodes": [{
+                        "source": entity_split[0],
+                        "code": entity_split[1],
+                        "name": entity_split[2]
+                        }]
+                    }
+                    entity_list.append(entity_item)
 
-            # Build response object.
-            for record in recds:
                 try:
-                    fieldentity: FieldEntity = FieldEntity(code_ids=record.get('code_ids'),
-                                                           name=record.get('field_name'),
-                                                           entities=record.get('entities')).serialize()
-
-                    fieldentities.append(fieldentity)
-                    record_count = record_count + 1
+                    schema_obj = {
+                        "code_ids": [field.get('code_ids')],
+                        "name": field.get('field_name'),
+                        "entities": entity_list
+                    }
+                    fieldentities.append(schema_obj)
 
                 except KeyError:
                     pass
