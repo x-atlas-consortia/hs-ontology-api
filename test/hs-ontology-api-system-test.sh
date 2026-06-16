@@ -295,9 +295,87 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "/dataset-types?application_context=HUBMAP" | tee -a $testout
+echo "/dataset-types" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types?application_context=HUBMAP" \
+ --url "${UBKG_URL}/dataset-types" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/dataset-types/valueset" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/valueset" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/dataset-types/C003076" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/C003076" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/dataset-types/C003076/C046002" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/C003076/C046002" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/dataset-types/C003076/C046002/C002045" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/C003076/C046002/C002045" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/modalities" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/modalities" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/modalities/valueset" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/modalities/valueset" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/modalities/C046009" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/modalities/C046009" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/modalities/C046009/C011902" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/modalities/C046009/C011902" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/modalities/C046009/C011902/C020131" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/modalities/C046009/C011902/C020131" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/analytes" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/analytes" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/analytes/valueset" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/analytes/valueset" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/analytes/C020131" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/analytes/C020131" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/analytes/C020131/C046009" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/analytes/C020131/C046009" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/analytes/C020131/C046009/C011902" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/analytes/C020131/C046009/C011902" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
