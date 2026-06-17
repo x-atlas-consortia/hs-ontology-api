@@ -1638,8 +1638,8 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
 
 def dataset_types_valueset_get_logic(neo4j_instance) -> list:
     """
-    Returns the list of codes for dataset types.
-    :param neo4j_instance:
+    Returns a valueset of codes for dataset types.
+    :param neo4j_instance: neo4j connection
 
     """
 
@@ -1666,13 +1666,15 @@ def dataset_types_valueset_get_logic(neo4j_instance) -> list:
 
     return dataset_types
 
-def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_code=None, analyte_code=None, isepic=None) -> dict:
+def dataset_types_get_logic(neo4j_instance, ishierarchy:bool, application_context: str, dataset_type_code=None, modality_code=None, analyte_code=None, isepic=None) -> dict:
     """
         Obtains information on SenNet dataset types.
 
         The return from the query is a complete JSON, so there is no need for a model class.
 
         :param neo4j_instance: neo4j connection
+        :param application_context: application context
+        :param ishierarchy: whether a hierarchical query (SenNet)
         :param dataset_type_code: dataset_type code
         :param modality_code: modality code
         :param analyte_code: analyte code
@@ -1682,7 +1684,13 @@ def dataset_types_get_logic(neo4j_instance, dataset_type_code=None, modality_cod
     dataset_types: [dict] = []
 
     # Load and parameterize query.
-    querytxt = loadquerystring('dataset_types.cypher')
+    if ishierarchy:
+        querytxt = loadquerystring('dataset_types_hierarchy.cypher')
+    else:
+        querytxt = loadquerystring('dataset_types.cypher')
+
+    # Filter by application context.
+    querytxt = querytxt.replace('$context', application_context)
 
     # Filter by dataset type code.
     if dataset_type_code is not None:

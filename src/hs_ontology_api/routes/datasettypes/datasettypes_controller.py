@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, current_app, make_response,request
+from flask import Blueprint, current_app, make_response,request
 
 from ubkg_api.utils.http_error_string import (get_404_error_string, validate_query_parameter_names,
                                               validate_parameter_value_in_enum, validate_required_parameters)
@@ -9,19 +9,22 @@ from ubkg_api.utils.s3_redirect import redirect_if_large
 
 datasettypes_blueprint = Blueprint('datasettypes_hs', __name__, url_prefix='/dataset-types')
 
-
 @datasettypes_blueprint.route('', methods=['GET'])
 def datasettypes_expand_get():
+    return datasettypes_get(ishierarchy=False)
+
+@datasettypes_blueprint.route('/hierarchy', methods=['GET'])
+def datasettypes_hierarchy_expand_get():
     return datasettypes_get()
 
-@datasettypes_blueprint.route('/<dataset_type_code>', methods=['GET'])
+@datasettypes_blueprint.route('/hierarchy/<dataset_type_code>', methods=['GET'])
 def datasettypes_dataset_type_get(dataset_type_code):
     if dataset_type_code.lower()=='valueset':
         return datasetypes_valueset_get()
     else:
         return datasettypes_get(dataset_type_code=dataset_type_code)
 
-@datasettypes_blueprint.route('/<dataset_type_code>/<modality_code>', methods=['GET'])
+@datasettypes_blueprint.route('/hierarchy/<dataset_type_code>/<modality_code>', methods=['GET'])
 def datasettypes_dataset_type_modality_get(dataset_type_code, modality_code):
     return datasettypes_get(dataset_type_code=dataset_type_code, modality_code=modality_code)
 
@@ -32,7 +35,21 @@ def datasettypes_dataset_type_modality_analyte_get(dataset_type_code, modality_c
 def datasetypes_valueset_get():
     """
     Returns a simple valueset of dataset type codes.
+    Valid only in the SenNet context.
     """
+
+    application_context = request.args.get('application_context')
+    if application_context is not None:
+        val_enum = ['SENNET']
+        err = validate_parameter_value_in_enum(param_name='application_context',
+                                               param_value=application_context.upper(),
+                                               enum_list=val_enum)
+        if err != 'ok':
+            return make_response(err, 400)
+        application_context = application_context.upper()
+    else:
+        application_context = 'SENNET'
+
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = dataset_types_valueset_get_logic(neo4j_instance)
 
@@ -45,11 +62,12 @@ def datasetypes_valueset_get():
     # Redirect to S3 if large.
     return redirect_if_large(resp=result)
 
-def datasettypes_get(dataset_type_code=None, modality_code=None, analyte_code=None):
+def datasettypes_get(ishierarchy:bool=True, dataset_type_code=None, modality_code=None, analyte_code=None):
     """
-    Returns information on a set of HuBMAP or SenNet assay classifications, rule-based dataset "kinds" that are
-    in the testing rules json, with options to filter the list to those with specific property values.
-    Filters are additive (i.e., boolean AND).
+    Returns information on a set of HuBMAP or SenNet dataset types.
+
+    :param ishierarchy: whether the response should be a simplified set of dataset types with assay class maps
+    (HuBMAP) or the set of associated hierarchical modalities and analytes (SenNet)
 
     """
     # Validate parameters.
@@ -58,9 +76,24 @@ def datasettypes_get(dataset_type_code=None, modality_code=None, analyte_code=No
     err = validate_query_parameter_names(parameter_name_list=['application_context','is_externally_processed'])
     if err != 'ok':
         return make_response(err, 400)
+    application_context = request.args.get('application_context')
+
+    # Check for valid application context. The parameter is case-insensitive, but any error should return the
+    # value provided in the request.
+
+    if ishierarchy:
+        # The dataset type/modality/analyte hierarchy is defined only for the SenNet application context.
+        val_enum = ['SENNET']
+    else:
+        val_enum = ['HUBMAP', 'SENNET']
+    err = validate_parameter_value_in_enum(param_name='application_context',
+                                               param_value=application_context.upper(),
+                                               enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
+    application_context = application_context.upper()
 
     # Check for valid isepic. The parameter is case-insensitive.
-
     isepic = request.args.get('is_externally_processed')
     if isepic is None:
         isepic = 'false'
@@ -76,6 +109,8 @@ def datasettypes_get(dataset_type_code=None, modality_code=None, analyte_code=No
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
     result = dataset_types_get_logic(
         neo4j_instance,
+        ishierarchy=ishierarchy,
+        application_context=application_context,
         dataset_type_code=dataset_type_code,
         modality_code=modality_code,
         analyte_code=analyte_code,
