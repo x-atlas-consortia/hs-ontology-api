@@ -78,20 +78,22 @@ def datasettypes_get(ishierarchy:bool=True, dataset_type_code=None, modality_cod
         return make_response(err, 400)
     application_context = request.args.get('application_context')
 
-    # Check for valid application context. The parameter is case-insensitive, but any error should return the
-    # value provided in the request.
-
-    if ishierarchy:
-        # The dataset type/modality/analyte hierarchy is defined only for the SenNet application context.
-        val_enum = ['SENNET']
-    else:
+    if not ishierarchy:
+        # Check for required parameters.
+        err = validate_required_parameters(required_parameter_list=['application_context'])
+        if err != 'ok':
+            return make_response(err, 400)
+        application_context = request.args.get('application_context')
         val_enum = ['HUBMAP', 'SENNET']
-    err = validate_parameter_value_in_enum(param_name='application_context',
+        err = validate_parameter_value_in_enum(param_name='application_context',
                                                param_value=application_context.upper(),
                                                enum_list=val_enum)
-    if err != 'ok':
-        return make_response(err, 400)
-    application_context = application_context.upper()
+        if err != 'ok':
+            return make_response(err, 400)
+        application_context = application_context.upper()
+    else:
+        application_context = 'SENNET'
+
 
     # Check for valid isepic. The parameter is case-insensitive.
     isepic = request.args.get('is_externally_processed')

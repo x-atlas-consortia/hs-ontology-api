@@ -3159,6 +3159,23 @@ components:
                 type: string
                 description: name of dataset type
                 example: "10X Multiome"
+              PDR_category:
+                type: string
+                description: Pipeline Decision Rules category
+                example: "Multiome Sequencing"
+              fig2:
+                type: object
+                description: categorization based on Figure 2 of the original HuBMAP paper in Nature
+                properties:
+                  aggregated_assay_type:
+                    type: string
+                    example: LC-MS
+                  category:
+                    type: string
+                    example: bulk
+                  modality:
+                    type: string
+                    example: Proteomics
     DatasetTypeHierarchy:
       type: object
       description: A set of hierarchical dataset type objects (SenNet)
