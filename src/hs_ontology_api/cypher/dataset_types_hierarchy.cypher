@@ -122,6 +122,5 @@ WITH {
         assaytypes:assaytypes,
         is_externally_processed:is_externally_processed
         } AS dataset_type
-WITH DISTINCT dataset_type AS dataset_types
-WHERE dataset_types IS NOT NULL
-RETURN {dataset_types:dataset_types} AS dataset_types
+WHERE dataset_type IS NOT NULL
+RETURN COLLECT(DISTINCT dataset_type) AS dataset_types
