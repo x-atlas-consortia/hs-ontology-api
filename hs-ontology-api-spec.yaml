@@ -12,8 +12,8 @@ servers:
 tags:
   - name: assay classifications
     description: assay classifications used by the database ingestion assay classifier
-  - name: dataset types
-    description: dataset types used by the database ingestion assay classifier
+  - name: dataset type, modality, analyte
+    description: Information on dataset types, with additional hierarchy information for modality and analyte for the SenNet context.
   - name: organs
     description: organ definitions used in the Registration User Interface (RUI)
   - name: biological entities
@@ -158,66 +158,8 @@ paths:
   /dataset-types:
     get:
       operationId: datasettypes_get
-      summary: Returns metadata on the new "soft assay" dataset types.
+      summary: Returns non-hierarchical metadata on dataset types
       parameters:
-        - name: application_context
-          in: query
-          required: true
-          description: Filter to indicate application context
-          schema:
-            type: string
-            default: HUBMAP
-            enum:
-              - HUBMAP
-              - SENNET
-              - hubmap
-              - sennet
-              - HuBMAP
-              - SenNet
-        - name: is_externally_processed
-          in: query
-          required: false
-          description: filter on whether dataset types are for EPIC datasets
-          schema:
-            type: string
-            enum:
-              - true
-              - false
-      responses:
-        '200':
-          description: A JSON array of dataset type objects
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DatasetType'
-        '303':
-          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
-        '400':
-          description: Missing parameter; invalid parameter value
-        '403':
-          description: The response size exceeds a limit set by the server.
-        '404':
-          description: No dataset types matching parameters.
-        '504':
-          description: The query run time exceeded the specified timeout.
-        '5XX':
-          description: Unknown error
-      tags:
-        - dataset types
-  /dataset-types/{name}:
-    get:
-      operationId: datasettypes_name_get
-      summary: Returns metadata on the specified "soft assay" dataset type.
-      parameters:
-        - name: name
-          in: path
-          required: true
-          description: A dataset_type
-          schema:
-            type: string
-            example: 2D Imaging Mass Cytometry
         - name: application_context
           in: query
           required: true
@@ -261,7 +203,607 @@ paths:
         '5XX':
           description: Unknown error
       tags:
-        - dataset types
+        - dataset type, modality, analyte
+  /dataset-types/hierarchy:
+    get:
+      operationId: datasettypes_hierarchy_get
+      summary: Returns hierarchical metadata on SenNet dataset types
+      parameters:
+        - name: application_context
+          in: query
+          required: false
+          description: Maintained for downward compatibility. Hierarchical dataset types are only relevant to SenNet.
+          schema:
+            type: string
+            default: SENNET
+            enum:
+              - SENNET
+              - sennet
+              - SenNet
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: A dataset type object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetTypeHierarchy'
+
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No dataset types matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /dataset-types/hierarchy/{dataset_type_code}:
+    get:
+      operationId: datasettypes_dataset_type_code_get
+      summary: Returns hierarchical metadata on a specified SenNet dataset type.
+      parameters:
+        - name: dataset_type_code
+          in: path
+          required: true
+          description: Either a dataset_type code or "valueset". If "valueset", the response will show only codes and names for dataset types.
+          schema:
+            type: string
+            example: C003076
+        - name: application_context
+          in: query
+          required: false
+          description: Maintained for downward compatibility. Dataset types are only relevant to SenNet.
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: A dataset type object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetTypeHierarchy'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No dataset types matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /dataset-types/hierarchy/{dataset_type_code}/{modality_code}:
+    get:
+      operationId: datasettypes_dataset_type_code_modality_code_get
+      summary: Returns hierarchical metadata on a specified SenNet dataset type and modality.
+      parameters:
+        - name: dataset_type_code
+          in: path
+          required: true
+          description: Either a dataset_type code or "valueset". If "valueset", the response will show only codes and names for dataset types.
+          schema:
+            type: string
+            example: C003076
+        - name: modality_code
+          in: path
+          required: true
+          description: A modality code.
+          schema:
+            type: string
+            example: C046002
+        - name: application_context
+          in: query
+          required: false
+          description: Maintained for downward compatibility. Dataset types are only relevant to SenNet.
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: A dataset type object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetTypeHierarchy'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No dataset types matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /dataset-types/hierarchy/{dataset_type_code}/{modality_code}/{analyte_code}:
+    get:
+      operationId: datasettypes_dataset_type_code_modality_code_analyte_code_get
+      summary: Returns hierarchical metadata on a specified SenNet dataset type, modality, and analyte.
+      parameters:
+        - name: dataset_type_code
+          in: path
+          required: true
+          description: Either a dataset_type code or "valueset". If "valueset", the response will show only codes and names for dataset types.
+          schema:
+            type: string
+            example: C003076
+        - name: modality_code
+          in: path
+          required: true
+          description: A modality code.
+          schema:
+            type: string
+            example: C046002
+        - name: analyte_code
+          in: path
+          required: true
+          description: An analyte code
+          schema:
+            type: string
+            example: C002045
+        - name: application_context
+          in: query
+          required: false
+          description: Maintained for downward compatibility. Dataset types are only relevant to SenNet.
+          schema:
+            type: string
+            default: HUBMAP
+            enum:
+              - HUBMAP
+              - SENNET
+              - hubmap
+              - sennet
+              - HuBMAP
+              - SenNet
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: A dataset type object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetTypeHierarchy'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No dataset types matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /modalities:
+    get:
+      operationId: modalities_get
+      summary: returns hierarchical metadata on SenNet modalities.
+      parameters:
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: A modality object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Modality'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No modalities matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /modalities/{modality_code}:
+    get:
+      operationId: modalities_modality_code_get
+      summary: returns hierarchical metadata on a specified SenNet modality.
+      parameters:
+        - name: modality_code
+          in: path
+          required: true
+          description: Either a modality code or "valueset". If "valueset", the response will show only codes and names for modalities.
+          schema:
+            type: string
+            example: C046009
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: A modality object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Modality'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No modalities matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /modalities/{modality_code}/{dataset_type_code}:
+    get:
+      operationId: modalities_modality_code_dataset_type_code_get
+      summary: returns hierarchical metadata on a specified modality and dataset type.
+      parameters:
+        - name: modality_code
+          in: path
+          required: true
+          description: Either a modality code or "valueset". If "valueset", the response will show only codes and names for modalities.
+          schema:
+            type: string
+            example: C046009
+        - name: dataset_type_code
+          in: path
+          required: true
+          description: code for a dataset type
+          schema:
+            type: string
+            example: C011902
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: A dataset type object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Modality'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No modalities matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /modalities/{modality_code}/{dataset_type_code}/{analyte_code}:
+    get:
+      operationId: modalities_modality_code_dataset_type_code_analyte_code_get
+      summary: returns hierarchical metadata on a specified modality, dataset type, and analyte.
+      parameters:
+        - name: modality_code
+          in: path
+          required: true
+          description: Either a modality code or "valueset". If "valueset", the response will show only codes and names for modalities.
+          schema:
+            type: string
+            example: C046009
+        - name: dataset_type_code
+          in: path
+          required: true
+          description: code for a dataset type
+          schema:
+            type: string
+            example: C011902
+        - name: analyte_code
+          in: path
+          required: true
+          description: code for an analyte
+          schema:
+            type: string
+            example: C020131
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: A dataset type object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Modality'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No modalities matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /analytes:
+    get:
+      operationId: analytes_get
+      summary: returns hierarchical metadata on SenNet analytes.
+      parameters:
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: An analyte object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analyte'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No analytes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /analytes/{analyte_code}:
+    get:
+      operationId: analytes_analyte_code_get
+      summary: returns hierarchical metadata on specified SenNet analyte.
+      parameters:
+        - name: analyte_code
+          in: path
+          required: true
+          description: Either an analyte code or "valueset". If "valueset", the response will show only codes and names for analytes.
+          schema:
+            type: string
+            example: C020131
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: An analyte object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analyte'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No analytes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /analytes/{analyte_code}/{modality_code}:
+    get:
+      operationId: analytes_analyte_code_modality_code_get
+      summary: returns hierarchical metadata on specified SenNet analyte and modality.
+      parameters:
+        - name: analyte_code
+          in: path
+          required: true
+          description: Either an analyte code or "valueset". If "valueset", the response will show only codes and names for analytes.
+          schema:
+            type: string
+            example: C020131
+        - name: modality_code
+          in: path
+          required: true
+          description: code for a modality
+          schema:
+            type: string
+            example: C046009
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: An analyte object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analyte'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No analytes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
+  /analytes/{analyte_code}/{modality_code}/{dataset_type_code}:
+    get:
+      operationId: analytes_analyte_code_modality_code_dataset_type_code_get
+      summary: returns hierarchical metadata on specified SenNet analyte, modality, and dataset type.
+      parameters:
+        - name: analyte_code
+          in: path
+          required: true
+          description: Either an analyte code or "valueset". If "valueset", the response will show only codes and names for analytes.
+          schema:
+            type: string
+            example: C020131
+        - name: modality_code
+          in: path
+          required: true
+          description: code for a modality
+          schema:
+            type: string
+            example: C046009
+        - name: dataset_type_code
+          in: path
+          required: true
+          description: code for a dataset type
+          schema:
+            type: string
+            example: C011902
+        - name: is_externally_processed
+          in: query
+          required: false
+          description: filter on whether dataset types are for EPIC datasets
+          schema:
+            type: string
+            enum:
+              - true
+              - false
+      responses:
+        '200':
+          description: An analyte object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Analyte'
+        '303':
+          description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
+        '400':
+          description: Missing parameter; invalid parameter value
+        '403':
+          description: The response size exceeds a limit set by the server.
+        '404':
+          description: No analytes matching parameters.
+        '504':
+          description: The query run time exceeded the specified timeout.
+        '5XX':
+          description: Unknown error
+      tags:
+        - dataset type, modality, analyte
   /organs:
     get:
       operationId: get_organ_types
@@ -2600,52 +3142,226 @@ components:
                     example: ["Imaging","Transcriptomics"]
     DatasetType:
       type: object
-      description: A set of assay classifications
+      description: A set of non-hierarchical dataset type objects
       properties:
-        dataset_type:
-              type: object
-              description: categorization of datasets that are generated by the assay class. Allows for multiple analytical hierarchies.
-              properties:
-                dataset_type:
+        dataset_types:
+          type: array
+          items:
+            type: object
+            properties:
+              assaytypes:
+                type: array
+                description: array of assaytypes mapped to the dataset type
+                items:
                   type: string
-                  description: corresponds to the "dataset_type" key in the testing_rule_chain.json.
-                  example: 2D Imaging Mass Cytometry
-                dataset_modalities:
-                  type: array
-                  description: array of SenNet "dataset modalities" for the dataset type. Applies to SenNet only.
-                  items:
+                  example: ["10x-multiome"]
+              dataset_type:
+                type: string
+                description: name of dataset type
+                example: "10X Multiome"
+              PDR_category:
+                type: string
+                description: Pipeline Decision Rules category
+                example: "Multiome Sequencing"
+              fig2:
+                type: object
+                description: categorization based on Figure 2 of the original HuBMAP paper in Nature
+                properties:
+                  aggregated_assay_type:
                     type: string
-                    example: ["Imaging","Transcriptomics"]
-                PDR_category:
-                  type: string
-                  description: category for the dataset_type per the HuBMAP Data Coordination Working Group's "Pipeline Decision Rules" (PDR) document.
-                  example: MxNF
-                fig2:
+                    example: LC-MS
+                  category:
+                    type: string
+                    example: bulk
+                  modality:
+                    type: string
+                    example: Proteomics
+    DatasetTypeHierarchy:
+      type: object
+      description: A set of hierarchical dataset type objects (SenNet)
+      properties:
+        dataset_types:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the dataset type
+                example: C003076
+              name:
+                type: string
+                description: preferred term for the dataset type
+                example: "Visium (no probes)"
+        assaytypes:
+          type: array
+          description: list of ingestion assaytypes associated with the dataset type
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the assaytype
+                example: C200741
+              name:
+                type: string
+                description: preferred term for the assaytype
+                example: visium-no-probes
+        is_externally_processed:
+          type: boolean
+          description: whether the dataset type is externally processed
+          default: true
+        modalities:
+          type: array
+          description: modalities associated with the dataset type
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the modality
+                example: C046002
+              name:
+                type: string
+                description: preferred term for the modality
+                example: Microscopy
+              analytes:
+                type: array
+                description: list of analytes associated with the modality
+                items:
                   type: object
-                  description: categorization of the dataset_type that comforms to that used in Figure 2 of the 2023 Jain et al paper in Nature Cell Biology (https://www.nature.com/articles/s41556-023-01194-w).
                   properties:
-                    aggregated_assaytype:
+                    code:
                       type: string
-                      description: corresponds to "assay type" category in Figure 2.
-                      example: LC-MS
-                    modality:
+                      description: code for the analyte
+                      example: C020131
+                    name:
                       type: string
-                      description: corresponds to "modality" category in Figure 2.
-                      example: Proteomics
-                    category:
+                      description: preferred term for the analyte
+                      example: protein
+    Modality:
+      type: object
+      description: a set of modality objects
+      properties:
+        modalities:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the modality
+                example: C046004
+              name:
+                type: string
+                description: preferred term for the dataset type
+                example: "Epigenomics"
+        dataset_types:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the dataset type
+                example: C014004
+              name:
+                type: string
+                description: preferred term for the dataset type
+                example: 10X Multiome
+              is_externally_processed:
+                type: boolean
+                description: whether the dataset type is externally processed
+                default: true
+              assaytypes:
+                type: array
+                description: list of ingestion assaytypes associated with the dataset type
+                items:
+                  type: object
+                  properties:
+                    code:
                       type: string
-                      description: corresponds to "category" category in Figure 2.
-                      example: bulk
-                assaytypes:
-                  type: array
-                  description: assaytypes that relate to the dataset type. Both dataset_type and assaytype are properties of an assay classification.
-                  items:
-                    type: string
-                    example: IMC2D
-                is_externally_processed:
-                  type: string
-                  description: whether the dataset type is for an EPIC dataset
-                  example: false
+                      description: code for the assaytype
+                      example: C200741
+                    name:
+                      type: string
+                      description: preferred term for the assaytype
+                      example: visium-no-probes
+              analytes:
+                type: array
+                description: list of analytes associated with the dataset type
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: code for the analyte
+                      example: C020131
+                    name:
+                      type: string
+                      description: preferred term for the analyte
+                      example: protein
+    Analyte:
+      type: object
+      description: a set of analyte objects
+      properties:
+        analytes:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the analyte
+                example: C020131
+              name:
+                type: string
+                description: preferred term for the analyte
+                example: protein
+        modalities:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+                description: code for the modality
+                example: C046009
+              name:
+                type: string
+                description: preferred term for the modality
+                example: Proteomics
+              dataset_types:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                      description: code for the dataset type
+                      example: C014004
+                    name:
+                      type: string
+                      description: preferred term for the dataset type
+                      example: 10X Multiome
+                    is_externally_processed:
+                      type: boolean
+                      description: whether the dataset type is externally processed
+                      default: true
+                    assaytypes:
+                      type: array
+                      description: list of ingestion assaytypes associated with the dataset type
+                      items:
+                        type: object
+                        properties:
+                          code:
+                            type: string
+                            description: code for the assaytype
+                            example: C200741
+                          name:
+                            type: string
+                            description: preferred term for the assaytype
+                            example: visium-no-probes
     PathwayEvent:
       type: object
       description: a set of Reactome pathway events
