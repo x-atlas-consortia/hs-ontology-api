@@ -3227,7 +3227,7 @@ components:
                 example: Microscopy
               analytes:
                 type: array
-                description: list of analytes associated with the modality
+                description: list of analytes associated with the dataset type/modality combination
                 items:
                   type: object
                   properties:
