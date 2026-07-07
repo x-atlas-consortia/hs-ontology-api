@@ -72,6 +72,8 @@ CALL {
 
 // Get associated modalities and analytes with optional filters.
 CALL {
+
+    // Modalities for dataset type
     WITH CUIDatasetType, context, modality_code, analyte_code
     OPTIONAL MATCH
         (pDataSetType:Concept {CUI:CUIDatasetType})-[:has_modality]->
@@ -79,17 +81,23 @@ CALL {
         (pModalityParent:Concept {CUI:'SENNET:C046000 CUI'}),
         (pModality:Concept)-[:CODE]->
         (cModality:Code {SAB:context})-[rModality:PT {CUI:pModality.CUI}]->
-        (tModality:Term),
-        (pModality:Concept)-[:has_analyte]->
+        (tModality:Term)
+    WHERE (modality_code = '' OR cModality.CODE = modality_code)
+
+    // Analytes for modality/dataset type combination.
+    // (This handles cases such as CyTOF, which is associated with a modality that associates with more analytes than does CyTOF.)
+    WITH CUIDatasetType, context, cModality.CODE AS modality_code, tModality.name AS modality_name, pModality.CUI AS CUIModality, analyte_code
+    OPTIONAL MATCH
+        (pModality2:Concept {CUI:CUIModality})-[:has_analyte]->
         (pAnalyte:Concept)-[:CODE]->
         (cAnalyte:Code)-[rAnalyte:PT]->
-        (tAnalyte:Term)
-    WHERE (modality_code = '' OR cModality.CODE = modality_code)
-      AND (analyte_code = '' OR cAnalyte.CODE = analyte_code)
+        (tAnalyte:Term),
+        (pAnalyte:Concept)<-[:has_analyte]-(pDatasetType:Concept{CUI:CUIDatasetType})
+      WHERE (analyte_code = '' OR cAnalyte.CODE = analyte_code)
 
     WITH DISTINCT
-        cModality.CODE AS modality_code,
-        split(tModality.name, '_modality')[0] AS modality_name,
+        modality_code,
+        split(modality_name, '_modality')[0] AS modality_name,
         cAnalyte.CODE AS analyte_code,
         tAnalyte.name AS analyte_name
     WHERE modality_code IS NOT NULL
