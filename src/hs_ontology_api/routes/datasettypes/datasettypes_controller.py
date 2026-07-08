@@ -28,7 +28,7 @@ def datasettypes_dataset_type_get(dataset_type_code):
 def datasettypes_dataset_type_modality_get(dataset_type_code, modality_code):
     return datasettypes_get(dataset_type_code=dataset_type_code, modality_code=modality_code)
 
-@datasettypes_blueprint.route('/<dataset_type_code>/<modality_code>/<analyte_code>', methods=['GET'])
+@datasettypes_blueprint.route('/hierarchy/<dataset_type_code>/<modality_code>/<analyte_code>', methods=['GET'])
 def datasettypes_dataset_type_modality_analyte_get(dataset_type_code, modality_code, analyte_code):
     return datasettypes_get(dataset_type_code=dataset_type_code, modality_code=modality_code, analyte_code=analyte_code)
 
@@ -118,7 +118,8 @@ def datasettypes_get(ishierarchy:bool=True, dataset_type_code=None, modality_cod
         analyte_code=analyte_code,
         isepic=isepic)
 
-    if result is None or result == []:
+    print(result)
+    if result is None or result == [[]]:
         # Empty result
         err = get_404_error_string(prompt_string=f"No results for "
                                                  f"specified parameters")

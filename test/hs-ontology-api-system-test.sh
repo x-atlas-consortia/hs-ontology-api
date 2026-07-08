@@ -295,34 +295,40 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "/dataset-types" | tee -a $testout
+echo "/dataset-types?application_context=hubmap" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types" \
+ --url "${UBKG_URL}/dataset-types?application_context=hubmap" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
-echo "/dataset-types/valueset" | tee -a $testout
+echo "/dataset-types/hierarchy" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types/valueset" \
+ --url "${UBKG_URL}/dataset-types/hierarchy" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
-echo "/dataset-types/C003076" | tee -a $testout
+echo "/dataset-types/hierarchy/valueset" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types/C003076" \
- --header "Accept: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo "/dataset-types/C003076/C046002" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/dataset-types/C003076/C046002" \
- --header "Accept: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo "/dataset-types/C003076/C046002/C002045" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/dataset-types/C003076/C046002/C002045" \
+ --url "${UBKG_URL}/dataset-types/hierarchy/valueset" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
+echo "/dataset-types/hierarchy/C011902" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/dataset-types/hierarchy/C011902/C046009" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/dataset-types/hierarchy/C011902/C046009/C020131" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009/C020131" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+exit;
 echo "/modalities" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/modalities" \
