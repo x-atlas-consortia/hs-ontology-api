@@ -3333,6 +3333,7 @@ components:
                 example: Proteomics
               dataset_types:
                 type: array
+                description: dataset types associated with the analyte/modality combination
                 items:
                   type: object
                   properties:
