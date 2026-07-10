@@ -328,7 +328,7 @@ curl --request GET \
  --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009/C020131" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
-exit;
+
 echo "/modalities" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/modalities" \
