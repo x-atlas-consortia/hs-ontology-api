@@ -5,130 +5,202 @@
 // 1. All code filters are ''.
 // 2. Each code filter corresponds to a valid code.
 
+// The dataset-types endpoint "filtering path" is a
+// directed combination of codes that indicate increasing levels of specificity:
+// - all dataset types
+// - specific dataset type
+// - specific dataset type/specific modality
+// - specific dataset type/specificy modality/specific analyte
+
+
 // The dataset type/modality/analyte hierarchy is defined
 // only in the Sennet context.
 WITH 'SENNET' AS context,
 
-// Debug filters.
-//False AS epictype_filter,
-//'' AS dataset_type_code,
-//'C003076' AS dataset_type_code, // Visium (no probes),
-//'' AS modality_code,
-//'C046002' AS modality_code, // Microscopy
-//'' AS analyte_code
-//'C002045' AS analyte_code // collagen
-
 // Filters:
-// Application context
+// Application context--always SENNET
 //WITH $context AS context,
-// Whether an EPIC (externally processed)
+// Optional filter: whether an EPIC (externally processed)
 $epictype_filter AS epictype_filter,
-// Dataset type code
+// Optional filter: Dataset type code
 $dataset_type_code AS dataset_type_code,
-// Modality code
+// Optional filter: Modality code
 $modality_code AS modality_code,
-// Analyte code
+// Optional filter: Analyte code
 $analyte_code AS analyte_code
 
-// Get dataset types with optional filter on dataset type code.
-CALL
-{
-        WITH context,dataset_type_code
-        MATCH (tDatasetTypeParent:Term)<-[rDatasetTypeParent:PT {CUI:pDatasetTypeParent.CUI}]-(cDatasetTypeParent:Code {SAB:context})<-[:CODE]-(pDatasetTypeParent:Concept)<-[:isa]-(pDatasetType:Concept)-[:CODE]->(cDatasetType:Code {SAB:context})-[rDatasetType:PT {CUI:pDatasetType.CUI}]->(tDatasetType:Term)
-        WHERE cDatasetTypeParent.CodeID = context + ':C003041'
-        AND (dataset_type_code = '' OR cDatasetType.CODE = dataset_type_code)
-        RETURN DISTINCT
-                pDatasetType.CUI AS CUIDatasetType,
-                cDatasetType.CODE AS CodeDatasetType,
-                tDatasetType.name AS NameDatasetType
-        ORDER BY tDatasetType.name
-}
+// -------
+// Get dataset types, optionally filtered on dataset type code.
+// - Dataset type nodes are children of the "dataset type" parent (C003041).
+// - Term nodes are filtered to those that share the CUI of the associated concept.
 
-// Get assaytypes associated with dataset type.
-CALL {
-    WITH CUIDatasetType, context
-    OPTIONAL MATCH (pDatasetType:Concept {CUI:CUIDatasetType})<-[:has_dataset_type]-
-                   (pAssayClass:Concept)-[:CODE]->
-                   (cAssayClass:Code {SAB:context})-[rAssayClass:PT {CUI:pAssayClass.CUI}]->
-                   (tAssayClass:Term),
-                   (pAssayClass:Concept)-[:has_assaytype]->
-                   (pAssayType:Concept)-[:CODE]->
-                   (cAssayType:Code {SAB:context})-[rAssayType:PT {CUI:pAssayType.CUI}]->
-                   (tAssayType:Term)
-    WITH cAssayType.CODE AS CodeAssayType, tAssayType.name AS NameAssayType
-    WHERE CodeAssayType IS NOT NULL
-    RETURN COLLECT(DISTINCT {code: CodeAssayType, name: NameAssayType}) AS assaytypes
-}
+WITH
+    context,
+    dataset_type_code,
+    modality_code,
+    analyte_code
+MATCH
+    (tDatasetTypeParent:Term)<-[rDatasetTypeParent:PT {CUI:pDatasetTypeParent.CUI}]-
+    (cDatasetTypeParent:Code{SAB:context,CODE:'C003041'})<-[:CODE]-
+    (pDatasetTypeParent:Concept)<-[:isa]-
+    (pDatasetType:Concept)-[:CODE]->
+    (cDatasetType:Code {SAB:context})-[rDatasetType:PT {CUI:pDatasetType.CUI}]->
+    (tDatasetType:Term)
+WHERE
+    (dataset_type_code = '' OR cDatasetType.CODE = dataset_type_code)
 
-// Get whether an Epic datatype.
-CALL {
-    WITH CUIDatasetType, context
-    OPTIONAL MATCH (pDatasetType:Concept {CUI:CUIDatasetType})-[:isa]->
-                   (pEpic:Concept)-[:CODE]->
-                   (cEpic:Code {SAB:context})
-    WHERE cEpic.CODE = 'C004034'
-    RETURN CASE WHEN COUNT(pEpic) > 0 THEN true ELSE false END AS is_externally_processed
-}
+WITH
+    context,
+    modality_code,
+    analyte_code,
+    pDatasetType.CUI AS CUIDatasetType,
+    cDatasetType.CODE AS CodeDatasetType,
+    tDatasetType.name AS NameDatasetType
 
-// Get associated modalities and analytes with optional filters.
-CALL {
+// ---------
+// Get associated modalities.
+// Modality concept nodes are children of SENNET:C046000 CUI.
 
-    // Modalities for dataset type
-    WITH CUIDatasetType, context, modality_code, analyte_code
-    OPTIONAL MATCH
-        (pDataSetType:Concept {CUI:CUIDatasetType})-[:has_modality]->
-        (pModality:Concept)-[:isa]->
-        (pModalityParent:Concept {CUI:'SENNET:C046000 CUI'}),
-        (pModality:Concept)-[:CODE]->
-        (cModality:Code {SAB:context})-[rModality:PT {CUI:pModality.CUI}]->
-        (tModality:Term)
-    WHERE (modality_code = '' OR cModality.CODE = modality_code)
+WITH
+    context,
+    modality_code,
+    analyte_code,
+    CUIDatasetType,
+    CodeDatasetType,
+    NameDatasetType
+ MATCH
+    (pDataSetType:Concept {CUI:CUIDatasetType})-[:has_modality]->
+    (pModality:Concept)-[:isa]->
+    (pModalityParent:Concept)-[:CODE]->
+    (cModalityParent:Code{SAB:context,CODE:'C046000'}),
+    (pModality:Concept)-[:CODE]->
+    (cModality:Code {SAB:context})-[rModality:PT {CUI:pModality.CUI}]->
+    (tModality:Term)
+WHERE (modality_code = '' OR cModality.CODE = modality_code)
 
-    // Analytes for modality/dataset type combination.
-    // (This handles cases such as CyTOF, which is associated with a modality that associates with more analytes than does CyTOF.)
-    WITH CUIDatasetType, context, cModality.CODE AS modality_code, tModality.name AS modality_name, pModality.CUI AS CUIModality, analyte_code
-    OPTIONAL MATCH
-        (pModality2:Concept {CUI:CUIModality})-[:has_analyte]->
-        (pAnalyte:Concept)-[:CODE]->
-        (cAnalyte:Code)-[rAnalyte:PT]->
-        (tAnalyte:Term),
-        (pAnalyte:Concept)<-[:has_analyte]-(pDatasetType:Concept{CUI:CUIDatasetType})
-      WHERE (analyte_code = '' OR cAnalyte.CODE = analyte_code)
+//----------
+// Get analytes. The set of analytes is the intersection of the sets of analytes linked to the modalities
+// and the sets of analytes linked to the dataset types.
+// Analyte nodes are children of the "analyte" parent node (SENNET:C002031).
 
-    WITH DISTINCT
-        modality_code,
-        split(modality_name, '_modality')[0] AS modality_name,
-        cAnalyte.CODE AS analyte_code,
-        tAnalyte.name AS analyte_name
-    WHERE modality_code IS NOT NULL
-      AND analyte_code IS NOT NULL
+WITH
+    context,
+    modality_code,
+    analyte_code,
+    CUIDatasetType,
+    CodeDatasetType,
+    NameDatasetType,
+    pModality.CUI AS CUIModality,
+    cModality.CODE AS CodeModality,
+    tModality.name AS NameModality
 
-    WITH modality_code, modality_name,
-         COLLECT(DISTINCT {code: analyte_code, name: analyte_name}) AS analytes
-    WHERE SIZE(analytes) > 0
+// Get analytes associated with the dataset types.
+WITH
+    context,
+    modality_code,
+    analyte_code,
+    CUIDatasetType,
+    CodeDatasetType,
+    NameDatasetType,
+    CUIModality,
+    CodeModality,
+    NameModality
+ MATCH
+    (pDatasetType:Concept{CUI:CUIDatasetType})-[:has_analyte]->
+    (pAnalyteDatasetType:Concept)-[:isa]->
+    (pAnalyteParent:Concept)-[:CODE]->
+    (cAnalyteParent:Code {SAB:context,CODE:'C002031'})
 
-    RETURN COLLECT({
-        code: modality_code,
-        name: modality_name,
-        analytes: analytes
-    }) AS modalities
-}
 
-WITH CodeDatasetType, NameDatasetType, modalities, assaytypes, is_externally_processed, context,
-     CASE
-       WHEN epictype_filter = 'true' THEN true
-       WHEN epictype_filter = 'false' THEN false
-       ELSE null
-     END AS epictype_filter_bool
-WHERE modalities <> []
-  AND (epictype_filter_bool IS NULL OR is_externally_processed = epictype_filter_bool)
+// Get analytes associated with modalities.
+WITH
+    context,
+    modality_code,
+    analyte_code,
+    CUIDatasetType,
+    CodeDatasetType,
+    NameDatasetType,
+    COLLECT(DISTINCT pAnalyteDatasetType.CUI) AS CUIAnalyteDatasetTypes,
+    CUIModality,
+    CodeModality,
+    NameModality
+MATCH
+    (pModality:Concept{CUI:CUIModality})-[:has_analyte]->
+    (pAnalyteModality:Concept)-[:isa]->
+    (pAnalyteParent:Concept)-[:CODE]->
+    (cAnalyteParent:Code {SAB:context,CODE:'C002031'})
 
-// Stream response.
-WITH {
-        dataset_type:{code:CodeDatasetType, name:NameDatasetType},
-        modalities:modalities,
-        assaytypes:assaytypes,
-        is_externally_processed:is_externally_processed
-        } AS dataset_type
-WHERE dataset_type IS NOT NULL
-RETURN COLLECT(DISTINCT dataset_type) AS dataset_types
+// Find the analytes in the intersection of dataset type and modality.
+WITH
+    context,
+    analyte_code,
+    CUIDatasetType,
+    CodeDatasetType,
+    NameDatasetType,
+    CUIAnalyteDatasetTypes,
+    CUIModality,
+    CodeModality,
+    NameModality,
+    COLLECT(DISTINCT pAnalyteModality.CUI) AS CUIAnalyteModalities
+
+WITH
+    context,
+    analyte_code,
+    CUIDatasetType,
+    CodeDatasetType,
+    NameDatasetType,
+    CUIAnalyteDatasetTypes,
+    CUIModality,
+    CodeModality,
+    NameModality,
+    CUIAnalyteModalities,
+    apoc.coll.intersection(CUIAnalyteDatasetTypes, CUIAnalyteModalities) AS CUIAnalytes
+
+// Get codes and terms for analytes, with optional filter for analyte code.
+WITH
+    context,
+    analyte_code,
+    CodeDatasetType,
+    NameDatasetType,
+    CodeModality,
+    NameModality,
+    CUIAnalytes
+UNWIND CUIAnalytes AS CUIAnalyte
+
+WITH
+    context,
+    analyte_code,
+    CodeDatasetType,
+    NameDatasetType,
+    CodeModality,
+    NameModality,
+    CUIAnalyte
+MATCH
+    (pAnalyte:Concept{CUI:CUIAnalyte})-[:CODE]->
+    (cAnalyte:Code{SAB:context})-[:PT{CUI:pAnalyte.CUI}]->
+    (tAnalyte:Term)
+WHERE (analyte_code = '' OR cAnalyte.CODE = analyte_code)
+
+// -------
+// Build output.
+
+// Analyte array.
+WITH
+    CodeDatasetType,
+    NameDatasetType,
+    CodeModality,
+    NameModality,
+    COLLECT(DISTINCT {code:cAnalyte.CODE, name:tAnalyte.name}) AS analytes
+
+// Modalities array
+WITH
+    CodeDatasetType,
+    NameDatasetType,
+    COLLECT(DISTINCT {code:CodeModality, name:NameModality,analytes:analytes}) AS modalities
+
+// Final output
+WITH
+    COLLECT(DISTINCT {code:CodeDatasetType, name:NameDatasetType, modalities:modalities}) AS dataset_types
+
+RETURN {dataset_types:dataset_types} AS dataset_types
+
