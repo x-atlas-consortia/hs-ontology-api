@@ -118,7 +118,7 @@ def datasettypes_get(ishierarchy:bool=True, dataset_type_code=None, modality_cod
         analyte_code=analyte_code,
         isepic=isepic)
 
-    if result is None or result == [[]]:
+    if result is None or result == []:
         # Empty result
         err = get_404_error_string(prompt_string=f"No results for "
                                                  f"specified parameters")

@@ -143,6 +143,7 @@ WITH
     NameModality,
     COLLECT(DISTINCT pAnalyteModality.CUI) AS CUIAnalyteModalities
 
+
 WITH
     context,
     analyte_code,
@@ -191,16 +192,19 @@ WITH
     CodeModality,
     NameModality,
     COLLECT(DISTINCT {code:cAnalyte.CODE, name:tAnalyte.name}) AS analytes
+WHERE size(analytes) > 0
 
 // Modalities array
 WITH
     CodeDatasetType,
     NameDatasetType,
     COLLECT(DISTINCT {code:CodeModality, name:NameModality,analytes:analytes}) AS modalities
+WHERE size(modalities) >0
 
 // Final output
 WITH
     COLLECT(DISTINCT {code:CodeDatasetType, name:NameDatasetType, modalities:modalities}) AS dataset_types
+WHERE size(dataset_types) >0
 
 RETURN {dataset_types:dataset_types} AS dataset_types
 
