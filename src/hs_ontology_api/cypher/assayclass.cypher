@@ -27,7 +27,7 @@ CALL
         MATCH (pRBD:Concept)-[:has_assaytype]->(passaytype:Concept)-[:CODE]->(cassaytype:Code)-[r:PT]->(tassaytype:Term)
         WHERE pRBD.CUI=CUIRBD
         $assaytype_filter
-        AND r.CUI=passaytype.CUI and cassaytype.SAB=context
+        AND r.CUI=passaytype.CUI AND cassaytype.SAB=context
         RETURN DISTINCT REPLACE(tassaytype.name,'_assaytype','') AS assaytype
 }
 // dir-schema
@@ -66,7 +66,7 @@ CALL
         AND r.CUI=pdsProcess.CUI
         AND cdsProcess.SAB=context
         $process_state_filter
-        RETURN tdsProcess.name as process_state
+        RETURN tdsProcess.name AS process_state
 }
 // dataset_type
 
@@ -148,7 +148,7 @@ CALL
 {
         WITH CUIRBD,context
         OPTIONAL MATCH (pRBD:Concept)-[:has_pipeline_shorthand]->(pshorthand:Concept)-[:CODE]->(cshorthand:Code)-[r:PT]->(tshorthand:Term)
-        WHERE pRBD.CUI=CUIRBD and r.CUI=pshorthand.CUI AND cshorthand.SAB=context
+        WHERE pRBD.CUI=CUIRBD AND r.CUI=pshorthand.CUI AND cshorthand.SAB=context
         RETURN DISTINCT tshorthand.name AS pipeline_shorthand
 }
 // is multi-assay
@@ -158,7 +158,7 @@ CALL
         OPTIONAL MATCH (pRBD:Concept)-[:isa]->(pMulti:Concept)
         WHERE pRBD.CUI=CUIRBD
         AND pMulti.CUI = context+':C004033 CUI'
-        RETURN DISTINCT CASE WHEN pMulti.CUI IS NOT NULL THEN True ELSE False END AS is_multiassay
+        RETURN DISTINCT CASE WHEN pMulti.CUI IS NOT NULL THEN true ELSE false END AS is_multiassay
 }
 // must_contain
 CALL
@@ -176,7 +176,7 @@ CALL
         OPTIONAL MATCH (pRBD:Concept)-[:contains]->(ppii:Concept)
         WHERE pRBD.CUI=CUIRBD
         AND ppii.CUI = context+':C004009 CUI'
-        RETURN DISTINCT CASE WHEN NOT ppii.CUI IS null THEN true ELSE false END AS contains_full_genetic_sequences
+        RETURN DISTINCT CASE WHEN NOT ppii.CUI IS NULL THEN true ELSE false END AS contains_full_genetic_sequences
 }
 
 // active status
@@ -184,7 +184,7 @@ CALL
 {
         WITH CUIRBD,context
         OPTIONAL MATCH (pRBD:Concept)-[:has_active_status]->(pStatus:Concept)-[:CODE]->(cStatus:Code)-[r:PT]->(tStatus:Term)
-        WHERE pRBD.CUI=CUIRBD AND r.CUI=pStatus.CUI and cStatus.SAB=context
+        WHERE pRBD.CUI=CUIRBD AND r.CUI=pStatus.CUI AND cStatus.SAB=context
         RETURN DISTINCT tStatus.name AS active_status
 }
 
@@ -202,16 +202,18 @@ RETURN
                 application_context:context,
                 name:NameRBD
         },
-        assaytype:assaytype,
-        dir_schema:dir_schema,
-        tbl_schema:tbl_schema,
-        vitessce_hints:vitessce_hints,
-        process_state:process_state,
-        pipeline_shorthand:pipeline_shorthand,description:description,
-        is_multiassay:is_multiassay,must_contain:must_contain,
-        active_status:active_status,
-        dataset_type:dataset_type_summary,
-        contains_full_genetic_sequences:contains_full_genetic_sequences
+        value:{
+                assaytype:assaytype,
+                dir_schema:dir_schema,
+                tbl_schema:tbl_schema,
+                vitessce_hints:vitessce_hints,
+                process_state:process_state,
+                pipeline_shorthand:pipeline_shorthand, description:description,
+                is_multiassay:is_multiassay, must_contain:must_contain,
+                active_status:active_status,
+                dataset_type:dataset_type_summary,
+                contains_full_genetic_sequences:contains_full_genetic_sequences
+        }
 } 
 AS rule_based_dataset
 }
