@@ -438,27 +438,27 @@ echo "SIGNATURE: /dataset-types/<id>?application_context" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "1. /dataset-types/valueset => valid; should return 200" | tee -a $testout
+echo "1. /dataset-types/hierarchy/valueset => valid; should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types/valueset" \
+ --url "${UBKG_URL}/dataset-types/hierarchy/valueset" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
-echo "2. /dataset-types/C003076 => valid; should return 200" | tee -a $testout
+echo "2. /dataset-types/hierarchy/C011902 => valid; should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types/C003076" \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
-echo "3. /dataset-types/C003076/C046002 => valid; should return 200" | tee -a $testout
+echo "3. /dataset-types/hierarchy/C011902/C046009 => valid; should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types/C003076/C046002" \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
-echo "4. /dataset-types/C003076/C046002/C002045 => valid; should return 200" | tee -a $testout
+echo "4. /dataset-types/hierarchy/C011902/C046009/C002045 => valid; should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types/C003076/C046002/C002045" \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009/C002045" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 

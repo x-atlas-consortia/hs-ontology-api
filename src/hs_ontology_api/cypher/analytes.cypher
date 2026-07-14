@@ -39,31 +39,33 @@ CALL
         ORDER BY tAnalyte.name
 }
 
-// Get modalities for analyte with optional modality code.
+// Get modality/dataset type combinations for analyte with optional modality code.
 // Direction of relationship is (modality)-[has_analyte]->(analyte).
 CALL
 {
-        WITH context, CUIAnalyte, modality_code
-        MATCH (pAnalyte:Concept {CUI:CUIAnalyte})<-[:has_analyte]-(pModality:Concept)-[:CODE]->(cModality:Code {SAB:context})-[rModality:PT {CUI:pModality.CUI}]-(tModality:Term),(pModality:Concept)-[:isa]->(pModalityParent:Concept)-[:CODE]->(cModalityParent:Code {SAB:context})
-        WHERE cModalityParent.CODE='C046000'
-        AND (modality_code = '' OR cModality.CODE = modality_code)
-        WITH pModality.CUI AS CUIModality, cModality.CODE AS CodeModality, split(tModality.name,'_modality')[0] AS NameModality
+        // Modalities linked to analyte
+        WITH context, CUIAnalyte, modality_code, dataset_type_code
+        MATCH (pAnalyte:Concept {CUI:CUIAnalyte})<-[:has_analyte]-(pModality:Concept)-[:CODE]->(cModality:Code {SAB:context})-[rModality:PT {CUI:pModality.CUI}]-
+        (tModality:Term),(pModality:Concept)-[:isa]->(pModalityParent:Concept)-[:CODE]->(cModalityParent:Code {SAB:context, CODE:'C046000'})
+        WHERE (modality_code = '' OR cModality.CODE = modality_code)
+        WITH context, CUIAnalyte, pModality.CUI AS CUIModality, cModality.CODE AS CodeModality, split(tModality.name,'_modality')[0] AS NameModality,dataset_type_code
         WHERE CodeModality IS NOT NULL
-        RETURN DISTINCT CUIModality, CodeModality, NameModality
-}
 
-// Get dataset types for modality with optional dataset_type code.
-// Direction of relationship is (dataset_type)-[has_modality]->(modality).
-CALL
-{
-        WITH context, CUIModality, dataset_type_code
-        MATCH (pModality:Concept {CUI:CUIModality})<-[:has_modality]-(pDatasetType:Concept)-[:CODE]->(cDatasetType:Code {SAB:context})-[rDatasetType:PT {CUI:pDatasetType.CUI}]->(tDatasetType:Term),(pDatasetType:Concept)-[:isa]->(pDatasetTypeParent:Concept)-[:CODE]->(cDatasetTypeParent:Code{SAB:context})
-        WHERE cDatasetTypeParent.CODE='C003041'
-        AND (dataset_type_code='' OR cDatasetType.CODE=dataset_type_code)
+
+        // Dataset types for analyte/modality path
+        WITH context, CUIAnalyte, CUIModality, CodeModality, NameModality, dataset_type_code
+        OPTIONAL MATCH (pModality:Concept {CUI:CUIModality})<-[:has_modality]-
+        (pDatasetType:Concept)-[:CODE]->(cDatasetType:Code {SAB:context})-[rDatasetType:PT {CUI:pDatasetType.CUI}]->(tDatasetType:Term),
+        (cDatasetTypeParent:Code{SAB:context, CODE:'C003041'})<-[:CODE]-(pDatasetTypeParent:Concept)<-[:isa]-(pDatasetType:Concept)-[:has_analyte]->(p:Concept{CUI:CUIAnalyte})
+        WHERE dataset_type_code='' OR cDatasetType.CODE=dataset_type_code
+
         RETURN DISTINCT
-          pDatasetType.CUI AS CUIDatasetType,
-          cDatasetType.CODE AS CodeDatasetType,
-          tDatasetType.name AS NameDatasetType
+            CUIModality,
+            CodeModality,
+            NameModality,
+            pDatasetType.CUI AS CUIDatasetType,
+            cDatasetType.CODE AS CodeDatasetType,
+            tDatasetType.name AS NameDatasetType
 }
 
 // Get whether an Epic datatype.

@@ -28,7 +28,7 @@ def datasettypes_dataset_type_get(dataset_type_code):
 def datasettypes_dataset_type_modality_get(dataset_type_code, modality_code):
     return datasettypes_get(dataset_type_code=dataset_type_code, modality_code=modality_code)
 
-@datasettypes_blueprint.route('/<dataset_type_code>/<modality_code>/<analyte_code>', methods=['GET'])
+@datasettypes_blueprint.route('/hierarchy/<dataset_type_code>/<modality_code>/<analyte_code>', methods=['GET'])
 def datasettypes_dataset_type_modality_analyte_get(dataset_type_code, modality_code, analyte_code):
     return datasettypes_get(dataset_type_code=dataset_type_code, modality_code=modality_code, analyte_code=analyte_code)
 

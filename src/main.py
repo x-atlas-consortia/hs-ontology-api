@@ -22,8 +22,6 @@ from hs_ontology_api.routes.fieldtypesinfo.fieldtypesinfo_controller import fiel
 from hs_ontology_api.routes.fieldentities.fieldentities_controller import field_entities_blueprint
 from hs_ontology_api.routes.assayclasses.assayclasses_controller import assayclasses_blueprint
 from hs_ontology_api.routes.datasettypes.datasettypes_controller import datasettypes_blueprint
-from hs_ontology_api.routes.modalities.modalities_controller import modalities_blueprint
-from hs_ontology_api.routes.analytes.analytes_controller import analytes_blueprint
 from hs_ontology_api.routes.pathways.pathways_controller import pathways_blueprint
 from hs_ontology_api.routes.annotations.annotations_controller import annotations_blueprint
 
@@ -62,8 +60,6 @@ app.register_blueprint(field_types_info_blueprint)
 app.register_blueprint(field_entities_blueprint)
 app.register_blueprint(assayclasses_blueprint)
 app.register_blueprint(datasettypes_blueprint)
-app.register_blueprint(modalities_blueprint)
-app.register_blueprint(analytes_blueprint)
 app.register_blueprint(pathways_blueprint)
 app.register_blueprint(annotations_blueprint)
 
