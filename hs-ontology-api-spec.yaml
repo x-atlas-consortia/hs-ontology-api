@@ -2780,7 +2780,7 @@ components:
       type: object
       description: A set of non-hierarchical dataset type objects
       properties:
-        dataset_types:
+        dataset_type:
           type: array
           items:
             type: object

@@ -19,4 +19,4 @@ CALL
         ORDER BY tDatasetType.name
 }
 WITH CodeDatasetType, NameDatasetType
-RETURN DISTINCT {code:CodeDatasetType,name:NameDatasetType} AS dataset_types
+RETURN DISTINCT {code:CodeDatasetType,name:NameDatasetType} AS dataset_type
