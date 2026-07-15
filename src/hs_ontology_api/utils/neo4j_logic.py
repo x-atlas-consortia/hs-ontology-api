@@ -1718,6 +1718,7 @@ def dataset_types_get_logic(neo4j_instance, ishierarchy:bool, application_contex
             isepicbool = False
         querytxt = querytxt.replace('$epictype_filter', f"{isepicbool}")
 
+    print(querytxt)
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1726,7 +1727,7 @@ def dataset_types_get_logic(neo4j_instance, ishierarchy:bool, application_contex
             recds: neo4j.Result = session.run(query)
 
             for record in recds:
-                dst = record.get('dataset_types')
+                dst = record.get('dataset_type')
                 try:
                     dataset_types.append(dst)
                 except KeyError:
