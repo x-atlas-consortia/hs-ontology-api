@@ -203,8 +203,8 @@ WHERE size(modalities) >0
 
 // Final output
 WITH
-    COLLECT(DISTINCT {code:CodeDatasetType, name:NameDatasetType, modalities:modalities}) AS dataset_type
+    COLLECT(DISTINCT {dataset_type:{code:CodeDatasetType, name:NameDatasetType}, modalities:modalities}) AS dataset_type
 WHERE size(dataset_type) >0
 
-RETURN {dataset_type:dataset_type} AS dataset_type
+RETURN dataset_type
 

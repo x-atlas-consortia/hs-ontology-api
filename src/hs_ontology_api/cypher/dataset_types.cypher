@@ -100,4 +100,4 @@ WITH {
         } AS dataset_type
 WITH DISTINCT dataset_type AS dataset_types
 WHERE dataset_types IS NOT NULL
-RETURN collect(DISTINCT dataset_types) AS dataset_types
+RETURN collect(DISTINCT dataset_types) AS dataset_type
