@@ -1654,7 +1654,7 @@ def dataset_types_valueset_get_logic(neo4j_instance) -> list:
             recds: neo4j.Result = session.run(query)
 
             for record in recds:
-                dst = record.get('dataset_types')
+                dst = record.get('dataset_type')
                 try:
                     dataset_types.append(dst)
                 except KeyError:
