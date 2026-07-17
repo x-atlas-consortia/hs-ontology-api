@@ -92,7 +92,7 @@ WITH
     NameDatasetType,
     pModality.CUI AS CUIModality,
     cModality.CODE AS CodeModality,
-    tModality.name AS NameModality
+    REPLACE(tModality.name,'_modality','') AS NameModality
 
 // Get analytes associated with the dataset types.
 WITH
