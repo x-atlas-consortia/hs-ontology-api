@@ -10,7 +10,7 @@ CALL
 {
 	MATCH (cParent:Code)<-[r1]-(pParent:Concept)<-[r2:isa]-(pOrgan:Concept)-[r3:CODE]->(cOrgan:Code)-[r4:PT]->(tOrgan:Term)
 	WHERE cParent.SAB = $sab AND cParent.CODE = 'C000008' AND r2.SAB=$sab AND cOrgan.SAB=$sab AND r4.CUI=pOrgan.CUI
-	RETURN cOrgan.CODE as OrganCode,cOrgan.SAB as OrganSAB,tOrgan.name as OrganName, pOrgan.CUI as OrganCUI
+	RETURN cOrgan.CODE AS OrganCode,cOrgan.SAB AS OrganSAB,tOrgan.name AS OrganName, pOrgan.CUI AS OrganCUI
 }
 // Organ codes are cross-referenced to UBERON, where possible. Obtain the UBERON codes.
 // Apr 2025 fix to account for new ingestion workflow for UBERON, which imports from
@@ -27,23 +27,27 @@ CALL
 // Left breast (earlier designation)
 // Right mammary gland (later designation)
 // Right breast (earlier designation)
+// JULY 2026 - Add NCI coding for organoid
 CALL
 {
 	WITH OrganCUI OPTIONAL MATCH (pOrgan:Concept)-[r1:CODE]->(cOrgan:Code)-[r2:PT]->(tOrgan:Term)
-	WHERE pOrgan.CUI=OrganCUI AND cOrgan.SAB IN ['FMA']
+	WHERE pOrgan.CUI=OrganCUI AND cOrgan.SAB IN ['FMA','NCI']
 	AND r2.CUI=pOrgan.CUI
 	RETURN CASE
 	    WHEN pOrgan.CUI= 'C0222601' THEN 'FMA:57991'
 	    WHEN pOrgan.CUI='C0222600' THEN 'FMA:57987'
 	    WHEN pOrgan.CUI='C5886936' THEN 'FMA:57991'
 	    WHEN pOrgan.CUI='C5886935' THEN 'FMA:57987'
+      WHEN pOrgan.CUI='C0029250' THEN 'NCI:C172259'
 	    ELSE cOrgan.CodeID END AS OrganFMA
 }
+
+
 // RUI codes are property nodes linked to organ nodes.
 CALL
 {
 	WITH OrganCUI OPTIONAL MATCH (pOrgan:Concept)-[r1:has_two_character_code]->(p2CC:Concept)-[r2:PREF_TERM]->(t2CC:Term)
-	WHERE pOrgan.CUI=OrganCUI AND r1.SAB=$sab RETURN t2CC.name as OrganTwoCharacterCode
+	WHERE pOrgan.CUI=OrganCUI AND r1.SAB=$sab RETURN t2CC.name AS OrganTwoCharacterCode
 }
 // Organ categories
 // April 2025 fix to account for: 1. new ingestion workflow for UBERON, for which term relationships
@@ -67,9 +71,9 @@ CALL
    RETURN DISTINCT
    CASE
    // Kidney mapped to both kidney and mammalian kidney
-   WHEN OrganCUI in ['C0227614','C0227613'] THEN 'UBERON:0002113'
+   WHEN OrganCUI IN ['C0227614','C0227613'] THEN 'UBERON:0002113'
    // Lung mapped to both lung and pair of lungs
-   WHEN OrganCUI in ['C0225730','C0225706'] THEN 'UBERON:0002048'
+   WHEN OrganCUI IN ['C0225730','C0225706'] THEN 'UBERON:0002048'
    ELSE cUBERON.CodeID END AS OrganCatUBERON,tOrganCat.name AS OrganCatTerm
 }
 // Laterality
@@ -81,7 +85,7 @@ CALL
     AND rLaterality.CUI = pLaterality.CUI
     AND cLaterality.SAB=$sab
     // Return null for 'No Laterality' or 'Unknown Laterality'
-    RETURN DISTINCT CASE WHEN cLaterality.CODE IN ['C030039','C030040','C030041','C030022','C030023'] THEN NULL ELSE REPLACE(tLaterality.name," Laterality","") END AS laterality
+    RETURN DISTINCT CASE WHEN cLaterality.CODE IN ['C030039','C030040','C030041','C030022','C030023'] THEN null ELSE REPLACE(tLaterality.name," Laterality","") END AS laterality
 }
 // April 2025 RUI support
 CALL
@@ -91,11 +95,11 @@ CALL
    WHERE pOrgan.CUI = OrganCUI
    AND cRUI.SAB='HUBMAP'
    AND cRUI.CODE='C045011'
-   RETURN DISTINCT CASE WHEN NOT pRUI.CUI IS null THEN true ELSE false END AS rui_supported
+   RETURN DISTINCT CASE WHEN NOT pRUI.CUI IS NULL THEN true ELSE false END AS rui_supported
 }
 // Filter out the "Other" organ node.
 WITH OrganCode,OrganSAB,OrganName,OrganTwoCharacterCode,OrganUBERON,OrganFMA,OrganCUI,laterality,rui_supported,
-CASE WHEN OrganCatUBERON IS NULL THEN NULL ELSE {organ_uberon:OrganCatUBERON, term:OrganCatTerm} END AS category
+CASE WHEN OrganCatUBERON IS NULL THEN null ELSE {organ_uberon:OrganCatUBERON, term:OrganCatTerm} END AS category
 
 WHERE NOT (OrganCode = 'C030071' AND OrganSAB=$sab)
 RETURN DISTINCT {code:OrganCode, sab:OrganSAB, term:OrganName,

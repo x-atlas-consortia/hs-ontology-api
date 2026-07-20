@@ -1825,7 +1825,7 @@ components:
           example: true
         organ_uberon:
           type: string
-          description: UBERON or FMA code.
+          description: Code for the organ in an external vocabulary. Although majority of organs have UBERON codes, organs with laterality (e.g., left knee) will use FMA codes. Organoid is a special case in that it maps to a NCI code.
         organ_cui:
           type: string
           description: The organ CUI
