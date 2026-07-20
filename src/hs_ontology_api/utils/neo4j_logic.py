@@ -1135,7 +1135,7 @@ def celltype_get_logic(neo4j_instance, searchids:list[str]) -> list:
 
         return result[0]
 
-def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[FieldDescription]:
+def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_source=None) -> List[dict]:
     """
     Returns detailed information on an ingest metadata field description.
     :param: neo4j_instance - neo4j connection
@@ -1143,7 +1143,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
     :param: definition_source - source of field description-- HMFIELD or CEDAR
     """
     # response list
-    fielddescriptions: [FieldDescription] = []
+    fielddescriptions = []
 
     # Used in WHERE clauses when no filter is needed.
     identity_filter = '1=1'
@@ -1155,22 +1155,14 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
 
     # Allow for filtering on field name.
     if field_name is None:
-        field_filter = f' AND {identity_filter}'
-    else:
-        field_filter = f" AND tField.name = '{field_name}'"
-    querytxt = querytxt.replace('$field_filter', field_filter)
+        field_name = '""'
+    querytxt = querytxt.replace('$field_filter', f'"{field_name}"')
 
-    # Allow for filtering on description source
+    # Allow for filtering on description source.
     if definition_source is None:
-        source_filter = " AND d.SAB IN ['HMFIELD', 'CEDAR'] "
-    elif definition_source in ['HMFIELD', 'CEDAR']:
-        source_filter = f" AND d.SAB = '{definition_source}'"
-    else:
-        source_filter = " AND d.SAB IN ['HMFIELD', 'CEDAR'] "
+        definition_source = ""
+    querytxt = querytxt.replace('$source_filter', f'"{definition_source}"')
 
-    querytxt = querytxt.replace('$source_filter', source_filter)
-
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
