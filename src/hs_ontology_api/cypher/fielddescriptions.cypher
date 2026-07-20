@@ -27,6 +27,8 @@ AND CASE
   WHEN source_filter = "" THEN d.SAB IN ['HMFIELD', 'CEDAR']
   WHEN source_filter IN ['HMFIELD', 'CEDAR'] THEN d.SAB = source_filter
   ELSE d.SAB = source_filter END
-RETURN tField.name AS field_name, pField.CUI as CUIField,
-COLLECT(DISTINCT d.SAB + '|' + d.DEF) AS defs, tField.name AS identifier, apoc.text.join(COLLECT(DISTINCT cField.CodeID),'|') AS code_ids
+WITH tField.name as field_name,
+COLLECT(DISTINCT cField.CodeID) AS code_ids,
+COLLECT(DISTINCT {source: d.SAB, description:d.DEF}) AS descriptions
 ORDER BY tField.name
+RETURN COLLECT(DISTINCT {code_ids:code_ids,descriptions:descriptions,name:field_name}) AS code_ids

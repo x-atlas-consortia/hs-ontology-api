@@ -18,7 +18,7 @@ from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 
 # JAS Dec 2023
-from hs_ontology_api.models.fielddescription import FieldDescription
+#from hs_ontology_api.models.fielddescription import FieldDescription
 from hs_ontology_api.models.fieldtype import FieldType
 from hs_ontology_api.models.fieldassay import FieldAssay
 # JAS Jan 2024
@@ -1155,7 +1155,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
 
     # Allow for filtering on field name.
     if field_name is None:
-        field_name = '""'
+        field_name = ''
     querytxt = querytxt.replace('$field_filter', f'"{field_name}"')
 
     # Allow for filtering on description source.
@@ -1175,11 +1175,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
             # Build response object.
             for record in recds:
                 try:
-                    fielddescription: FieldDescription = \
-                    FieldDescription(code_ids=record.get('code_ids'),
-                                     name=record.get('identifier'),
-                                     descriptions=record.get('defs')).serialize()
-
+                    fielddescription=record.get('code_ids')
                     fielddescriptions.append(fielddescription)
                     record_count = record_count + 1
                 except KeyError:
