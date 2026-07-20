@@ -75,6 +75,7 @@ echo | tee -a $testout
 # $ (export UBKG_URL=http://127.0.0.1:5002; ./test_api.sh)
 # Using UBKG at: http://127.0.0.1:5002
 
+
 echo "TESTS FOR: annotations/organ-levels GET" | tee -a $testout
 echo "SIGNATURE: /annotations/<optional search terms>/organ-levels/?sab=<sab>" | tee -a $testout
 echo | tee -a $testout
@@ -408,7 +409,7 @@ echo "SIGNATURE: /dataset-types?application_context" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "1. /dataset-types?application_context=x => invalid application context; should return 400" | tee -a $testout
+echo "1. /dataset-types?application_context=x => application context; should ignore and return 200" | tee -a $testout
 curl --request GET \
  --url "${UBKG_URL}/dataset-types?application_context=HUBMAPx" \
  --header "Accept: application/json" | tee -a $testout
@@ -416,30 +417,20 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-
-echo "2. /dataset-types => missing application context; should return 400" | tee -a $testout
+echo "2. /dataset-types?is_externally_processed=mango => invalid parameter; should return custom 400" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types?" \
- --header "Accept: application/json" | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
-
-echo "3. /dataset-types?application_context=HUBMAP&is_externally_processed=mango => invalid parameter; should return custom 400" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/dataset-types?application_context=HUBMAP&is_externally_processed=mango" \
+ --url "${UBKG_URL}/dataset-types?is_externally_processed=mango" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
-echo "4. /dataset-types?application_context=HUBMAP => valid; should return 200" | tee -a $testout
+echo "3. /dataset-types => valid; should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types?application_context=HUBMAP" \
+ --url "${UBKG_URL}/dataset-types?application_context=SENNET" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
-echo "5. /dataset-types?application_context=HUBMAP&is_externally_processed=false => valid; should return 200" | tee -a $testout
+echo "4. /dataset-types?is_externally_processed=false => valid; should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types?application_context=HUBMAP&is_externally_processed=true" \
+ --url "${UBKG_URL}/dataset-types?application_context=HUBMAP&is_externally_processed=false" \
  --header "Accept: application/json" | tee -a $testout
-
 
 # dataset-types/<id> uses the same code as dataset-types
 echo "TESTS FOR: dataset-types/<id> GET" | tee -a $testout
@@ -447,24 +438,29 @@ echo "SIGNATURE: /dataset-types/<id>?application_context" | tee -a $testout
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "1. /dataset-types/test?application_context=x => invalid dataset-type; should return custom 404" | tee -a $testout
+echo "1. /dataset-types/hierarchy/valueset => valid; should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types/test?application_context=HUBMAPx" \
- --header "Accept: application/json" | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
-
-echo "2. /dataset-types/2D Imaging Mass Cytometry?application_context=HUBMAP => valid; should return 200" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/dataset-types/2D%20Imaging%20Mass%20Cytometry?application_context=HUBMAP" \
+ --url "${UBKG_URL}/dataset-types/hierarchy/valueset" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
-echo "3. /dataset-types/2D Imaging Mass Cytometry?application_context=SENNET => valid; should return 200 WITH DATASET MODALITY" | tee -a $testout
+echo "2. /dataset-types/hierarchy/C011902 => valid; should return 200" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types/2D%20Imaging%20Mass%20Cytometry?application_context=SENNET" \
- --header "Accept: application/json" | tee -a $testout
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "3. /dataset-types/hierarchy/C011902/C046009 => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "4. /dataset-types/hierarchy/C011902/C046009/C002045 => valid; should return 200" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009/C002045" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
 echo
 
 echo "TESTS FOR: organs GET" | tee -a $testout

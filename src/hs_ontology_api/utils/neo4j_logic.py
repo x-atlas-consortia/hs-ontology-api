@@ -1636,41 +1636,15 @@ def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, proce
 
     return assayclasses
 
-def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic=None) -> dict:
+def dataset_types_valueset_get_logic(neo4j_instance) -> list:
     """
-    July 2024
-        Obtains information on dataset types.
+    Returns a valueset of codes for dataset types.
+    :param neo4j_instance: neo4j connection
 
-        The return from the query is a complete JSON, so there is no need for a model class.
+    """
 
-        :param neo4j_instance: neo4j connection
-        :param datasettype: dataset_type
-        :param context: application context--i.e., HUBMAP or SENNET
-        :param isepic: optional filter to Epic (externally processed) dataset types
-
-        """
-    datasettypes: [dict] = []
-
-    # Load and parameterize query.
-    querytxt = loadquerystring('datasettypes.cypher')
-
-    # Filter by application context.
-    querytxt = querytxt.replace('$context', context)
-
-    # Filter by dataset type
-    if datasettype is not None:
-        querytxt = querytxt.replace('$datasettype_filter', f"AND tDatasetType.name='{datasettype}'")
-    else:
-        querytxt = querytxt.replace('$datasettype_filter','')
-
-    if isepic in ['true','false']:
-        if isepic == 'true':
-            isepicbool = True
-        else:
-            isepicbool = False
-        querytxt = querytxt.replace('$epictype_filter', f"WHERE is_externally_processed={isepicbool}")
-    else:
-        querytxt = querytxt.replace('$epictype_filter','')
+    dataset_types: [dict] = []
+    querytxt = loadquerystring('dataset_type_valueset.cypher')
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
@@ -1680,9 +1654,9 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
             recds: neo4j.Result = session.run(query)
 
             for record in recds:
-                dst = record.get('dataset_types')
+                dst = record.get('dataset_type')
                 try:
-                    datasettypes.append(dst)
+                    dataset_types.append(dst)
                 except KeyError:
                     pass
         except neo4j.exceptions.ClientError as e:
@@ -1690,7 +1664,79 @@ def datasettypes_get_logic(neo4j_instance,datasettype=None, context=None, isepic
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-    return datasettypes
+    return dataset_types
+
+def dataset_types_get_logic(neo4j_instance, ishierarchy:bool, application_context: str, dataset_type_code=None, modality_code=None, analyte_code=None, isepic=None) -> dict:
+    """
+        Obtains information on SenNet dataset types.
+
+        The return from the query is a complete JSON, so there is no need for a model class.
+
+        :param neo4j_instance: neo4j connection
+        :param application_context: application context
+        :param ishierarchy: whether a hierarchical query (SenNet)
+        :param dataset_type_code: dataset_type code
+        :param modality_code: modality code
+        :param analyte_code: analyte code
+        :param isepic: optional filter to Epic (externally processed) dataset types
+
+        """
+    dataset_types: [dict] = []
+
+    # Load and parameterize query.
+    if ishierarchy:
+        querytxt = loadquerystring('dataset_types_hierarchy.cypher')
+    else:
+        querytxt = loadquerystring('dataset_types.cypher')
+
+    # Filter by application context.
+    querytxt = querytxt.replace('$context', application_context)
+
+    # Filter by dataset type code.
+    if dataset_type_code is not None:
+        querytxt = querytxt.replace('$dataset_type_code', f"'{dataset_type_code}'")
+    else:
+        querytxt = querytxt.replace('$dataset_type_code',f"''")
+
+
+    # Filter by modality code.
+    if modality_code is not None:
+        querytxt = querytxt.replace('$modality_code', f"'{modality_code}'")
+    else:
+        querytxt = querytxt.replace('$modality_code', f"''")
+
+    # Filter by analyte code.
+    if analyte_code is not None:
+        querytxt = querytxt.replace('$analyte_code', f"'{analyte_code}'")
+    else:
+        querytxt = querytxt.replace('$analyte_code', f"''")
+
+    if isepic in ['true','false']:
+        if isepic == 'true':
+            isepicbool = True
+        else:
+            isepicbool = False
+        querytxt = querytxt.replace('$epictype_filter', f"{isepicbool}")
+
+    # Set timeout for query based on value in app.cfg.
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+
+    with neo4j_instance.driver.session() as session:
+        try:
+            recds: neo4j.Result = session.run(query)
+
+            for record in recds:
+                dst = record.get('dataset_type')
+                try:
+                    dataset_types.append(dst)
+                except KeyError:
+                    pass
+        except neo4j.exceptions.ClientError as e:
+            # If the error is from a timeout, raise a HTTP 408.
+            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                raise GatewayTimeout
+
+    return dataset_types
 
 def pathway_events_with_genes_get_logic(neo4j_instance, geneids=None, pathwayid=None,
                       pathwaynamestartswith=None, eventtypes=None) -> List[dict]:

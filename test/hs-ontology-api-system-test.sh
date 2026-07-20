@@ -295,9 +295,37 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "/dataset-types?application_context=HUBMAP" | tee -a $testout
+echo "/dataset-types?application_context=hubmap" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/dataset-types?application_context=HUBMAP" \
+ --url "${UBKG_URL}/dataset-types?application_context=hubmap" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/dataset-types/hierarchy" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/dataset-types/hierarchy/valueset" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/valueset" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+
+echo "/dataset-types/hierarchy/C011902" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/dataset-types/hierarchy/C011902/C046009" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009" \
+ --header "Accept: application/json" | cut -c1-60 | tee -a $testout
+echo
+echo "/dataset-types/hierarchy/C011902/C046009/C020131" | tee -a $testout
+curl --request GET \
+ --url "${UBKG_URL}/dataset-types/hierarchy/C011902/C046009/C020131" \
  --header "Accept: application/json" | cut -c1-60 | tee -a $testout
 echo
 
