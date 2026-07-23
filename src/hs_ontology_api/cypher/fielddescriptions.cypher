@@ -31,4 +31,4 @@ WITH tField.name as field_name,
 COLLECT(DISTINCT cField.CodeID) AS code_ids,
 COLLECT(DISTINCT {source: d.SAB, description:d.DEF}) AS descriptions
 ORDER BY tField.name
-RETURN COLLECT(DISTINCT {code_ids:code_ids,descriptions:descriptions,name:field_name}) AS code_ids
+RETURN DISTINCT {code_ids:code_ids,descriptions:descriptions,name:field_name} AS code_ids
