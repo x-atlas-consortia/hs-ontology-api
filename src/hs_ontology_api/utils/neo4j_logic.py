@@ -1189,7 +1189,7 @@ def field_descriptions_get_logic(neo4j_instance, field_name=None, definition_sou
     return fielddescriptions
 
 def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, type_source=None, type=None)\
-        -> List[FieldType]:
+        -> List[dict]:
     """
     Returns detailed information on an ingest metadata field's associated data types.
     The types here are not to be confused
@@ -1202,50 +1202,43 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
     :param type: term for the type--e.g., string
     """
     # response list
-    fieldtypes: [FieldType] = []
-
-    # Used in WHERE clauses when no filter is needed.
-    identity_filter = '1=1'
+    fieldtypes = []
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'fieldtypes.cypher'
     querytxt = loadquerystring(queryfile)
 
-    # Allow for filtering on field name.
+    # Allow for filtering on case-sensitive field name.
     if field_name is None:
-        field_filter = f' AND {identity_filter}'
-    else:
-        field_filter = f" AND tField.name = '{field_name}'"
-    querytxt = querytxt.replace('$field_filter', field_filter)
+        field_name = ''
+    querytxt = querytxt.replace('$field_filter', f'"{field_name}"')
 
-    # Allow for filtering on mapping source.
-    if mapping_source is None:
-        mapping_source_filter = " AND rdt.SAB IN ['HMFIELD', 'CEDAR'] "
-    elif mapping_source in ['HMFIELD', 'CEDAR']:
-        mapping_source_filter = f" AND rdt.SAB = '{mapping_source}'"
+    # Allow for filtering on case-insensitive mapping source.
+    if mapping_source in ['HMFIELD', 'CEDAR']:
+        mapping_source_filter = f"['{mapping_source.upper()}']"
     else:
-        mapping_source_filter = " AND rdt.SAB IN ['HMFIELD', 'CEDAR'] "
+        mapping_source_filter = f"['HMFIELD', 'CEDAR']"
     querytxt = querytxt.replace('$mapping_source_filter', mapping_source_filter)
 
-    # Allow for filtering on type source.
-    if type_source is None:
-        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
-    elif type_source in ['HMFIELD', 'XSD']:
-        type_source_filter = f" AND cType.SAB = '{type_source}'"
+    # Allow for filtering on case-insensitive type source.
+    if type_source in ['HMFIELD', 'XSD']:
+        type_source_filter = f"['{type_source.upper()}']"
     else:
-        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
+        type_source_filter = f"['HMFIELD', 'XSD']"
     querytxt = querytxt.replace('$type_source_filter', type_source_filter)
 
-    # Allow for filtering on type.
+    # Allow for filtering on case-sensitive type.
+    # Remove sab as necessary.
     if type is None:
-        type_filter = f"AND {identity_filter}"
+        type_filter = f"''"
     else:
-        type_filter = f"AND CASE WHEN tType.name CONTAINS ':' THEN split(tType.name,':')[1] " \
-                      f"ELSE tType.name END='{type}'"
+        if ':' in type:
+            type_filter = f"'{type.split(':')[1]}'"
+        else:
+            type_filter = f"'{type}'"
     querytxt = querytxt.replace('$type_filter', type_filter)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1258,10 +1251,7 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
             # Build response object.
             for record in recds:
                 try:
-                    fieldtype: FieldType = FieldType(code_ids=record.get('code_ids'),
-                                                     name=record.get('field_name'),
-                                                     types=record.get('types')).serialize()
-
+                    fieldtype = record.get('field_types')
                     fieldtypes.append(fieldtype)
                     record_count = record_count + 1
                 except KeyError:
@@ -1303,7 +1293,7 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
         type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
     querytxt = querytxt.replace('$type_source_filter', type_source_filter)
 
-    # March 2025
+    print(querytxt)
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 

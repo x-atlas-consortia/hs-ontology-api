@@ -1302,7 +1302,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FieldTypesResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldTypesResponse'
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
@@ -1360,7 +1362,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FieldTypesResponseSingle'
+                type: array
+                items:
+                  $ref: '#/components/schemas/FieldTypesResponse'
         '303':
           description: The response size exceeds a limit set by the server. The response content is stored in a file in a AWS S3 bucket. The returned response includes a URL that can be used to download the stored file.
         '400':
@@ -2460,38 +2464,6 @@ components:
                       type: string
                       description: the term for the type code in the type ontology
                       example: float
-    FieldTypesResponseSingle:
-      type: object
-      description: Associations between single ingest metadata field and ingest metadata field data types
-      properties:
-        code_ids:
-          type: array
-          description: Codes for the field in different ontologies. HMFIELD codes are from the legacy field_*.yaml files; CEDAR codes are from CEDAR template schemas.
-          items:
-            type: string
-            example: ["HMFIELD:1018","CEDAR:ea6e26f1-30df-4a8c-9f15-63111ea0b68b"]
-        name:
-          type: string
-          description: identifier for metadata field
-          example: area_unit
-        types:
-          type: array
-          description: field type associations
-          items:
-            type: object
-            properties:
-              mapping_source:
-                type: string
-                description: source of the field-to-type mapping (i.e., the ontology).
-                example: CEDAR
-              type_source:
-                type: string
-                description: source of the field code (i.e., the type ontology)
-                example: XSD
-              type:
-                type: string
-                description: the term for the type code in the type ontology
-                example: float
     FieldTypesInfoResponse:
       type: object
       description: Details on ingest metadata field types.
