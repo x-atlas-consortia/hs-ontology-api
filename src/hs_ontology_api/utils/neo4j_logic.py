@@ -17,11 +17,7 @@ from hs_ontology_api.models.genedetail import GeneDetail
 from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 
-# JAS Dec 2023
-
-from hs_ontology_api.models.fieldtype import FieldType
 from hs_ontology_api.models.fieldassay import FieldAssay
-# JAS Jan 2024
 from hs_ontology_api.models.fieldschema import FieldSchema
 from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
 from hs_ontology_api.models.fieldentity import FieldEntity
