@@ -83,5 +83,6 @@ WITH
      field_name,
      code_ids,
      COLLECT(DISTINCT {mapping_source:mapping_source, type_source:type_source, type:field_type}) AS types
+ORDER BY field_name
 
 RETURN DISTINCT {code_ids:code_ids,name:field_name,types:types} AS field_types
