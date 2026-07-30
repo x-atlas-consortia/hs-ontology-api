@@ -14,8 +14,6 @@ field_types_blueprint = Blueprint('field-types', __name__, url_prefix='/field-ty
 def field_types_get(name=None):
     """Returns detailed information on field types.
 
-    :rtype: Union[List[FieldType]]
-
     """
     # Validate parameter names.
     err = validate_query_parameter_names(['mapping_source', 'type_source', 'type'])
@@ -55,7 +53,6 @@ def field_types_get(name=None):
                         'Refer to the SmartAPI documentation for this endpoint for more information.'
         return make_response(err, 404)
 
-    # March 2025
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)
 

@@ -14,7 +14,6 @@ field_descriptions_blueprint = Blueprint('field-descriptions', __name__, url_pre
 def field_descriptions_get(name=None):
     """Returns detailed information on field descriptions.
     :param name: field name (used in the field-descriptions/<name> route)
-    :rtype: Union[List[FieldDescription]]
 
     """
     # Validate parameter names.
@@ -38,7 +37,6 @@ def field_descriptions_get(name=None):
         err = get_404_error_string(prompt_string='No field descriptions')
         return make_response(err, 404)
 
-    # March 2025
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)
 
