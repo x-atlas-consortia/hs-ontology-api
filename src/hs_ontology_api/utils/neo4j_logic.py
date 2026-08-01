@@ -19,7 +19,6 @@ from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 
 from hs_ontology_api.models.fieldassay import FieldAssay
 from hs_ontology_api.models.fieldschema import FieldSchema
-from hs_ontology_api.models.fieldtype_detail import FieldTypeDetail
 from hs_ontology_api.models.fieldentity import FieldEntity
 
 # Mar 2025
@@ -1260,36 +1259,30 @@ def field_types_get_logic(neo4j_instance, field_name=None, mapping_source=None, 
 
     return fieldtypes
 
-def field_types_info_get_logic(neo4j_instance, type_source=None):
+def field_types_info_get_logic(neo4j_instance, type_source=None)->List[dict]:
     """
     Returns a unique list of available field data types, with optional filtering.
     Used by the field-types-info endpoint.
 
     :param neo4j_instance: neo4j connection
     :param type_source:  name of the source of the field term--i.e., the type ontology. Choices are HMFIELD and XSD.
-    :return:
     """
     # response list
-    fieldtypes: [FieldTypeDetail] = []
+    fieldtypes = []
 
-    # Used in WHERE clauses when no filter is needed.
-    identity_filter = '1=1'
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
     queryfile = 'fieldtypelist.cypher'
     querytxt = loadquerystring(queryfile)
 
-    # Allow for filtering on type source.
-    if type_source is None:
-        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
-    elif type_source in ['HMFIELD', 'XSD']:
-        type_source_filter = f" AND cType.SAB = '{type_source}'"
+    # Allow for filtering on case-insensitive type source.
+    if type_source in ['HMFIELD', 'XSD']:
+        type_source_filter = f"['{type_source.upper()}']"
     else:
-        type_source_filter = " AND cType.SAB IN ['HMFIELD', 'XSD'] "
+        type_source_filter = f"['HMFIELD', 'XSD']"
     querytxt = querytxt.replace('$type_source_filter', type_source_filter)
 
-    print(querytxt)
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1301,14 +1294,11 @@ def field_types_info_get_logic(neo4j_instance, type_source=None):
             # Build response object.
             for record in recds:
                 try:
-                    fieldtypedetail: FieldTypeDetail = \
-                    FieldTypeDetail(type_detail=record.get('type'),
-                                    is_mapped=False).serialize()
-
-                    fieldtypes.append(fieldtypedetail)
-
+                    fieldtype = record.get('field_types')
+                    fieldtypes.append(fieldtype)
                 except KeyError:
                     pass
+
         except neo4j.exceptions.ClientError as e:
             # If the error is from a timeout, raise a HTTP 408.
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':

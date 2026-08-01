@@ -14,8 +14,6 @@ field_types_info_blueprint = Blueprint('field-types-info', __name__, url_prefix=
 def field_types_info_get():
     """Returns unique list of information on field types.
 
-    :rtype: Union[List[FieldType]]
-
     """
 
     # Validate parameters
@@ -39,7 +37,6 @@ def field_types_info_get():
         err = get_404_error_string(prompt_string='No field types')
         return make_response(err, 404)
 
-    # March 2025
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)
 
