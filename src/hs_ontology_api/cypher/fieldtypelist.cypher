@@ -8,7 +8,7 @@ MATCH (cParentType:Code)<-[:CODE]-(pParentType:Concept)<-[:isa]-
 WHERE cParentType.CodeID IN ['XSD:anySimpleType','HMFIELD:2000']
 AND cType.SAB IN type_source_filter
 
-WITH cType.SAB as type_source,
+WITH cType.SAB AS type_source,
 CASE
   WHEN tType.name CONTAINS ':' THEN split(tType.name,':')[1]
   ELSE tType.name
