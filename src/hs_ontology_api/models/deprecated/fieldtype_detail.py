@@ -1,6 +1,5 @@
 # coding: utf-8
 
-# JAS January 2024
 # FieldTypeDetail model class representing a single member of a type ontology (HMFIELD or XSD).
 # Used by both the field_types and field_types_info endpoints.
 
