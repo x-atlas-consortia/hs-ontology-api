@@ -1440,7 +1440,7 @@ def field_schemas_get_logic(neo4j_instance, field_name=None, mapping_source=None
         return fieldschemas
 
 
-def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None, application=None) -> List[FieldEntity]:
+def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entity=None, application=None) -> List[dict]:
     """
     Returns detailed information on an ingest metadata field's associated entities.
 
@@ -1453,10 +1453,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
     :param application: application context--i.e., HUBMAP or SENNET
     """
     # response list
-    fieldentities: [FieldEntity] = []
-
-    # Used in WHERE clauses when no filter is needed.
-    identity_filter = '1=1'
+    field_entities=[]
 
     # Load annotated Cypher query from the cypher directory.
     # The query is parameterized with variable $ids.
@@ -1465,10 +1462,8 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
 
     # Allow for filtering on field name.
     if field_name is None:
-        field_filter = f' AND {identity_filter}'
-    else:
-        field_filter = f" AND tField.name = '{field_name}'"
-    querytxt = querytxt.replace('$field_filter', field_filter)
+        field_name =''
+    querytxt = querytxt.replace('$field_filter', f'"{field_name}"')
 
     # Allow for filtering on source.
     if source is None:
@@ -1479,21 +1474,19 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
         source_filter = "''"
     querytxt = querytxt.replace('$source_filter', source_filter)
 
-    # Allow for filtering on entity.
     if entity is None:
-        entity_filter = f"AND {identity_filter}"
+        entity_filter = "''"
     else:
-        entity_filter = f"AND (tEntity.name='{entity}' OR tEntity.name='{entity}')"
+        entity_filter = f"'{entity}'"
     querytxt = querytxt.replace('$entity_filter', entity_filter)
 
     # Allow for filtering on application context.
     if application is None:
-        application_filter = f"AND cEntity.SAB IN ['HUBMAP','SENNET']"
+        application_filter = "''"
     else:
-        application_filter = f"AND cEntity.SAB='{application}'"
+        application_filter = f"'{application}'"
     querytxt = querytxt.replace('$application_filter', application_filter)
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
@@ -1501,18 +1494,14 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
         # Execute Cypher query.
         try:
             recds: neo4j.Result = session.run(query)
-            record_count = 0
 
+            record_count = 0
             # Build response object.
             for record in recds:
                 try:
-                    fieldentity: FieldEntity = FieldEntity(code_ids=record.get('code_ids'),
-                                                           name=record.get('field_name'),
-                                                           entities=record.get('entities')).serialize()
-
-                    fieldentities.append(fieldentity)
+                    field_entity = record.get('field_entity')
+                    field_entities.append(field_entity)
                     record_count = record_count + 1
-
                 except KeyError:
                     pass
 
@@ -1521,7 +1510,7 @@ def field_entities_get_logic(neo4j_instance, field_name=None, source=None, entit
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-        return fieldentities
+        return field_entities
 
 def assayclasses_get_logic(neo4j_instance,assayclass=None, assaytype=None, process_state=None,
                            context=None, provide_hierarchy_info=None) -> dict:
