@@ -25,14 +25,14 @@ def field_entities_get(name=None):
     if err != 'ok':
         return make_response(err, 400)
 
-    # Validate mapping source.
+    # Validate parameters with values from limited set.
     source = request.args.get('source')
     if source is not None:
         source = source.upper()
-        val_enum = ['HMFIELD', 'CEDAR']
-        err = validate_parameter_value_in_enum(param_name='source', param_value=source, enum_list=val_enum)
-        if err != 'ok':
-            return make_response(err, 400)
+    val_enum = ['HMFIELD', 'CEDAR']
+    err = validate_parameter_value_in_enum(param_name='source', param_value=source, enum_list=val_enum)
+    if err != 'ok':
+        return make_response(err, 400)
 
     # Validate application context.
     application = request.args.get('application_context')
@@ -55,7 +55,6 @@ def field_entities_get(name=None):
             err['message'] = err['message'] + ' Call field-types-info for a list of available field data types.'
         return make_response(err, 404)
 
-    # March 2025
     # Redirect to S3 if payload is large.
     return redirect_if_large(resp=result)
 
