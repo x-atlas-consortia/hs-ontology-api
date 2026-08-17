@@ -952,65 +952,6 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "TESTS FOR: field-entities GET" | tee -a $testout
-echo "SIGNATURE: /field-entities/<field_name>?source=<source>&entity=<entity>&application_context=<context>" | tee -a $testout
-echo | tee -a $testout
-echo | tee -a $testout
-
-echo "1. /field-entities => should return 200" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/field-entities" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
-
-echo "2. /field-entities?test=X => invalid parameter; should return 400" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/field-entities?test=X" \
- --header "Content-Type: application/json"
-echo
-
-echo "3. /field-entities/acquisition_instrument_model => should return 200" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
-
-echo "4. /field-entities/acquisition_instrument_model?source=x => invalid source; should return 400" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model?source=x" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
-
-echo "5. /field-entities/acquisition_instrument_model?source=HMFIELD => should return 200" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model?source=HMFIELD" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
-
-echo "6. /field-entities/acquisition_instrument_model?entity=x => no results; should return 404" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model?entity=x" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
-
-echo "7. /field-entities/acquisition_instrument_model?entity=dataset => should return 200"
-curl --request GET \
- --url "${UBKG_URL}/field-entities/acquisition_instrument_model?entity=dataset" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
-
 echo "TESTS FOR: field-schemas GET" | tee -a $testout
 echo "SIGNATURE: /field-entities/<field_name>?source=<source>&schema=<schema>" | tee -a $testout
 echo | tee -a $testout
