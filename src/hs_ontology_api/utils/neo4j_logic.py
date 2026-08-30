@@ -18,7 +18,6 @@ from hs_ontology_api.models.celltypelist import CelltypeList
 from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
 
 from hs_ontology_api.models.fieldassay import FieldAssay
-from hs_ontology_api.models.fieldschema import FieldSchema
 
 # Mar 2025
 # Until the ubkg-api is refactored so that format_list_for_query function is in
