@@ -489,13 +489,6 @@ echo
 echo | tee -a $testout
 echo | tee -a $testout
 
-echo "/field-schemas" | tee -a $testout
-curl --request GET \
- --url "${UBKG_URL}/field-schemas" \
- --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
-echo
-echo | tee -a $testout
-echo | tee -a $testout
 
 echo "/annotations?sab=AZ" | tee -a $testout
 curl --request GET \
