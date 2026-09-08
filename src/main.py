@@ -17,7 +17,6 @@ from hs_ontology_api.routes.celltypesinfo.celltypesinfo_controller import cellty
 from hs_ontology_api.routes.fielddescriptions.fielddescriptions_controller import field_descriptions_blueprint
 from hs_ontology_api.routes.fieldtypes.fieldtypes_controller import field_types_blueprint
 from hs_ontology_api.routes.fieldassays.fieldassays_controller import field_assays_blueprint
-from hs_ontology_api.routes.fieldschemas.fieldschemas_controller import field_schemas_blueprint
 from hs_ontology_api.routes.fieldtypesinfo.fieldtypesinfo_controller import field_types_info_blueprint
 from hs_ontology_api.routes.assayclasses.assayclasses_controller import assayclasses_blueprint
 from hs_ontology_api.routes.datasettypes.datasettypes_controller import datasettypes_blueprint
@@ -54,7 +53,6 @@ app.register_blueprint(celltypes_blueprint)
 app.register_blueprint(field_descriptions_blueprint)
 app.register_blueprint(field_types_blueprint)
 app.register_blueprint(field_assays_blueprint)
-app.register_blueprint(field_schemas_blueprint)
 app.register_blueprint(field_types_info_blueprint)
 app.register_blueprint(assayclasses_blueprint)
 app.register_blueprint(datasettypes_blueprint)
