@@ -22,7 +22,6 @@ def celltypeslist() -> list[str]:
     # Until the response from the Cells API improves, use the UBKG.
     # return jsonify(ontcells.genes_from_cells())
 
-    # JUNE 2025 - Validation
     # Check for invalid parameter names.
     err = validate_query_parameter_names(parameter_name_list=['page','celltypes_per_page','starts_with'])
     if err != 'ok':
@@ -67,7 +66,6 @@ def celltypeslist() -> list[str]:
     total_pages = str(math.ceil(int(cell_type_count) / int(cell_types_per_page)))
 
     # Translation for cases "last" or "first"
-    print(f'total_pages={total_pages}')
     if page == 'last':
         page = str(int(total_pages))
     if page == 'first':
@@ -85,7 +83,6 @@ def celltypeslist() -> list[str]:
     # Obtain results.
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
 
-    # March 2025
     # Redirect to S3 if large.
     result = celltypelist_get_logic(neo4j_instance, page=page,
                                   total_pages=total_pages,

@@ -947,23 +947,23 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'celltypeslist_count.cypher'
     querytxt = loadquerystring(queryfile)
-    starts_with_clause = ''
-    if starts_with != '':
+
+    if starts_with == '':
+        starts_with_clause = ''
+    else:
         # Check for preferred term or synonym.
         # Escape apostrophes and double quotes.
-        starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-        starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with.lower()}"' \
+        starts_with_clause = starts_with.replace("'", "\'").replace('"', "\'").lower()
+        #starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with_esc}"'
+    params = {"starts_with": starts_with_clause}
 
-    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
-
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
 
             for record in recds:
                 try:
@@ -1013,24 +1013,28 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
 
     skiprows = intpage * int(cell_types_per_page)
 
-    starts_with_clause = ''
-    if starts_with != '':
+    if starts_with == '':
+        starts_with_clause = ''
+    else:
+        # Check for preferred term or synonym.
         # Escape apostrophes and double quotes.
-        starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-        starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with.lower()}"' \
+        starts_with_clause = starts_with.replace("'", "\'").replace('"', "\'").lower()
+        # starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with_esc}"'
+    params = {"starts_with": starts_with_clause}
 
-    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
+    #querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
     querytxt = querytxt.replace('$skiprows', str(skiprows))
     querytxt = querytxt.replace('$limitrows', str(cell_types_per_page))
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
+    print(querytxt)
+    print(params)
 
     with (neo4j_instance.driver.session() as session):
         # Execute Cypher query.
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
 
             cell_types: [CelltypesListDetail] = []
             # Build the list of gene details for this page.
