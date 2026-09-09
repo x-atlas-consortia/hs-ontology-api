@@ -5,17 +5,15 @@ import logging
 import neo4j
 from typing import List
 import os
+import math
 
 # Mar 2025 for handling configurable timeouts
 from werkzeug.exceptions import GatewayTimeout
 
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
-# JAS Sept 2023
-from hs_ontology_api.models.genedetail import GeneDetail
 
-from hs_ontology_api.models.celltypelist import CelltypeList
-from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
+from hs_ontology_api.models.genedetail import GeneDetail
 
 from hs_ontology_api.models.fieldassay import FieldAssay
 
@@ -980,7 +978,7 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
 
 def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_types_per_page: str,
-                           starts_with: str, cell_type_count: str) -> List[CelltypeList]:
+                           starts_with: str, cell_type_count: str) -> dict:
 
     """
     Returns information on Cell Ontology cell types.
@@ -1022,28 +1020,22 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
         # starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with_esc}"'
     params = {"starts_with": starts_with_clause}
 
-    #querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
     querytxt = querytxt.replace('$skiprows', str(skiprows))
     querytxt = querytxt.replace('$limitrows', str(cell_types_per_page))
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
-    print(querytxt)
-    print(params)
 
     with (neo4j_instance.driver.session() as session):
         # Execute Cypher query.
         try:
             recds: neo4j.Result = session.run(query, **params)
 
-            cell_types: [CelltypesListDetail] = []
+            cell_types = []
             # Build the list of gene details for this page.
             for record in recds:
                 try:
-                    cell_type: CelltypesListDetail = CelltypesListDetail(id=record.get('id'),
-                                                                         term=record.get('term'),
-                                                                         synonyms=record.get('synonyms'),
-                                                                         definition=record.get('definition')).serialize()
+                    cell_type = record.get('celltype')
                     cell_types.append(cell_type)
                 except KeyError:
                     pass
@@ -1053,14 +1045,14 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-        # Use the list of gene details with the page to build a genelist object.
-        celltypelist: CelltypeList = CelltypeList(page=page,
-                                                  total_pages=total_pages,
-                                                  cell_types_per_page=cell_types_per_page,
-                                                  cell_types=cell_types,
-                                                  starts_with=starts_with,
-                                                  cell_type_count=cell_type_count).serialize()
-    return celltypelist
+    pagination = {
+        "item_count": cell_type_count,
+        "items_per_page": int(cell_types_per_page),
+        "page": int(page),
+        "starts_with": starts_with,
+        "total_pages": math.ceil(cell_type_count/int(cell_types_per_page))
+    }
+    return {"pagination": pagination, "celltypes": cell_types}
 
 def celltypedetail_get_logic(neo4j_instance, searchids:list[str]) -> dict:
     """

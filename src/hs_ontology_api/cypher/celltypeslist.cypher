@@ -45,6 +45,7 @@ WITH id, term,synonyms,definition
 // Pagination parameters to be added by calling function.
 SKIP $skiprows
 LIMIT $limitrows
-RETURN DISTINCT id, term,synonyms,definition
+WITH id, term, COLLECT(DISTINCT synonyms) AS synonyms,definition
 ORDER BY id
+RETURN {id:id, term:term, definition:definition,synonyms:synonyms} AS celltype
 
