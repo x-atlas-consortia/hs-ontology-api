@@ -1,5 +1,3 @@
-# MAR 2025
-# Added check for timeout
 
 import logging
 import neo4j
@@ -17,9 +15,6 @@ from hs_ontology_api.models.genedetail import GeneDetail
 
 from hs_ontology_api.models.fieldassay import FieldAssay
 
-# Mar 2025
-# Until the ubkg-api is refactored so that format_list_for_query function is in
-# a utility module, import from the ubkg-api's common_neo4j_logic module.
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
