@@ -1,16 +1,17 @@
 // Returns high-level information on cell types in the UBKG
 // Used by the celltypes-info endpoint
 
+WITH $starts_with AS starts_with
 CALL
 {
+        WITH starts_with
         Optional MATCH (t:Term)<-[r]-(c:Code)<-[:CODE]-(p:Concept)
         WHERE r.CUI=p.CUI
         AND c.SAB='CL'
         AND TYPE(r) IN ['PT','SY']
-        // Allow for typeahead searches, but only on the preferred term provided by CL.
-        // (Other ontologies can provide other preferred terms for a CL code; these have a PT_SAB relationship.)
-        // The neo4j_logic will replace  starts_with_clause with a parameterized STARTS WITH clause.
-        $starts_with_clause
+        // Allow for case-insensitive typeahead searches.
+        AND CASE WHEN starts_with = '' THEN 1=1 ELSE toLower(t.name) STARTS WITH starts_with END
+
         RETURN c.CodeID as id,
         p.CUI as CodeCUI
 }
@@ -44,6 +45,7 @@ WITH id, term,synonyms,definition
 // Pagination parameters to be added by calling function.
 SKIP $skiprows
 LIMIT $limitrows
-RETURN DISTINCT id, term,synonyms,definition
+WITH id, term, COLLECT(DISTINCT synonyms) AS synonyms,definition
 ORDER BY id
+RETURN {id:id, term:term, definition:definition,synonyms:synonyms} AS celltype
 
