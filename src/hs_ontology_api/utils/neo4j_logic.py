@@ -1047,7 +1047,7 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
         "starts_with": starts_with,
         "total_pages": math.ceil(cell_type_count/int(cell_types_per_page))
     }
-    return {"pagination": pagination, "celltypes": cell_types}
+    return {"pagination": pagination, "cell_types": cell_types}
 
 def celltypedetail_get_logic(neo4j_instance, searchids:list[str]) -> dict:
     """
