@@ -29,7 +29,7 @@ CALL
         WITH id
         OPTIONAL MATCH (c:Code)-[:SY]->(t:Term)
         WHERE c.CodeID=id
-        RETURN COLLECT(t.name) AS synonyms
+        RETURN COLLECT(DISTINCT t.name) AS synonyms
 }
 // Definition
 CALL
@@ -45,7 +45,7 @@ WITH id, term,synonyms,definition
 // Pagination parameters to be added by calling function.
 SKIP $skiprows
 LIMIT $limitrows
-WITH id, term, COLLECT(DISTINCT synonyms) AS synonyms,definition
+WITH id, term, synonyms ,definition
 ORDER BY id
 RETURN {id:id, term:term, definition:definition,synonyms:synonyms} AS celltype
 
