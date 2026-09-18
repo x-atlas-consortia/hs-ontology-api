@@ -1,27 +1,20 @@
-# MAR 2025
-# Added check for timeout
 
 import logging
 import neo4j
 from typing import List
 import os
+import math
 
 # Mar 2025 for handling configurable timeouts
 from werkzeug.exceptions import GatewayTimeout
 
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
-# JAS Sept 2023
-from hs_ontology_api.models.genedetail import GeneDetail
 
-from hs_ontology_api.models.celltypelist import CelltypeList
-from hs_ontology_api.models.celltypelist_detail import CelltypesListDetail
+from hs_ontology_api.models.genedetail import GeneDetail
 
 from hs_ontology_api.models.fieldassay import FieldAssay
 
-# Mar 2025
-# Until the ubkg-api is refactored so that format_list_for_query function is in
-# a utility module, import from the ubkg-api's common_neo4j_logic module.
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
 
 logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s:%(lineno)d: %(message)s',
@@ -947,23 +940,23 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'celltypeslist_count.cypher'
     querytxt = loadquerystring(queryfile)
-    starts_with_clause = ''
-    if starts_with != '':
+
+    if starts_with == '':
+        starts_with_clause = ''
+    else:
         # Check for preferred term or synonym.
         # Escape apostrophes and double quotes.
-        starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-        starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with.lower()}"' \
+        starts_with_clause = starts_with.replace("'", "\'").replace('"', "\'").lower()
+        #starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with_esc}"'
+    params = {"starts_with": starts_with_clause}
 
-    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
-
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
 
             for record in recds:
                 try:
@@ -980,7 +973,7 @@ def celltypelist_count_get_logic(neo4j_instance, starts_with: str) -> int:
 
 
 def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_types_per_page: str,
-                           starts_with: str, cell_type_count: str) -> List[CelltypeList]:
+                           starts_with: str, cell_type_count: str) -> dict:
 
     """
     Returns information on Cell Ontology cell types.
@@ -1013,33 +1006,31 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
 
     skiprows = intpage * int(cell_types_per_page)
 
-    starts_with_clause = ''
-    if starts_with != '':
+    if starts_with == '':
+        starts_with_clause = ''
+    else:
+        # Check for preferred term or synonym.
         # Escape apostrophes and double quotes.
-        starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-        starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with.lower()}"' \
+        starts_with_clause = starts_with.replace("'", "\'").replace('"', "\'").lower()
+        # starts_with_clause = f' AND toLower(t.name) STARTS WITH "{starts_with_esc}"'
+    params = {"starts_with": starts_with_clause}
 
-    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
     querytxt = querytxt.replace('$skiprows', str(skiprows))
     querytxt = querytxt.replace('$limitrows', str(cell_types_per_page))
 
-    # March 2025
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with (neo4j_instance.driver.session() as session):
         # Execute Cypher query.
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
 
-            cell_types: [CelltypesListDetail] = []
+            cell_types = []
             # Build the list of gene details for this page.
             for record in recds:
                 try:
-                    cell_type: CelltypesListDetail = CelltypesListDetail(id=record.get('id'),
-                                                                         term=record.get('term'),
-                                                                         synonyms=record.get('synonyms'),
-                                                                         definition=record.get('definition')).serialize()
+                    cell_type = record.get('celltype')
                     cell_types.append(cell_type)
                 except KeyError:
                     pass
@@ -1049,14 +1040,14 @@ def celltypelist_get_logic(neo4j_instance, page: str, total_pages: str, cell_typ
             if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
                 raise GatewayTimeout
 
-        # Use the list of gene details with the page to build a genelist object.
-        celltypelist: CelltypeList = CelltypeList(page=page,
-                                                  total_pages=total_pages,
-                                                  cell_types_per_page=cell_types_per_page,
-                                                  cell_types=cell_types,
-                                                  starts_with=starts_with,
-                                                  cell_type_count=cell_type_count).serialize()
-    return celltypelist
+    pagination = {
+        "item_count": cell_type_count,
+        "items_per_page": int(cell_types_per_page),
+        "page": int(page),
+        "starts_with": starts_with,
+        "total_pages": math.ceil(cell_type_count/int(cell_types_per_page))
+    }
+    return {"pagination": pagination, "cell_types": cell_types}
 
 def celltypedetail_get_logic(neo4j_instance, searchids:list[str]) -> dict:
     """
