@@ -23,7 +23,7 @@ CALL
         WHERE c.CodeID=id
         RETURN DISTINCT t.name AS term
 }
-// Synoyms
+// Synonyms
 CALL
 {
         WITH id
@@ -39,7 +39,10 @@ CALL
         WHERE c.CodeID=id
         AND d.SAB = 'CL'
         AND r.CUI = p.CUI
-        RETURN DISTINCT d.DEF AS definition
+        // Because the definition of a code is associated with the code's concept, there will generally be duplicate definitions per code.
+        // Take the first definition in the list.
+        WITH COLLECT(DISTINCT d.DEF) AS definitions
+        RETURN definitions[0] AS definition
 }
 WITH id, term,synonyms,definition
 // Pagination parameters to be added by calling function.
@@ -47,5 +50,5 @@ SKIP $skiprows
 LIMIT $limitrows
 WITH id, term, synonyms ,definition
 ORDER BY id
-RETURN {id:id, term:term, definition:definition,synonyms:synonyms} AS celltype
+RETURN DISTINCT {id:id, term:term, definition:definition,synonyms:synonyms} AS celltype
 
