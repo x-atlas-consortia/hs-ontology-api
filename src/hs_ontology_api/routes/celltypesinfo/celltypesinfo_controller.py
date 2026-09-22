@@ -1,5 +1,5 @@
 # coding: utf-8
-# JAS November 2023
+
 from flask import Blueprint, jsonify, current_app, request, make_response
 from hs_ontology_api.utils.neo4j_logic import celltypelist_count_get_logic, celltypelist_get_logic
 import math
@@ -17,10 +17,6 @@ celltypesinfo_blueprint = Blueprint('celltypes-info', __name__, url_prefix='/cel
 def celltypeslist() -> list[str]:
 
     neo4j_instance = current_app.neo4jConnectionHelper.instance()
-
-    # Obtain a list of cell types that the Cells API identifies as being in datasets.
-    # Until the response from the Cells API improves, use the UBKG.
-    # return jsonify(ontcells.genes_from_cells())
 
     # Check for invalid parameter names.
     err = validate_query_parameter_names(parameter_name_list=['page','celltypes_per_page','starts_with'])

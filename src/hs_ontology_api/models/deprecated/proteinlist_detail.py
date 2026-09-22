@@ -3,7 +3,7 @@
 # JAS November 2023
 # ProteinsListDetail model class
 # Used by the proteins-info endpoint.
-# Provides information on proteins identified by either the UBKG or the Cells API--i.e., that
+# Provides information on proteins identified by the UBKG --i.e., that
 # have relevance to HuBMAP/SenNet.
 
 from __future__ import absolute_import
