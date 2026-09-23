@@ -2109,7 +2109,6 @@ components:
                 description: source for association between cell type and biomarker
                 enum:
                   - Human Reference Atlas
-                  - Cells
               biomarker_type:
                 type: string
                 description: type of biomarker
