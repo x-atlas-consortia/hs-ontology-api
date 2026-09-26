@@ -1,5 +1,5 @@
 # coding: utf-8
-# JAS October 2023
+
 from flask import Blueprint, jsonify, current_app, request, make_response
 from markupsafe import escape
 from hs_ontology_api.utils.neo4j_logic import genelist_get_logic,genelist_count_get_logic
@@ -105,9 +105,12 @@ def geneslist() -> list[str]:
                                 starts_with=starts_with,
                                 gene_count=gene_count,
                                 organism=organism)
-    if result == {"genes": []}:
+    print('result',result)
+    if result == {}:
         err = get_404_error_string(prompt_string=f"No results for "
                                                  f"specified parameters")
+        if organism == 'mouse' and starts_with != '':
+            err['message'] = err['message'] + " NOTE: the 'starts_with' parameter refers to the symbol for the mouse gene, not the name."
         return make_response(err, 404)
 
     # Redirect to S3 if payload is large.

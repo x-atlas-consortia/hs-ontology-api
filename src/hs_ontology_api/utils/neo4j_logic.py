@@ -566,7 +566,7 @@ def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
 
 def genelist_count_get_logic(neo4j_instance, starts_with: str, organism: str='human') -> int:
     """
-        Returns the count of genes in the UBKG.
+        Returns the count of genes in the UBKG for an organism.
         If starts_with is non-null, returns the count of genes with approved symbol
         that starts with the parameter value.
         :param neo4j_instance:  neo4j client
@@ -577,27 +577,32 @@ def genelist_count_get_logic(neo4j_instance, starts_with: str, organism: str='hu
     """
     #
 
-    # Load annotated Cypher query from the cypher directory.
+    """
+    Load annotated Cypher query from the cypher directory.
+    Human genes are from the HGNC vocabulary.
+    Mouse genes are from the MGI vocabulary.
+    """
+
     if organism == 'mouse':
         queryfile = 'mouse_geneslist_count.cypher'
     else:
         queryfile = 'geneslist_count.cypher'
 
     querytxt = loadquerystring(queryfile)
+
+    # Escape and cast the optional starts_with parameter.
     starts_with_clause = ''
     if starts_with != '':
-        # Escape apostrophes and double quotes.
-        starts_with = starts_with.replace("'", "\'").replace('"', "\'")
-        starts_with_clause = f'AND toUpper(tGene.name) STARTS WITH "{starts_with.upper()}"'
-    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
+        starts_with = starts_with.replace("\\", "\\\\").replace("'", "\\'").upper()
 
+    params = {"starts_with_clause": starts_with}
     # Set timeout for query based on value in app.cfg.
-    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
+    query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
 
             for record in recds:
                 try:
@@ -615,7 +620,7 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
                        gene_count: str, organism: str='human') -> dict:
 
     """
-    Returns information on HGNC genes.
+    Returns information on genes for an organism.
     Intended to support a Data Portal landing page featuring a high-level
     list with pagination features.
 
@@ -630,7 +635,11 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
 
     """
 
-    # Load annotated Cypher query from the cypher directory.
+    """
+        Load annotated Cypher query from the cypher directory.
+        Human genes are from the HGNC vocabulary.
+        Mouse genes are from the MGI vocabulary.
+    """
     if organism == 'mouse':
         queryfile = 'mouse_geneslist.cypher'
     else:
@@ -649,22 +658,16 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
 
     skiprows = intpage * int(genes_per_page)
 
+    escape_starts_with = starts_with
+
     if starts_with != '':
-        escaped_starts_with = starts_with.replace("\\", "\\\\").replace("'", "\\'").upper()
+        escape_starts_with = starts_with.replace("\\", "\\\\").replace("'", "\\'").upper()
 
-        symbol_expr = (
-            'toUpper(replace(replace(replace(toString(map["approved_symbol"][0]), "[", ""), "]", ""), "\'", ""))'
-            if organism == 'mouse'
-            else "toUpper(map['approved_symbol'][0])"
-        )
-
-        starts_with_clause = f"AND {symbol_expr} STARTS WITH '{escaped_starts_with}'"
-    else:
-        starts_with_clause = ''
-
-    querytxt = querytxt.replace('$starts_with_clause', starts_with_clause)
-    querytxt = querytxt.replace('$skiprows', str(skiprows))
-    querytxt = querytxt.replace('$limitrows', str(genes_per_page))
+    params = {
+                "starts_with_clause": escape_starts_with,
+                "skiprows": int(skiprows),
+                "limitrows": int(genes_per_page)
+            }
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
@@ -673,8 +676,7 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
     with neo4j_instance.driver.session() as session:
         # Execute Cypher query.
         try:
-            recds: neo4j.Result = session.run(query)
-
+            recds: neo4j.Result = session.run(query, **params)
             # Build the list of gene details for this page.
             for record in recds:
                 try:
@@ -712,25 +714,27 @@ def genelist_get_logic(neo4j_instance, page: str, total_pages: str, genes_per_pa
                             "summary": description,
                             "hgnc_id": record.get('hgnc_id')
                         }
-
+                    genes.append(gene)
                 except KeyError:
                     pass
 
-                genes.append(gene)
-
-            pagination = {
-                "page": page,
-                "total_pages": total_pages,
-                "items_per_page": genes_per_page,
-                "starts_with": starts_with,
-                "item_count": gene_count
-            }
 
         except neo4j.exceptions.ClientError as e:
-            # If the error is from a timeout, raise a HTTP 408.
-            if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
-                raise GatewayTimeout
-    return {"pagination": pagination, "genes":genes}
+            #If the error is from a timeout, raise a HTTP 408.
+                if e.code == 'Neo.ClientError.Transaction.TransactionTimedOutClientConfiguration':
+                    raise GatewayTimeout
+
+        if len(genes) > 0:
+            pagination = {
+                "page": int(page),
+                "total_pages": int(total_pages),
+                "items_per_page": int(genes_per_page),
+                "starts_with": starts_with,
+                "item_count": int(gene_count)
+            }
+            return {"pagination": pagination, "genes":genes}
+        else:
+            return {}
 
 
 def proteinlist_get_logic(neo4j_instance, page: str, total_pages: str, proteins_per_page: str, starts_with: str,
