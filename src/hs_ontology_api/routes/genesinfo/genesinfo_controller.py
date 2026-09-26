@@ -105,7 +105,7 @@ def geneslist() -> list[str]:
                                 starts_with=starts_with,
                                 gene_count=gene_count,
                                 organism=organism)
-    print('result',result)
+
     if result == {}:
         err = get_404_error_string(prompt_string=f"No results for "
                                                  f"specified parameters")
