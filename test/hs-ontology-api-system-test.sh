@@ -371,7 +371,7 @@ echo | tee -a $testout
 
 echo "/genes-info?page=1&genes_per_page=3&organism=mouse" | tee -a $testout
 curl --request GET \
- --url "${UBKG_URL}/genes-info?page=1&genes_per_page=3" \
+ --url "${UBKG_URL}/genes-info?page=1&genes_per_page=3&organism=mouse" \
  --header "Content-Type: application/json" | cut -c1-60 | tee -a $testout
 echo
 echo | tee -a $testout
