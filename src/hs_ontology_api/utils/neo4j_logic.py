@@ -488,7 +488,7 @@ def query_cypher_dataset_info(sab: str) -> str:
 
 def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
     """
-    OCTOBER 2025
+
     Returns reference information on a set of gene ids.
     :param neo4j_instance: neo4j client
     :param gene_ids: comma-delimited set of gene identifiers
@@ -504,19 +504,14 @@ def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
         queryfile = 'gene.cypher'
 
     querytxt = loadquerystring(queryfile)
-    # Format the list of ids for the Cypher query clause:
-    # 1. Strip white space
-    # 2. Restore single quotes
-    #ids = format_list_for_query(listquery=geneids)
-    ids = ",".join([f"'{item.strip()}'" for item in geneids])
-    querytxt = querytxt.replace('$ids', ids)
+    params = {"ids": geneids}
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
             for recd in recds:
                 result.append(recd.get('genes'))
 
@@ -529,7 +524,6 @@ def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
 
 def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     """
-    OCTOBER 2025
     Returns detailed information on a set of gene ids, including
     annotation mappings.
     :param neo4j_instance: neo4j client
@@ -537,23 +531,16 @@ def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     """
     result = []
     # Load annotated Cypher query from the cypher directory.
-    # The query is parameterized with variable $sab.
     queryfile = 'genedetail.cypher'
     querytxt = loadquerystring(queryfile)
-    #ids = format_list_for_query(listquery=geneids)
-    # Format the list of ids for the Cypher query clause:
-    # 1. Strip white space
-    # 2. Restore single quotes
-    ids = ",".join([f"'{item.strip()}'" for item in geneids])
-    querytxt = querytxt.replace('$ids', ids)
-
+    params = {"ids": geneids}
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
             for recd in recds:
                 result.append(recd.get('genes'))
 
