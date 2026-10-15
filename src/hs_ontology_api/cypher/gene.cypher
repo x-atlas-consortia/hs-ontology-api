@@ -1,5 +1,4 @@
 // GENES
-// OCTOBER 2025
 // Return reference information on a set of human genes, based on a input list of HGNC identifiers.
 // Used by the genes endpoint.
 
@@ -8,7 +7,6 @@ CALL
 // Get CUIs of concepts for genes that match the criteria.
 
 {
-
 // Criteria: list of HGNC identifiers.
 
 // The following types of identifiers can be used in the list:
@@ -23,46 +21,99 @@ CALL
 //WITH ['60','MMRN1'] AS ids
 
 // The calling function in neo4j_logic.py will replace $ids.
-WITH [$ids] AS ids
+WITH $ids AS ids
 
 // Find CUIs for genes that satisfy criteria for HGNC ID or term (symbol, name). The preferred CUI for each HGNC Code can be identified by the CUI property of any relationship between the code and one of its terms--e.g., PT.
-OPTIONAL MATCH (pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term) WHERE r.CUI=pGene.CUI AND type(r) IN ['PT','ACR','NS','NP','SYN','NA_UBKG'] AND cGene.SAB='HGNC' AND CASE WHEN ids[0]<>'' THEN (ANY(id IN ids WHERE cGene.CODE=id) or ANY(id in ids WHERE tGene.name=id)) ELSE 1=1 END RETURN DISTINCT pGene.CUI AS GeneCUI
+OPTIONAL MATCH (pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term)
+  WHERE r.CUI=pGene.CUI
+  AND type(r) IN ['PT','ACR','NS','NP','SYN','NA_UBKG']
+  AND cGene.SAB='HGNC'
+  AND CASE
+    WHEN ids[0]<>''THEN (ANY(id IN ids WHERE cGene.CODE=id) OR ANY(id in ids WHERE tGene.name=id))
+    ELSE 1=1
+    END
+RETURN DISTINCT pGene.CUI AS GeneCUI
 
 }
 
-CALL{
+CALL
+{
 
 // Gene symbols, names, aliases, prior values
 WITH GeneCUI
-OPTIONAL MATCH (pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term) WHERE pGene.CUI=GeneCUI AND r.CUI=pGene.CUI AND type(r) IN ['PT','ACR','NS','NP','SYN','NA_UBKG'] AND cGene.SAB='HGNC' RETURN toInteger(cGene.CODE) AS hgnc_id, CASE type(r) WHEN 'PT' THEN 'approved_name' WHEN 'ACR' THEN 'approved_symbol' WHEN 'NS' THEN 'previous_symbols' WHEN 'NP' THEN 'previous_names' WHEN 'SYN' THEN 'alias_symbols' WHEN 'NA_UBKG' THEN 'alias_names' ELSE type(r) END AS ret_key,tGene.name AS ret_value
+OPTIONAL MATCH (pGene:Concept)-[:CODE]->(cGene:Code)-[r]->(tGene:Term)
+  WHERE pGene.CUI=GeneCUI
+  AND r.CUI=pGene.CUI
+  AND type(r) IN ['PT','ACR','NS','NP','SYN','NA_UBKG']
+  AND cGene.SAB='HGNC'
+RETURN
+  toInteger(cGene.CODE) AS hgnc_id,
+  CASE type(r)
+    WHEN 'PT' THEN 'approved_name'
+    WHEN 'ACR' THEN 'approved_symbol'
+    WHEN 'NS' THEN 'previous_symbols'
+    WHEN 'NP' THEN 'previous_names'
+    WHEN 'SYN' THEN 'alias_symbols'
+    WHEN 'NA_UBKG' THEN 'alias_names'
+    ELSE type(r)
+    END AS ret_key,
+  tGene.name AS ret_value
 ORDER BY hgnc_id, ret_key
 
 UNION
 
 // References to other vocabularies (Entrez, Ensembl, OMIM)
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:CODE]->(cRef:Code) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND cRef.SAB IN ['ENTREZ','ENSEMBL','OMIM'] RETURN toInteger(cGene.CODE) as hgnc_id, 'references' AS ret_key, cRef.CodeID AS ret_value
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:CODE]->(cRef:Code)
+  WHERE pGene.CUI=GeneCUI
+  AND cGene.SAB='HGNC'
+  AND cRef.SAB IN ['ENTREZ','ENSEMBL','OMIM']
+RETURN
+  toInteger(cGene.CODE) AS hgnc_id,
+  'references' AS ret_key,
+  cRef.CodeID AS ret_value
 ORDER BY hgnc_id, ret_key
 
 UNION
 
 // References to HUGO (HGNC)
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' RETURN toInteger(cGene.CODE) as hgnc_id, 'references' AS ret_key, cGene.CodeID AS ret_value
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)
+  WHERE pGene.CUI=GeneCUI
+  AND cGene.SAB='HGNC'
+RETURN
+  toInteger(cGene.CODE) AS hgnc_id,
+  'references' AS ret_key,
+  cGene.CodeID AS ret_value
 ORDER BY hgnc_id, ret_key
 
 UNION
 
 // References to gene products of genes from UNIPROTKB
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:has_gene_product]->(pProtein:Concept)-[:CODE]->(cProtein:Code) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' RETURN toInteger(cGene.CODE) AS hgnc_id, 'references' AS ret_key, cProtein.CodeID AS ret_value
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-
+[:has_gene_product]->(pProtein:Concept)-[:CODE]->(cProtein:Code)
+  WHERE pGene.CUI=GeneCUI
+  AND cGene.SAB='HGNC'
+RETURN
+  toInteger(cGene.CODE) AS hgnc_id,
+  'references' AS ret_key,
+  cProtein.CodeID AS ret_value
 ORDER BY hgnc_id,ret_key
 
 UNION
 
 // RefSeq summaries, with backslashes in text replaced with forward slashes
 WITH GeneCUI
-OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-[:DEF]->(dGene:Definition) WHERE pGene.CUI=GeneCUI AND cGene.SAB='HGNC' AND dGene.SAB='REFSEQ' RETURN toInteger(cGene.CODE) AS hgnc_id, 'summary' AS ret_key, replace(dGene.DEF,'\\','/') AS ret_value
+OPTIONAL MATCH (cGene:Code)<-[:CODE]-(pGene:Concept)-
+[:DEF]->(dGene:Definition)
+  WHERE pGene.CUI=GeneCUI
+  AND cGene.SAB='HGNC'
+  AND dGene.SAB='REFSEQ'
+RETURN
+  toInteger(cGene.CODE) AS hgnc_id,
+  'summary' AS ret_key,
+  replace(dGene.DEF,'\\','/') AS ret_value
 ORDER BY hgnc_id,ret_key
 
 }

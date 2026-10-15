@@ -18,8 +18,7 @@ CALL
 
 //WITH ['2152878','A1bg'] AS ids
 
-// The calling function in neo4j_logic.py will replace $ids.
-WITH [$ids] AS ids
+WITH $ids AS ids
 
 // Find CUIs for genes that satisfy criteria for MGI ID or symbol.
 // May 2026 Currently, HCOP gene symbols are lists of strings, for some reason.
