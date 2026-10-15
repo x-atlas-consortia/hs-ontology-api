@@ -1,9 +1,4 @@
 // GENES detail
-// OCTOBER 2025
-// Refactored:
-// 1. Annotation-related maps to CL take advantage of reduced ingests of UBERON and PATO.
-// 2. Returns as JSON
-
 
 // Return detailed information on a gene, based on a input list of HGNC identifiers.
 // Used by the genes endpoint.
@@ -30,9 +25,7 @@ CALL
     // Sample criteria
     //WITH ['MMRN1'] AS ids
 
-    // The calling function will replace the variable preceded by $.
-    WITH [$ids] AS ids
-
+    WITH $ids AS ids
 
     // Find CUIs for genes that satisfy criteria for HGNC ID or term (symbol, name). The preferred CUI for each HGNC Code can be identified
     // by the CUI property of any relationship between the code and one of its terms--e.g., PT.
@@ -41,7 +34,7 @@ CALL
     AND type(r) IN ['PT','ACR','NS','NP','SYN','NA_UBKG']
     AND cGene.SAB='HGNC'
     AND CASE
-        WHEN ids[0]<>'' THEN (ANY(id IN ids WHERE cGene.CODE=id) or ANY(id in ids WHERE tGene.name=id))
+        WHEN ids[0]<>'' THEN (ANY(id IN ids WHERE cGene.CODE=id) OR ANY(id in ids WHERE tGene.name=id))
         ELSE 1=1
         END
     RETURN DISTINCT pGene.CUI AS GeneCUI
