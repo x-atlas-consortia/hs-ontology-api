@@ -11,8 +11,6 @@ from werkzeug.exceptions import GatewayTimeout
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
-from hs_ontology_api.models.genedetail import GeneDetail
-
 from hs_ontology_api.models.fieldassay import FieldAssay
 
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
@@ -504,6 +502,12 @@ def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
         queryfile = 'gene.cypher'
 
     querytxt = loadquerystring(queryfile)
+    if len(geneids) > 0:
+        stripped_geneids = []
+        for g in geneids:
+            stripped_geneids.append(g.strip())
+        geneids = stripped_geneids
+
     params = {"ids": geneids}
 
     # Set timeout for query based on value in app.cfg.
@@ -533,6 +537,13 @@ def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     # Load annotated Cypher query from the cypher directory.
     queryfile = 'genedetail.cypher'
     querytxt = loadquerystring(queryfile)
+
+    if len(geneids) > 0:
+        stripped_geneids = []
+        for g in geneids:
+            stripped_geneids.append(g.strip())
+        geneids = stripped_geneids
+
     params = {"ids": geneids}
 
     # Set timeout for query based on value in app.cfg.
