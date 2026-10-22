@@ -11,8 +11,6 @@ from werkzeug.exceptions import GatewayTimeout
 # Classes for JSON objects in response body
 from hs_ontology_api.models.sab_code_term import SabCodeTerm
 
-from hs_ontology_api.models.genedetail import GeneDetail
-
 from hs_ontology_api.models.fieldassay import FieldAssay
 
 from ubkg_api.common_routes.common_neo4j_logic import format_list_for_query
@@ -488,7 +486,7 @@ def query_cypher_dataset_info(sab: str) -> str:
 
 def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
     """
-    OCTOBER 2025
+
     Returns reference information on a set of gene ids.
     :param neo4j_instance: neo4j client
     :param gene_ids: comma-delimited set of gene identifiers
@@ -504,19 +502,20 @@ def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
         queryfile = 'gene.cypher'
 
     querytxt = loadquerystring(queryfile)
-    # Format the list of ids for the Cypher query clause:
-    # 1. Strip white space
-    # 2. Restore single quotes
-    #ids = format_list_for_query(listquery=geneids)
-    ids = ",".join([f"'{item.strip()}'" for item in geneids])
-    querytxt = querytxt.replace('$ids', ids)
+    if len(geneids) > 0:
+        stripped_geneids = []
+        for g in geneids:
+            stripped_geneids.append(g.strip())
+        geneids = stripped_geneids
+
+    params = {"ids": geneids}
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
             for recd in recds:
                 result.append(recd.get('genes'))
 
@@ -529,7 +528,6 @@ def gene_get_logic(neo4j_instance, geneids: str, organism: str='human') -> list:
 
 def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     """
-    OCTOBER 2025
     Returns detailed information on a set of gene ids, including
     annotation mappings.
     :param neo4j_instance: neo4j client
@@ -537,23 +535,23 @@ def genedetail_get_logic(neo4j_instance, geneids: str) -> list:
     """
     result = []
     # Load annotated Cypher query from the cypher directory.
-    # The query is parameterized with variable $sab.
     queryfile = 'genedetail.cypher'
     querytxt = loadquerystring(queryfile)
-    #ids = format_list_for_query(listquery=geneids)
-    # Format the list of ids for the Cypher query clause:
-    # 1. Strip white space
-    # 2. Restore single quotes
-    ids = ",".join([f"'{item.strip()}'" for item in geneids])
-    querytxt = querytxt.replace('$ids', ids)
 
+    if len(geneids) > 0:
+        stripped_geneids = []
+        for g in geneids:
+            stripped_geneids.append(g.strip())
+        geneids = stripped_geneids
+
+    params = {"ids": geneids}
 
     # Set timeout for query based on value in app.cfg.
     query = neo4j.Query(text=querytxt, timeout=neo4j_instance.timeout)
 
     with neo4j_instance.driver.session() as session:
         try:
-            recds: neo4j.Result = session.run(query)
+            recds: neo4j.Result = session.run(query, **params)
             for recd in recds:
                 result.append(recd.get('genes'))
 
